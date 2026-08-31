@@ -1,0 +1,22 @@
+---
+description: Plan 模式前置门：进入规划前强制检查并调用 superpowers（brainstorming 澄清）；插件缺失时自动 /add-plugin superpowers
+alwaysApply: true
+---
+
+# Superpowers 前置门（Plan 模式前强制）
+
+进入 Plan 模式（含委派 @plan-agent、运行 `/plan`、`/new-feature` 的中任务分支）之前，必须先完成以下检查，**任何一步未完成不得开始规划**。
+
+## 1. 插件可用性检查
+- 检查项目 `.cursor/settings.json`：`plugins.superpowers.enabled` 是否为 true。
+- 检查插件本体存在：`~/.cursor/plugins/cache/cursor-public/superpowers`（或当前机器实际安装路径）。
+- 任一缺失/未启用 → 自动执行 `/add-plugin superpowers`；若当前环境无法直接执行斜杠命令，明确提示用户手动运行该命令。插件就绪前不进入 Plan 模式。
+- 安装后重新检查一次，仍失败则终止并反馈障碍，不强行继续。
+
+## 2. 强制调用 using-superpowers
+- 插件就绪后，必须先读取并遵循 `skills/using-superpowers/SKILL.md`，按其路由进入 `brainstorming` 技能。
+- 澄清要求：一次只问一个问题；优先给选择题；覆盖目的、约束、成功标准；用户确认后再生成计划。
+- 本项目自定义的 plan-agent **不适用** superpowers 的 SUBAGENT-STOP 例外：即使被委派为子代理，也必须先完成上述澄清，除非用户明确说"跳过澄清"。
+
+## 3. 例外
+- 用户明确指示跳过澄清（如"直接做，不用问"）时，可省略第 2 步；第 1 步插件检查仍执行。

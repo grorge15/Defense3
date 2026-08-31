@@ -1,0 +1,42 @@
+---
+description: Defense3 项目硬约束：场景纪律、命名、渲染约定、数值、多 Agent 计划优先级
+alwaysApply: true
+---
+
+# Defense3 项目硬约束
+
+权威设计文档：`defense3.md`（项目根目录）。与 `AI_TASK_LIST.md` 冲突时以本规则 + `defense3.md` 为准。
+
+## 场景与序列化
+- 场景装配优先编辑器拖入预制体；**禁止 AI 大规模手写/改写 `assets/scenes/Main.scene` JSON**。
+- P3 场景任务：AI 只产出预制体 + `docs/SCENE_PLACEMENT.md` 放置说明；**用户在 Cocos 编辑器中拖入**。
+- 禁止手写或修改 `.meta` 的 uuid；脚本重命名/移动须经编辑器。
+
+## 脚本唯一性（禁止职责分裂）
+- **一个游戏对象 = 一个主脚本**，禁止为同一对象再建 `*Controller.ts`。
+  - 玩家：仅 `Player.ts`（含跑酷/防守移动、攻击、大招）
+  - 滚木：仅 `Log.ts`（含滚动、变长/砍断、跑酷段流程）
+- 跨对象系统可用 `*System.ts` / `*Manager.ts`，但不得与对象主脚本重复职责。
+
+## 命名
+- 预制体：`pref_` + **全小写 snake_case**（如 `pref_build_plot`，禁止 `pref_buildPlot`）。
+- 类名大驼峰；变量/函数小驼峰；私有 `_` 前缀。
+- `resources.load` 路径必须与磁盘文件名**大小写完全一致**。
+
+## 数值
+- 全部读 `GameConfig`；文档中「几下死」「一击秒杀」仅为初始参考，禁止硬编码击杀次数。
+
+## 渲染与层级（P0 必读，所有 P2/P6 前置）
+详见 `AI_TASK_LIST.md` §P0。摘要：
+1. **节点结构**：根节点 `Transform`（逻辑/物理）→ 子节点 `Visual`（Sprite + Animation + Billboard + SortingOrder2D）。
+2. **Billboard**：在 `lateUpdate` 中仅绕 Y 轴朝向相机；取 `Visual` 子节点旋转，不改根节点物理旋转。
+3. **SortingOrder2D**：`sortingOrder = Math.round(-visualNode.worldPosition.y * 100)`；取 **Visual 子节点**世界 Y，不用根节点。
+4. **锚点**：挂 SortingOrder2D 的 Sprite，`anchorY = 0`（脚底对齐地面）。
+5. **相机**：透视相机俯角约 45°，高度 Y=15，看向原点；正交禁止。
+6. **单位**：1 世界单位 ≈ 1 像素格；角色 Sprite `sizeMode = RAW`，scale 统一由预制体配置。
+
+## 阶段切换
+- 进入塔防段：`ParkourContent` 全部 `active=false`；`RoadRoot` 保持可见。
+
+## 计划执行优先级
+- 中/大任务必须走 `.cursor/plans/<slug>.md` + `/build-plan`；计划违反本规则则 build-agent 终止。

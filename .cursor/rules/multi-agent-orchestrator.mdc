@@ -1,0 +1,33 @@
+---
+description: 多 Agent 路由与交接协议：规模路由、Plan-Build 流水线、状态机、冲突分类、入口命令
+alwaysApply: true
+---
+
+# 多 Agent 协作（Defense3）
+
+## 规模路由（收到任何一句话目标先执行）
+| 规模 | 判定 | 处理 |
+| --- | --- | --- |
+| 小任务 | ≤2 个文件改动、无破坏性/接口变更、可一次验证 | 委派 @goal-agent 直接执行 |
+| 中任务 | 多文件/跨模块/需先调研定方案/用户要求先出计划 | Plan-Build 流水线 |
+| 超大任务 | 系统级重构、从零搭完整业务系统 | 拒绝，要求拆分更小目标 |
+
+歧义影响方案走向时先简短确认，不脑补大规模业务。
+
+## Plan-Build 流水线（中任务）
+1. 先执行 superpowers 前置门（插件检查 + brainstorming 澄清，见 superpowers-gate.mdc），完成后再委派 @plan-agent 调研并生成 `.cursor/plans/<slug>.md`（状态 draft）；主会话只显示摘要。
+2. 用户可在 Cursor 中直接编辑计划文件；确认后输入 `/build-plan <slug>`。
+3. 委派 @build-agent 执行：文件清单 → 步骤 → 校验点；报告写入 `.cursor/plans/reports/<slug>-report.md`（引用 AC 编号）。
+4. 主会话对照报告收尾：全部 AC 通过 → 状态置 done；有失败项 → `/replan <slug>`。
+
+## 计划状态机
+draft（计划已落盘）→ active（用户确认/build 开始）→ verifying（校验中）→ done | replan（版本 +1 回到 draft）
+
+## 冲突分类
+- 业务需求类：计划与用户原话不符 → 不自行扩展，走 replan。
+- 环境类：代码现状与计划描述不符 → 终止，走 replan，禁止脑补替代方案。
+- 项目硬约束：与 defense3-workflow.mdc 冲突 → 以工作流规则为准。
+- 任务清单驱动：`AI_TASK_LIST.md` 中每个 P 任务对应一个 plan slug；执行前查「任务-管线映射表」，禁止绕过 gate 直接大范围改代码。
+
+## 入口命令
+`/plan <目标>` Plan 前置门（superpowers 检查+安装+澄清→落盘计划） · `/new-feature` 新需求 · `/fix-bug` Bug 修复 · `/build-plan <slug>` 执行计划 · `/replan <slug>` 修订计划 · `/verify-plan <slug>` 只跑校验
