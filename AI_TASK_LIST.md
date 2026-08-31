@@ -16,7 +16,7 @@
 |---|---|
 | Agents | `.cursor/agents/`（goal-agent / plan-agent / build-agent） |
 | 规则 | `.cursor/rules/`（`defense3-workflow.mdc` 为项目硬约束） |
-| 命令 | `/plan` `/new-feature` `/fix-bug` `/build-plan` `/replan` `/verify-plan` `/summary` |
+| 命令 | `/plan-task` `/new-feature` `/fix-bug` `/build-plan` `/replan` `/verify-plan` `/summary` |
 | 计划 | `.cursor/plans/<slug>.md` |
 | 报告 | `.cursor/plans/reports/<slug>-report.md` |
 | 总结 | `.cursor/summaries/<slug>-summary.md` |
@@ -26,7 +26,7 @@
 | 任务规模 | 路由 | 流程 |
 |---|---|---|
 | **小**（≤2 文件、无接口破坏） | `@goal-agent` | 直接实现 → 极简报告；仍须跑该任务 AC |
-| **中**（多文件 / 跨模块 / P2~P4 单任务） | `@plan-agent` → 用户审阅 → `/build-plan <slug>` | 计划落盘 → build-agent 执行 → `/verify-plan` |
+| **中**（多文件 / 跨模块 / P2~P4 单任务） | `@plan-agent` → 用户审阅 → `/build-plan <slug>` | `/plan-task` 落盘 → build-agent 执行 → `/verify-plan` |
 | **大**（P4 系统级、P3 场景批次） | plan 内拆 **S1..Sn 子步骤** | 每个 S 独立 AC；失败 `/replan` |
 
 **强制规则**：每个 P 任务 = 一个 plan 文件 + 一份执行报告 +（可选）`/summary`。禁止不建 plan 直接大范围改代码。
@@ -53,7 +53,7 @@
 ```
 请按 AI_TASK_LIST.md 执行任务 [P?-???]：
 1. 查映射表确定 slug 与 agent 路由
-2. 中/大任务先 /plan 落盘 .cursor/plans/<slug>.md（含 AC 命令）
+2. 中/大任务先 `/plan-task` 落盘 `.cursor/plans/<slug>.md`（含 AC 命令）
 3. 严格遵守 defense3-workflow.mdc、§P0 渲染约定、脚本唯一性
 4. 完成后 /verify-plan <slug> 并更新执行报告
 ```
@@ -110,7 +110,7 @@ pref_ui_hp_bar_enemy / pref_ui_hp_bar_boss / pref_ui_joystick_hint / pref_ui_gam
 1. **顺序**：P0 确认 → P1 最小集 → P2 预制体（含动画空 clip）→ P3 放置说明 → P4 系统 → P5 UI → P6 美术替换。
 2. **占位资源**：图用 `default_sprite`；动画用空 `AnimationClip`（见 `docs/ANIM_MANIFEST.md`）。
 3. **数值**：全读 `GameConfig`；「几下死」仅为初始 hp/attack 参考。
-4. **塔防段切换**：`ParkourContent.active = false`，仅 `RoadRoot` 保留。
+4. **塔防段场景切换（两墙建完）**：`ParkourContent.active = false`（电锯/预置敌/黄蓝线）；**滚木实例须挂在 `ParkourContent` 外**（如 `RoadRoot/LogAnchor`）以保持可见；`RoadRoot` 保留。滚木固定（蓝线）只结束跑酷玩法并切防守移动，**不**隐藏 `ParkourContent`。
 5. **场景**：AI 不改 Main.scene 大规模 JSON；产出 prefab + `docs/SCENE_PLACEMENT.md`，用户编辑器拖入。
 
 ### 通用 AC 命令（每个任务 plan 必须包含）
@@ -199,7 +199,7 @@ rg "第[0-9]+下|hitsToKill|一击秒杀" assets/scripts/ && exit 1 || true
 | **slug** | `p2-002-log` |
 | **唯一脚本** | `assets/scripts/item/Log.ts`（**含**滚动、变长/砍断、黄线蓄力、蓝线固定/失败淡出、跑酷段流程；**禁止** LogController.ts） |
 | **动画 clip** | roll（空占位） |
-| **归属** | 实例挂 `ParkourContent` 下 |
+| **归属** | 实例挂 `RoadRoot/LogAnchor`（**勿**挂 `ParkourContent`，两墙后跑酷节点会隐藏，滚木须保留） |
 | **AC-1** | AC-COMPILE |
 | **AC-2** | `test ! -f assets/scripts/item/LogController.ts` |
 | **AC-3** | `rg "class Log" assets/scripts/item/Log.ts` |
@@ -290,8 +290,8 @@ rg "第[0-9]+下|hitsToKill|一击秒杀" assets/scripts/ && exit 1 || true
 ### P3-002 道路分层
 
 更新 `docs/SCENE_PLACEMENT.md`：
-- `RoadRoot`：Road / SideWalls / Stairs（塔防段保留）
-- `ParkourContent`：SawTraps / PreSpawnEnemies / LogSpawn / YellowLine / BlueLine（塔防段隐藏）
+- `RoadRoot`：Road / SideWalls / Stairs / **LogAnchor（固定滚木挂点，塔防段保留）**
+- `ParkourContent`：SawTraps / PreSpawnEnemies / YellowLine / BlueLine（**两墙建完后**隐藏；滚木不放此节点下）
 
 ### P3-003 刷怪点 · P3-004 建造地块 · P3-005 拓展区
 
@@ -343,9 +343,15 @@ rg "第[0-9]+下|hitsToKill|一击秒杀" assets/scripts/ && exit 1 || true
 
 ### P4-011 UltimateSystem · P4-012 CameraController
 
-### P4-013 PhaseTransition（跑酷段隐藏）
+### P4-013 PhaseTransition（两墙后隐藏跑酷段）
 
-| AC | `rg "ParkourContent" assets/scripts/game/PhaseTransition.ts` |
+| 项 | 内容 |
+|---|---|
+| **文件** | `assets/scripts/game/PhaseTransition.ts` |
+| **触发** | 监听 `BOTH_WALLS_COMPLETE`（由 P4-005 两侧墙均完成时 emit） |
+| **行为** | `ParkourContent.active=false`；`logNode` 保持 active；可选 `defenseContentRoot.active=true`；emit `PHASE_CHANGED('defense')` |
+| **滚木** | 场景中滚木实例须在 `ParkourContent` 子树外 |
+| **AC** | `rg "ParkourContent|BOTH_WALLS_COMPLETE|logNode" assets/scripts/game/PhaseTransition.ts` |
 
 **P4 大任务 plan 必须拆子步骤**：例 `p4-005-build` → S1 解锁条件 / S2 扣费 / S3 生成建筑 / S4 事件广播
 

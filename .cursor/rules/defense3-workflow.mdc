@@ -36,7 +36,8 @@ alwaysApply: true
 6. **单位**：1 世界单位 ≈ 1 像素格；角色 Sprite `sizeMode = RAW`，scale 统一由预制体配置。
 
 ## 阶段切换
-- 进入塔防段：`ParkourContent` 全部 `active=false`；`RoadRoot` 保持可见。
+- **滚木固定（`LOG_FIXED`）**：结束跑酷玩法；玩家切防守移动；墙建造地块出现。**不**隐藏 `ParkourContent`。
+- **两墙建完（`BOTH_WALLS_COMPLETE`）**：`ParkourContent` 全部 `active=false`；滚木实例须挂在 `ParkourContent` 外并保持可见；`RoadRoot` 保持可见；emit `PHASE_CHANGED('defense')`。
 
 ## 计划执行优先级
 - 中/大任务必须走 `.cursor/plans/<slug>.md` + `/build-plan`；计划违反本规则则 build-agent 终止。

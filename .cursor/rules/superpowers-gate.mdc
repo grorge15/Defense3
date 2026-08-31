@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Superpowers 前置门（Plan 模式前强制）
 
-进入 Plan 模式（含委派 @plan-agent、运行 `/plan`、`/new-feature` 的中任务分支）之前，必须先完成以下检查，**任何一步未完成不得开始规划**。
+进入 Plan 模式（含委派 @plan-agent、运行 `/plan-task`、`/new-feature` 的中任务分支）之前，必须先完成以下检查，**任何一步未完成不得开始规划**。
 
 ## 1. 插件可用性检查
 - 检查项目 `.cursor/settings.json`：`plugins.superpowers.enabled` 是否为 true。

@@ -6,7 +6,7 @@
 
 1. **确认工作区根目录**为 `Defense3`（左侧资源管理器顶层应为本项目，而非上级文件夹）
 2. **完全退出并重启 Cursor**（Windows：`Alt+F4` 关闭所有窗口，任务管理器确认无 Cursor 进程后再开）
-3. 在 **Agent 聊天框**输入 `/`，应出现 `fix-bug`、`plan`、`new-feature` 等
+3. 在 **Agent 聊天框**输入 `/`，应出现 `fix-bug`、`plan-task`、`new-feature` 等
 4. 若仍不出现：在聊天框**手动输入** `/fix-bug 描述你的 bug`（有时可执行但菜单缓存未刷新）
 
 ## 命令列表与文件位置
@@ -14,9 +14,9 @@
 | 输入 | 定义文件 |
 |---|---|
 | `/fix-bug` | `.cursor/commands/fix-bug.md` |
-| `/plan` | `.cursor/commands/plan.md` |
+| `/plan-task` | `.cursor/commands/plan-task.md` |
 | `/new-feature` | `.cursor/commands/new-feature.md` |
-| `/build-plan` | `.cursor/commands/build-plan.md` |
+| `/build-plan` | `.cursor/commands/build-plan.md` — 执行前读计划「修订记录」，报告中写明本版相对上一版的改动 |
 | `/verify-plan` | `.cursor/commands/verify-plan.md` |
 | `/replan` | `.cursor/commands/replan.md` |
 | `/summary` | `.cursor/commands/summary.md` |
@@ -43,7 +43,7 @@
 ## 示例
 
 ```
-/plan 执行 AI_TASK_LIST.md 任务 P2-001 玩家预制体
+/plan-task 执行 AI_TASK_LIST.md 任务 P2-001 玩家预制体
 ```
 
 审阅 `.cursor/plans/p2-001-player.md` 后：

@@ -30,4 +30,4 @@ draft（计划已落盘）→ active（用户确认/build 开始）→ verifying
 - 任务清单驱动：`AI_TASK_LIST.md` 中每个 P 任务对应一个 plan slug；执行前查「任务-管线映射表」，禁止绕过 gate 直接大范围改代码。
 
 ## 入口命令
-`/plan <目标>` Plan 前置门（superpowers 检查+安装+澄清→落盘计划） · `/new-feature` 新需求 · `/fix-bug` Bug 修复 · `/build-plan <slug>` 执行计划 · `/replan <slug>` 修订计划 · `/verify-plan <slug>` 只跑校验
+`/plan-task <目标>` Plan 前置门（superpowers 检查+安装+澄清→落盘计划） · `/new-feature` 新需求 · `/fix-bug` Bug 修复 · `/build-plan <slug>` 执行计划 · `/replan <slug>` 修订计划 · `/verify-plan <slug>` 只跑校验

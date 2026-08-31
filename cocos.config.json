@@ -1,0 +1,361 @@
+{
+    "builder": {
+        "platforms": {},
+        "common": {
+            "binGroupConfig": {
+                "threshold": 16,
+                "enable": false
+            },
+            "polyfills": {
+                "asyncFunctions": true
+            },
+            "buildPath": "project://build",
+            "mainBundleCompressionType": "merge_dep",
+            "md5Cache": true,
+            "nativeCodeBundleMode": "asmjs"
+        }
+    },
+    "engine": {
+        "designResolution": {
+            "width": 720,
+            "height": 1280
+        }
+    },
+    "version": "1.0.0",
+    "$schema": "./temp/cocos.config.schema.json",
+    "scene": {
+        "gizmo": {
+            "is2D": false,
+            "is3DIcon": false,
+            "iconSize": 2,
+            "transformToolName": "position",
+            "viewMode": "select",
+            "pivot": "pivot",
+            "coordinate": "local",
+            "toolsVisibility3d": true,
+            "gridVisible": true,
+            "gridColor": [
+                166,
+                166,
+                166,
+                255
+            ],
+            "originAxis2D": {
+                "x": true,
+                "y": true,
+                "z": false
+            },
+            "originAxis3D": {
+                "x": true,
+                "y": false,
+                "z": true
+            },
+            "rectSnapConfig": {
+                "enableSnapping": true,
+                "snapThreshold": 4
+            },
+            "snapConfigs": {
+                "position": {
+                    "x": 1,
+                    "y": 1,
+                    "z": 1
+                },
+                "rotation": 1,
+                "scale": 1,
+                "isPositionSnapEnabled": false,
+                "isRotationSnapEnabled": false,
+                "isScaleSnapEnabled": false
+            }
+        },
+        "camera-infos": {
+            "Node.927": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.965": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1043": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1075": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1134": {
+                "position": {
+                    "x": 692.820323027551,
+                    "y": 692.8203230275509,
+                    "z": 692.8203230275508
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1197": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1322": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1431": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1467": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1490": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            },
+            "Node.1522": {
+                "position": {
+                    "x": 1.4433756729740645,
+                    "y": 1.4433756729740643,
+                    "z": 1.443375672974064
+                },
+                "rotation": {
+                    "x": -0.27984814233312133,
+                    "y": 0.3647051996310009,
+                    "z": 0.11591689595929512,
+                    "w": 0.8804762392171493
+                },
+                "viewCenter": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "contentRect": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 0,
+                    "height": 0
+                },
+                "scale": 1
+            }
+        },
+        "camera-uuids": [
+            "Node.927",
+            "Node.965",
+            "Node.1043",
+            "Node.1075",
+            "Node.1134",
+            "Node.1197",
+            "Node.1322",
+            "Node.1431",
+            "Node.1467",
+            "Node.1490",
+            "Node.1522"
+        ]
+    }
+}
