@@ -8,9 +8,76 @@ alwaysApply: true
 权威设计文档：`defense3.md`（项目根目录）。与 `AI_TASK_LIST.md` 冲突时以本规则 + `defense3.md` 为准。
 
 ## 场景与序列化
-- 场景装配优先编辑器拖入预制体；**禁止 AI 大规模手写/改写 `assets/scenes/Main.scene` JSON**。
-- P3 场景任务：AI 只产出预制体 + `docs/SCENE_PLACEMENT.md` 放置说明；**用户在 Cocos 编辑器中拖入**。
+
+### 复杂度分级（Main.scene）
+| 级别 | 判定 | AI 改场景 |
+|---|---|---|
+| **常规（MCP 允许）** | 空/近空场景；空挂点根骨架；**向挂点批量实例化 prefab**（`scene-create-node-by-asset` 等）；按表设置坐标；挂脚本组件到指定节点；相机参数校正 | 经 **Defense3 + Cocos MCP** 执行；坐标以 `SCENE_PLACEMENT.md` 为准，用户可事后微调 |
+| **须用户批准** | 大规模 reparent/重命名**破坏**既有 `@property` 引用；删除并重建大量已接线实例；MCP 无法设置的密集 Inspector 接线 | 本会话明确批准后方可 MCP；否则只维护文档 + 用户在编辑器补绑 |
+
+> **不视为复杂**：向 `Main.scene` 挂点**批量拖入 prefab 实例**（跑酷段玩家/滚木/陷阱/预置怪/UI 等）属于常规 MCP 场景装配，**无需**额外用户批准。
+
+### 场景装配分工
+- AI：**维护 `docs/SCENE_PLACEMENT.md`**（节点清单、坐标、阶段显隐、prefab 关联表），并经由 **Defense3 + Cocos MCP** 建空挂点、**实例化 prefab 到场景**、挂脚本组件与坐标。
+- **Prefab 实例**：默认由 build-agent **MCP 按放置表**实例化；用户仅在坐标/Inspector 需微调时在编辑器补操作。
+- **禁止**用运行时 `instantiate`/`resources.load` 在 `onLoad`/`start` 中生成**静态关卡布局**（玩家、滚木、陷阱、预置怪、UI 等须预先在场景或经 MCP 落盘）；`EnemySpawner` 等**运行时刷怪**除外。
+- **禁止**在无 MCP、或 MCP 未绑定 Defense3 时，手写/脚本生成整份 `Main.scene` JSON 落盘（简单场景亦同）；合法路径为 **MCP** 或用户在编辑器操作。
 - 禁止手写或修改 `.meta` 的 uuid；脚本重命名/移动须经编辑器。
+- **允许的最小 scene 补丁**（仅限 MCP 已创建节点后的 ID 修复）：仅替换非法 `"_id": "Node.<数字>"` 为合法 22 位压缩 UUID；不得重写 `__id__` 父子引用树。补丁后必须 `scene-close` → 同步 `library` → `assets-reimport-asset` → 再 `scene-open` 验证（见下节「MCP 交付门禁」）。
+
+## 预制体创建（强制）
+- **只允许**在已打开 **Defense3** 工程的 Cocos Creator 上，经 **CLI / MCP**（如 `assets-create-asset-by-type` 等）创建与装配 `.prefab`。
+- **禁止**手写整份 `.prefab` JSON；**禁止**用 Node/脚本生成完整 prefab 文件后落盘冒充创建；**禁止**从 Defense2 或其他工程拷贝 prefab 充当本仓库产物（除非用户明确授权且随后在 Defense3 编辑器内 refresh 并手测无打开）。
+- **禁止**在 CLI/MCP 不可用或绑定了非 Defense3 工程时「降级」为手写 prefab；应 **终止任务**，反馈障碍（打开 Defense3 + 接通 CLI），走 replan / 等用户就绪后再 `/build-plan`。
+- 允许的最小补丁：仅当 prefab **已由 CLI/MCP 合法创建**后，用局部编辑绑定 `@property` 引用（如 `visualNode`）；补丁不得重写节点/`__id__` 布局。若补丁导致编辑器报错 → 删除该 prefab 及 `.meta`，用 CLI 重建，禁止二次手写抢救。
+- 计划步骤若写「手写 prefab / 按金样复制 JSON」→ 视为违反本规则，build-agent **必须终止**。
+
+## 预制体结构（CLI 副作用禁令）
+- **禁止**在任意 `pref_*` 根下保留 **嵌套的 `Canvas` / `Camera` 子树**（含 CLI 创建 Sprite/Label 时自动插入的包装层）。交付前必须拆掉：UI/世界物体子节点应直接挂在 prefab 根（或约定的 `Visual`）下，不得套娃 Canvas。
+- **UI 预制体**（如 `pref_joystick`、`pref_ui_*`）：设计为挂到场景 Canvas 下；自身**不得**再带 `Canvas`/`Widget` 全屏对齐/`Camera`；根与可视子节点使用 **UI_2D** 层；触摸区/底盘/摇杆头 `UITransform` 尺寸须为可用大小（禁止交付 1×1 占位却标 done）。
+- **世界/角色预制体**：遵循 §P0-A（Root → `Visual`）；`Visual` 不得包在 `Canvas` 里。不得在报告中写「Canvas 包装层功能不受影响」并据此通过。
+- CLI 若强制插入 Canvas：必须在同一次 build 内用 MCP **移除包装、提升子节点** 后再验收；无法去除 → **终止**，不得降级交付。
+
+## MCP 交付门禁（机器 AC，强制）
+
+> **为何旧约束无效**：仅有「须编辑器验收」等原则、计划里 AC 标 optional、或 fix-bug 走 goal-agent 不跑校验 → agent 仍可标 done。以下命令 **必须在标 done / 写「全部 AC 通过」前执行**；任一失败即 **阻塞**，禁止用「待用户确认」绕过。
+
+### 前置门（任意 MCP 写操作前）
+1. `assets-query-path`（或等价）确认绑定 **Defense3** 的 `assets` 目录（非 Defense2 / 其他工程）。
+2. MCP 不可用或工程绑错 → **终止**，禁止手写 prefab/scene JSON 降级。
+
+### 场景后置门（`scene-save` 或改动 `Main.scene` 后）
+| AC | 命令 / 动作 | 预期 |
+|---|---|---|
+| **AC-S1** | `rg '"_id": "Node\.' assets/scenes/Main.scene` | **0 匹配**（MCP 常落盘非法占位 `_id`，是 Main.scene 节点报错的已知根因） |
+| **AC-S1b** | `verify-mcp-gate.ps1` 或 `rg '"_children": \[\s*null\|"_components": \[\s*null' Main.scene` | **0 匹配**（prefab 实例含 `null` 子引用 → 运行时 `expandNestedPrefabInstanceNode` 崩溃） |
+| **AC-S2** | MCP `scene-open` 后查根/相关子节点 `nodeId` | **不得**匹配 `Node.<数字>` |
+| **AC-S3** | 若 AC-S1 已 patch 但 AC-S2 仍失败 | `scene-close` → 将已 patch 的 `Main.scene` 同步到 `library/<uuid 前2位>/<uuid>.json` → `assets-reimport-asset` → 再 `scene-open` 复验 |
+| **AC-S4** | 编辑器打开 `Main.scene` | 无 missing script、无节点/组件红错 |
+
+### 预制体后置门（MCP 创建/改 prefab 后）
+| AC | 命令 / 动作 | 预期 |
+|---|---|---|
+| **AC-P1** | 角色/建筑 prefab：`rg '"_name": "Canvas"' assets/resources/prefabs/character assets/resources/prefabs/building` | **0 匹配**（CLI 副作用 Canvas 须已拆除） |
+| **AC-P2** | UI prefab：`rg '"_name": "Canvas"\|"_name": "Camera"' assets/resources/prefabs/ui`；`verify-mcp-gate.ps1` AC-P2-* | **0 匹配** Canvas/Camera；无 1×1 `UITransform` 占位 |
+| **AC-P3** | MCP `assets-query-asset-info`（目标 prefab 路径/uuid） | `invalid: false` |
+| **AC-P3b** | MCP `scene-open` prefab 后 `scene-query-component` 查关键 `@property`（如 `visualNode`、`background`、`knob`） | 引用非 null、非 Missing |
+| **AC-P4** | 编辑器打开该 prefab | 无 missing script、无组件红错（**必选**，禁止 optional） |
+
+> 预制体 MCP 五步与串行纪律见 `.cursor/rules/cocos-mcp.mdc`。
+
+### 禁止的「抢救」手段（fix-bug / build 均适用）
+- **禁止**用 `.cursor/_fix_prefabs.mjs`、`.cursor/_gen_prefabs.mjs` 或任意 Node 脚本 **整文件生成/重建** `.prefab` 或 `Main.scene` 冒充 MCP 交付。
+- **禁止**从 Defense2 拷贝 prefab/scene 到 Defense3 后仅改 uuid。
+- **禁止**仅跑「文件存在 / rg 字面量 / MCP query 有节点名」而无 AC-S* / AC-P* 就标 done。
+
+**一键校验（机器 AC）**：`powershell -File .cursor/scripts/verify-mcp-gate.ps1` — 退出码 0 才允许进入编辑器验收（步骤 5）；报告须粘贴输出。完整五步见 `.cursor/rules/cocos-mcp.mdc`。
+
+## 编辑器验收（强制，不可标可选）
+- 凡新建/改动 `.prefab` 或 `Main.scene`：任务 **不得** 标 `done`、报告不得写「全部 AC 通过」，除非 **MCP 交付门禁**（上节 AC-S* / AC-P*）已跑且通过，并在 **Defense3 编辑器**中打开该资源确认：**无 missing script、无反序列化/组件报错、Console 无因此资源产生的红错**。
+- 「编辑器打开确认」为 **必选 AC**，禁止写成 optional / 待用户 / 跳过。
+- **禁止**用 `__editorExtras__`、注释或无关字符串塞入 `default_sprite` 等字面量来骗过 `rg` AC；资源引用必须是真实 SpriteFrame/组件绑定。
+- 机器 AC（`tsc` / 文件存在 / `rg`）全部通过但编辑器仍报错 → 计为 **失败**，须修到编辑器干净或终止并说明障碍。
 
 ## 脚本唯一性（禁止职责分裂）
 - **一个游戏对象 = 一个主脚本**，禁止为同一对象再建 `*Controller.ts`。
@@ -36,8 +103,8 @@ alwaysApply: true
 6. **单位**：1 世界单位 ≈ 1 像素格；角色 Sprite `sizeMode = RAW`，scale 统一由预制体配置。
 
 ## 阶段切换
-- **滚木固定（`LOG_FIXED`）**：结束跑酷玩法；玩家切防守移动；墙建造地块出现。**不**隐藏 `ParkourContent`。
-- **两墙建完（`BOTH_WALLS_COMPLETE`）**：`ParkourContent` 全部 `active=false`；滚木实例须挂在 `ParkourContent` 外并保持可见；`RoadRoot` 保持可见；emit `PHASE_CHANGED('defense')`。
+- **滚木固定（`LOG_FIXED`）**：跑酷段结束；玩家切防守移动；墙建造地块出现；**仅隐藏** `ParkourContent` 下 `SawTrap_1~3` 与 `LogExtendItemRoot`（滚木加长道具）；预置怪/黄蓝线仍可见；**禁止**整棵 `ParkourContent.active=false`。
+- **两墙建完（`BOTH_WALLS_COMPLETE`）**：隐藏 `PreEnemy_1~8`、`YellowLine`、`BlueLine`；电锯/加长道具已在滚木固定时隐藏；**禁止**整棵 `ParkourContent.active=false`；滚木实例须挂在 `ParkourContent` 外并保持可见；`RoadRoot` 保持可见；emit `PHASE_CHANGED('defense')`。
 
 ## 计划执行优先级
 - 中/大任务必须走 `.cursor/plans/<slug>.md` + `/build-plan`；计划违反本规则则 build-agent 终止。

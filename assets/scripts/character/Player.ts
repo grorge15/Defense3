@@ -121,7 +121,7 @@ export class Player extends Component {
         }
     };
 
-    /** 滚木固定后即可全方向移动（建墙/战斗）；跑酷视觉物件两墙后才隐藏 */
+    /** 滚木固定后即可全方向移动；电锯/加长道具随即隐藏；预置怪/黄蓝线两墙后才隐藏 */
     private _onLogFixed = (): void => {
         this.setMode('defense');
     };

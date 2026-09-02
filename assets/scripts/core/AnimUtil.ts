@@ -22,3 +22,31 @@ export function playAnim(node: Node, clipName: string): void {
     const resolvedName = CLIP_NAME_MAP[clipName] ?? clipName;
     anim.play(resolvedName);
 }
+
+/**
+ * 播放动画并在 clip 播放完成时回调一次。
+ */
+export function playAnimWithCallback(
+    node: Node,
+    clipName: string,
+    callback: () => void,
+): void {
+    const anim = node.getComponent(Animation);
+    if (!anim) {
+        return;
+    }
+    const resolvedName = CLIP_NAME_MAP[clipName] ?? clipName;
+    anim.once(Animation.EventType.FINISHED, callback);
+    anim.play(resolvedName);
+}
+
+/**
+ * 监听指定 clip 播放完成（不自动播放）。
+ */
+export function onAnimFinished(node: Node, callback: () => void): void {
+    const anim = node.getComponent(Animation);
+    if (!anim) {
+        return;
+    }
+    anim.once(Animation.EventType.FINISHED, callback);
+}

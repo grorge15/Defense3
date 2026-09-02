@@ -1,0 +1,71 @@
+---
+description: Cocos MCP 核心纪律：五步交付、串行约束、prefab/scene 合法路径与禁止项
+alwaysApply: true
+---
+
+# Cocos MCP 操作纪律
+
+> 与 `defense3-workflow.mdc`「MCP 交付门禁」配合：本文件规定 **怎么操作**；workflow 规定 **怎么验收**（AC-S* / AC-P*）。
+
+## 五步交付流程（串行，禁止跳步）
+
+| 步 | 动作 | 失败处理 |
+|---|---|---|
+| **1 前置门** | `assets-query-path`（或等价）确认 MCP 绑定 **Defense3** 的 `assets` 目录 | 终止；禁止手写 prefab/scene 降级 |
+| **2 MCP 写入** | 经 MCP 创建/改 scene 或 prefab（本步内遵守「串行纪律」） | 终止或回滚误建节点后重跑 |
+| **3 保存** | `scene-save` / prefab 落盘 / `create-prefab-from-node` | 未 save 不得进入步骤 4 |
+| **4 机器 AC** | `powershell -File .cursor/scripts/verify-mcp-gate.ps1` + workflow AC-S* / AC-P* | 退出码非 0 → **阻塞**，不得标 done |
+| **5 编辑器验收** | Defense3 编辑器打开目标资源，无 missing script、无组件/节点红错 | **必选**；禁止 optional / 待用户 |
+
+**禁止跳步**：不得在未完成步骤 4 的情况下写「全部 AC 通过」；不得用步骤 4 的 `rg` 通过替代步骤 5。
+
+## 串行纪律（强制）
+
+1. **禁止并行** `assets-refresh` 与 `assets-reimport-asset`（同一轮交付内二选一、顺序执行；并行易导致 library 与磁盘不一致）。
+2. **scene `_id` 补丁链**（仅允许替换 `Node.*` 非法 `_id`）：`scene-close` → 最小 patch 磁盘 `Main.scene` → **单独** `assets-reimport-asset`（或同步 library 后 reimport）→ `scene-open` 复验 AC-S2。
+3. **单资源单写链**：对同一 `.prefab` / `Main.scene`，完成「MCP 写 → save → 步骤 4 校验」后再开始下一轮 MCP 写，禁止交叉并行两条写链。
+4. MCP 工具调用失败：最多重试 2 次；仍失败 → 终止并报告，禁止改用手写 JSON「抢救」。
+
+## 允许
+
+- MCP **合法创建** prefab / scene 节点之后的 **局部 JSON 补丁**，且 **仅限**：
+  - 脚本组件上的 `@property` 引用字段（如 `visualNode`、`background`、`knob`）
+  - 资源引用字段中的 `__uuid__`（SpriteFrame、AnimationClip、Prefab 等）
+- scene 非法 `_id` 的最小替换（见 `defense3-workflow.mdc`「允许的最小 scene 补丁」）
+
+**局部补丁禁止**：重排或批量改写 `__id__` 节点树、增删节点、改 `_parent`/`_children` 结构、整文件 `Write` 覆盖。
+
+## 禁止
+
+| 禁止项 | 说明 |
+|---|---|
+| 整文件手写 | 整份 `.prefab` / `Main.scene` JSON 落盘（含 `Write`、生成脚本一次性写出） |
+| 脚本整文件重建 | `.cursor/_fix_prefabs.mjs`、`.cursor/_gen_prefabs.mjs` 或同类工具 **整文件生成/重建** |
+| 骗过机器 AC | 在 `__editorExtras__`、注释或无关字段塞 `default_sprite` 等 **字面量** 以通过 `rg` |
+| 并行 refresh+reimport | 见「串行纪律」 |
+| Defense2 拷贝 | 从他工程拷贝 prefab/scene 仅改 uuid 充当本仓库产物 |
+| 无 MCP 降级 | MCP 不可用或绑错工程时手写冒充交付 |
+
+## Prefab 推荐路径（避免 CLI 副作用）
+
+**推荐**（UI / 世界物体均适用）：
+
+```
+scene-open → scene-create-node-by-type（Empty 等）搭好节点树
+→ 组件/尺寸在场景里调好 → create-prefab-from-node → 删除场景临时节点（可选）
+```
+
+**避免**：`assets-create-asset-by-type` **直接**创建 `Sprite` / `Label` / `Button` 等——CLI 常自动插入 **Canvas / Camera** 包装层，后续须额外拆除，易漏检。
+
+**若必须用 `assets-create-asset-by-type`**：同一次 build 内 MCP 拆除嵌套 Canvas/Camera 并跑 AC-P1 / AC-P2，否则 **终止**。
+
+## 关键 MCP 工具索引
+
+| 用途 | 工具 |
+|---|---|
+| 工程绑定 | `assets-query-path` |
+| 场景节点 | `scene-open` / `scene-create-node-by-type` / `scene-update-node` / `scene-save` / `scene-close` |
+| 从场景生成 prefab | `create-prefab-from-node` |
+| 资源校验 | `assets-query-asset-info`（`invalid: false`） |
+| 组件绑定 | `scene-query-component`（prefab 打开后查关键 `@property`） |
+| 单资源刷新 | `assets-reimport-asset`（勿与 `assets-refresh` 并行） |

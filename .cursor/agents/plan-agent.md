@@ -27,5 +27,13 @@ model: inherit
 ## 项目硬约束
 计划内容必须兼容 `.cursor/rules/defense3-workflow.mdc` 与 `AI_TASK_LIST.md`；与项目硬约束冲突的计划不得产出。计划须引用对应任务编号（如 P2-001）与 `docs/ANIM_MANIFEST.md`（若涉及动画）。
 
+涉及新建/装配 `.prefab` 或改 `Main.scene` 时：
+- 步骤必须写明经 **Defense3 工程的 Cocos CLI/MCP** 创建；**禁止**写「手写 prefab JSON」「按金样复制整份 prefab」「CLI 不可用则手写」。
+- **Main.scene**：空挂点、**批量 prefab 实例化**（`scene-create-node-by-asset`）、坐标与脚本挂载均属**常规 MCP**，可直接写入计划步骤；仅当大规模 reparent/破坏既有引用或 MCP 无法完成的密集 Inspector 接线时，标注 **须用户批准** 或拆为「文档 + 用户补绑」。
+- 步骤须写明：若 CLI 插入嵌套 `Canvas`/`Camera`，**同一次 build 内 MCP 拆除**；UI prefab 不得保留套娃 Canvas。
+- 校验点 **必须**从 `defense3-workflow.mdc`「MCP 交付门禁」复制 AC-S* / AC-P*（含 `rg '"_id": "Node\.'` 与 prefab Canvas 检查）；**禁止**仅「文件存在 + MCP 节点名 query」。
+- **编辑器打开无红错** 为必选 AC（编号如 AC-EDITOR）；**禁止** optional / 待用户 / 跳过。
+- 不得把「手写 JSON 落盘」或「`rg` 到字面量即可」列为唯一验收。
+
 ## 边界
 任务过大无法拆解为可执行步骤 → 返回：任务过于庞大，请拆分为更小子任务再使用 Plan-Build 模式。

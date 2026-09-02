@@ -4,13 +4,20 @@ import { GameEvents } from '../core/GameEvents';
 
 const { ccclass, property } = _decorator;
 
+const SAW_TRAP_NAMES = ['SawTrap_1', 'SawTrap_2', 'SawTrap_3'] as const;
+const PRE_ENEMY_NAMES = [
+    'PreEnemy_1', 'PreEnemy_2', 'PreEnemy_3', 'PreEnemy_4',
+    'PreEnemy_5', 'PreEnemy_6', 'PreEnemy_7', 'PreEnemy_8',
+] as const;
+
 /**
- * 两墙建完后隐藏跑酷段物件、呈现塔防段场景物件。
- * 滚木实例须挂在 ParkourContent 外（RoadRoot/LogAnchor），避免被一并隐藏。
+ * 跑酷物件分阶段隐藏（按 ParkourContent 子节点，禁止整棵 active=false）。
+ * LOG_FIXED：电锯 + 滚木加长道具；BOTH_WALLS_COMPLETE：预置怪 + 黄蓝线。
+ * 滚木实例须挂在 ParkourContent 外（RoadRoot/LogAnchor）。
  */
 @ccclass('PhaseTransition')
 export class PhaseTransition extends Component {
-    @property({ type: Node, tooltip: '跑酷段专属内容（电锯/预置敌/黄蓝线），两墙后 active=false' })
+    @property({ type: Node, tooltip: 'ParkourContent 根，用于按子节点名隐藏跑酷物件' })
     parkourContent: Node | null = null;
 
     @property({ type: Node, tooltip: '塔防段显式展示的内容根节点（可选）' })
@@ -20,17 +27,24 @@ export class PhaseTransition extends Component {
     logNode: Node | null = null;
 
     onLoad(): void {
+        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
         EventManager.instance.onEvent(GameEvents.BOTH_WALLS_COMPLETE, this._onBothWallsComplete, this);
     }
 
     onDestroy(): void {
+        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
         EventManager.instance.offEvent(GameEvents.BOTH_WALLS_COMPLETE, this._onBothWallsComplete, this);
     }
 
+    private _onLogFixed = (): void => {
+        this._setChildrenActive(SAW_TRAP_NAMES, false);
+        this._setChildActive('LogExtendItemRoot', false);
+    };
+
     private _onBothWallsComplete = (): void => {
-        if (this.parkourContent) {
-            this.parkourContent.active = false;
-        }
+        this._setChildrenActive(PRE_ENEMY_NAMES, false);
+        this._setChildActive('YellowLine', false);
+        this._setChildActive('BlueLine', false);
         if (this.logNode) {
             this.logNode.active = true;
         }
@@ -39,4 +53,26 @@ export class PhaseTransition extends Component {
         }
         EventManager.instance.emitEvent(GameEvents.PHASE_CHANGED, 'defense');
     };
+
+    private _setChildrenActive(names: readonly string[], active: boolean): void {
+        if (!this.parkourContent) {
+            return;
+        }
+        for (const name of names) {
+            const child = this.parkourContent.getChildByName(name);
+            if (child) {
+                child.active = active;
+            }
+        }
+    }
+
+    private _setChildActive(name: string, active: boolean): void {
+        if (!this.parkourContent) {
+            return;
+        }
+        const child = this.parkourContent.getChildByName(name);
+        if (child) {
+            child.active = active;
+        }
+    }
 }

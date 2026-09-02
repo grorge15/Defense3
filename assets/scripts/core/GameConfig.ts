@@ -29,6 +29,14 @@ export class GameConfig {
     static readonly logShrinkAmount = 1;
     static readonly logMinLength = 1;
     static readonly logMaxLength = 10;
+    /** 蓝线固定所需最小滚木长度 */
+    static readonly blueLineMinLogLength = 3;
+
+    // --- 跑酷陷阱 / 刷怪 / UI ---
+    static readonly sawTrapDamage = 15;
+    static readonly farSpawnInterval = 2.5;
+    static readonly farSpawnMaxAlive = 8;
+    static readonly joystickHintDelay = 3;
 
     // --- 建造 ---
     static readonly wallBuildCost = 50;

@@ -23,7 +23,11 @@ model: inherit
 极简执行报告：修改文件列表、关键改动点、验收达成情况、验证结论。
 
 ## 项目硬约束
-`.cursor/rules/defense3-workflow.mdc` 为项目强制约束（如禁止直接改 Main.scene、脚本唯一性、渲染约定等），冲突时以该规则为准。任务入口见 `AI_TASK_LIST.md`。
+`.cursor/rules/defense3-workflow.mdc` 为项目强制约束（场景复杂度分级、MCP 空节点挂点、`SCENE_PLACEMENT.md`、脚本唯一性、**禁止手写整份 `.prefab`** 等），冲突时以该规则为准。任务入口见 `AI_TASK_LIST.md`。
+
+新建 prefab / 改 `Main.scene`：仅允许 Defense3 已打开时的 Cocos CLI/MCP；CLI 不可用则终止并反馈，禁止手写降级。禁止交付嵌套 Canvas/Camera；UI prefab 禁止 1×1 触摸区。
+
+**MCP 交付门禁（fix-bug 同样适用）**：标完成前必须跑 `defense3-workflow.mdc` 中 AC-S* / AC-P* + `cocos-mcp.mdc` 五步流程；`powershell -File .cursor/scripts/verify-mcp-gate.ps1` 退出码 0。禁止 `_fix_prefabs.mjs` / `_gen_prefabs.mjs` 整文件重建。编辑器打开无红错为必选验收，不得跳过。
 
 ## 边界
 任务体量过大（系统级重构、从零搭建完整业务系统）→ 直接回复：当前 Goal Agent 不适合处理该大型任务，请拆分更小目标后再执行。

@@ -3,9 +3,7 @@
     "__type__": "cc.Prefab",
     "_name": "pref_tower_basic",
     "_objFlags": 0,
-    "__editorExtras__": {
-      "default_sprite": "assets/resources/sprite/default_sprite.png"
-    },
+    "__editorExtras__": {},
     "_native": "",
     "data": {
       "__id__": 1
@@ -24,23 +22,23 @@
         "__id__": 2
       },
       {
-        "__id__": 24
+        "__id__": 12
       },
       {
-        "__id__": 26
+        "__id__": 14
       },
       {
-        "__id__": 28
+        "__id__": 16
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 30
+        "__id__": 18
       }
     ],
     "_prefab": {
-      "__id__": 32
+      "__id__": 20
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -70,175 +68,6 @@
       "z": 0
     },
     "_id": ""
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "Canvas",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_parent": {
-      "__id__": 1
-    },
-    "_children": [
-      {
-        "__id__": 3
-      },
-      {
-        "__id__": 7
-      }
-    ],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 17
-      },
-      {
-        "__id__": 19
-      },
-      {
-        "__id__": 21
-      }
-    ],
-    "_prefab": {
-      "__id__": 23
-    },
-    "_lpos": {
-      "__type__": "cc.Vec3",
-      "x": 480,
-      "y": 320,
-      "z": 0
-    },
-    "_lrot": {
-      "__type__": "cc.Quat",
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "w": 1
-    },
-    "_lscale": {
-      "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
-    },
-    "_mobility": 0,
-    "_layer": 33554432,
-    "_euler": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Node",
-    "_name": "Camera",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_parent": {
-      "__id__": 2
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 4
-      }
-    ],
-    "_prefab": {
-      "__id__": 6
-    },
-    "_lpos": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 1000
-    },
-    "_lrot": {
-      "__type__": "cc.Quat",
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "w": 1
-    },
-    "_lscale": {
-      "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
-    },
-    "_mobility": 0,
-    "_layer": 1073741824,
-    "_euler": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.Camera",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 3
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 5
-    },
-    "_projection": 0,
-    "_priority": 1073741824,
-    "_fov": 45,
-    "_fovAxis": 0,
-    "_orthoHeight": 320,
-    "_near": 1,
-    "_far": 2000,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
-      "a": 255
-    },
-    "_depth": 1,
-    "_stencil": 0,
-    "_clearFlags": 6,
-    "_rect": {
-      "__type__": "cc.Rect",
-      "x": 0,
-      "y": 0,
-      "width": 1,
-      "height": 1
-    },
-    "_aperture": 19,
-    "_shutter": 7,
-    "_iso": 0,
-    "_screenScale": 1,
-    "_visibility": 41943040,
-    "_targetTexture": null,
-    "_postProcess": null,
-    "_usePostProcess": false,
-    "_cameraType": -1,
-    "_trackingType": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1259"
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "Node.1142"
   },
   {
     "__type__": "cc.Node",
@@ -246,26 +75,26 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 2
+      "__id__": 1
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 8
+        "__id__": 3
       },
       {
-        "__id__": 10
+        "__id__": 5
       },
       {
-        "__id__": 12
+        "__id__": 7
       },
       {
-        "__id__": 14
+        "__id__": 9
       }
     ],
     "_prefab": {
-      "__id__": 16
+      "__id__": 11
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -287,7 +116,7 @@
       "z": 1
     },
     "_mobility": 0,
-    "_layer": 33554432,
+    "_layer": 1073741824,
     "_euler": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -302,16 +131,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 7
+      "__id__": 2
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 9
+      "__id__": 4
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 40,
-      "height": 36
+      "width": 100,
+      "height": 100
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -322,7 +151,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1253"
+    "fileId": "pref_tower_basic.c0"
   },
   {
     "__type__": "cc.Sprite",
@@ -330,11 +159,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 7
+      "__id__": 2
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 11
+      "__id__": 6
     },
     "_customMaterial": null,
     "_srcBlendFactor": 2,
@@ -367,7 +196,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1254"
+    "fileId": "pref_tower_basic.c1"
   },
   {
     "__type__": "7bee2OkY11CfK5SYucC6MQh",
@@ -375,11 +204,11 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 7
+      "__id__": 2
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 13
+      "__id__": 8
     },
     "visualNode": null,
     "mainCamera": null,
@@ -387,7 +216,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1308"
+    "fileId": "pref_tower_basic.c2"
   },
   {
     "__type__": "329653I9DxOXbX8SFJsOd/A",
@@ -395,18 +224,19 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 7
+      "__id__": 2
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 15
+      "__id__": 10
     },
     "visualNode": null,
+    "offset": 0,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1311"
+    "fileId": "pref_tower_basic.c3"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -416,103 +246,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.1138"
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 18
-    },
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 960,
-      "height": 640
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1260"
-  },
-  {
-    "__type__": "cc.Canvas",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 20
-    },
-    "_cameraComponent": {
-      "__id__": 4
-    },
-    "_alignCanvasWithScreen": true,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1261"
-  },
-  {
-    "__type__": "cc.Widget",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 22
-    },
-    "_alignFlags": 45,
-    "_target": null,
-    "_left": 0,
-    "_right": 0,
-    "_top": 0,
-    "_bottom": 0,
-    "_horizontalCenter": 0,
-    "_verticalCenter": 0,
-    "_isAbsLeft": true,
-    "_isAbsRight": true,
-    "_isAbsTop": true,
-    "_isAbsBottom": true,
-    "_isAbsHorizontalCenter": true,
-    "_isAbsVerticalCenter": true,
-    "_originalWidth": 0,
-    "_originalHeight": 0,
-    "_alignMode": 2,
-    "_lockFlags": 0,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1262"
-  },
-  {
-    "__type__": "cc.PrefabInfo",
-    "root": {
-      "__id__": 1
-    },
-    "asset": {
-      "__id__": 0
-    },
-    "fileId": "Node.1141"
+    "fileId": "Node.375"
   },
   {
     "__type__": "cc.Node",
@@ -526,12 +260,12 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 25
+      "__id__": 13
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -0.5,
-      "y": 1,
+      "x": -1,
+      "y": 0.8,
       "z": 0
     },
     "_lrot": {
@@ -565,7 +299,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.1149"
+    "fileId": "Node.375"
   },
   {
     "__type__": "cc.Node",
@@ -579,12 +313,12 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 27
+      "__id__": 15
     },
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 1,
+      "y": 0.8,
       "z": 0
     },
     "_lrot": {
@@ -618,7 +352,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.1171"
+    "fileId": "Node.375"
   },
   {
     "__type__": "cc.Node",
@@ -632,12 +366,12 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 29
+      "__id__": 17
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0.5,
-      "y": 1,
+      "x": 1,
+      "y": 0.8,
       "z": 0
     },
     "_lrot": {
@@ -671,7 +405,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.1173"
+    "fileId": "Node.375"
   },
   {
     "__type__": "0d686hivC5D7K1C0m10O2zs",
@@ -683,20 +417,20 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 31
+      "__id__": 19
     },
     "visualNode": {
-      "__id__": 7
+      "__id__": 2
     },
     "soldierMounts": [
       {
-        "__id__": 24
+        "__id__": 12
       },
       {
-        "__id__": 26
+        "__id__": 14
       },
       {
-        "__id__": 28
+        "__id__": 16
       }
     ],
     "soldierPrefab": null,
@@ -706,7 +440,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.1305"
+    "fileId": "sc_tower"
   },
   {
     "__type__": "cc.PrefabInfo",

@@ -1,7 +1,7 @@
 ---
 slug: p2-014-joystick
 版本: 1
-状态: draft
+状态: done
 创建: 2026-08-31
 ---
 

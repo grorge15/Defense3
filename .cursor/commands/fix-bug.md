@@ -9,3 +9,4 @@ Bug：{{input}}
 2. 小 Bug → 委派 @goal-agent：先复现/定位根因（报错栈、日志、调用链证据），最小改动修复，跑验证，输出极简报告。
 3. 根因不明或跨多文件 → 委派 @plan-agent 出计划，实施步骤第一步必须是「根因定位」并附证据，再进入修复步骤与校验点。
 4. 禁止无根因证据的盲改式修复。
+5. **若涉及 `.prefab` / `Main.scene` / MCP**：遵循 `.cursor/rules/cocos-mcp.mdc` 五步 + 串行纪律；修复后跑 `verify-mcp-gate.ps1` 与 AC-S* / AC-P*；禁止 `_fix_prefabs.mjs` / `_gen_prefabs.mjs` 整文件重建；禁止并行 `assets-refresh` + `assets-reimport-asset`；禁止仅 patch 磁盘而不同步 library 后声称已修复。

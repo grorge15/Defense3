@@ -75,6 +75,10 @@ export class Log extends Component {
         return !this._isLocked && !this._isFading && this.node.active;
     }
 
+    getCurrentLength(): number {
+        return this._currentLength;
+    }
+
     takeDamage(amount: number): void {
         void amount;
     }
