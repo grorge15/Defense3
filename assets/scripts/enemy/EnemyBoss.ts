@@ -7,6 +7,7 @@ import {
     Vec2,
     Vec3,
 } from 'cc';
+import { Barrier } from '../building/Barrier';
 import { Building } from '../building/Building';
 import { Player } from '../character/Player';
 import { playAnim } from '../core/AnimUtil';
@@ -14,6 +15,7 @@ import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { Log } from '../item/Log';
+import { UIManager } from '../ui/UIManager';
 
 const { ccclass, property } = _decorator;
 
@@ -62,13 +64,36 @@ export class EnemyBoss extends Component {
         this._collider = this.getComponent(Collider2D);
     }
 
+    start(): void {
+        this.scheduleOnce(() => {
+            UIManager.instance?.spawnHpBar('boss', this.node, this.visualNode ?? this.node);
+        }, 0);
+    }
+
     registerTargets(options: BossTargetOptions): void {
         this._buildings = options.buildings ?? [];
         this._heroes = options.heroes ?? [];
         this._playerNode = options.player ?? null;
+        this._injectBarriersIntoBuildings();
+    }
+
+    /** 将场景内存活 Barrier 并入建筑索敌列表（BossSpawner 未注入时仍生效） */
+    private _injectBarriersIntoBuildings(): void {
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        const set = new Set(this._buildings.filter((n) => !!n));
+        for (const barrier of scene.getComponentsInChildren(Barrier)) {
+            if (barrier.isAlive()) {
+                set.add(barrier.node);
+            }
+        }
+        this._buildings = [...set];
     }
 
     pickTarget(): Node | null {
+        this._injectBarriersIntoBuildings();
         const building = this._pickNearestAlive(this._buildings);
         if (building) {
             return building;
@@ -271,6 +296,10 @@ export class EnemyBoss extends Component {
         if (!node || !node.active) {
             return false;
         }
+        const barrier = node.getComponent(Barrier);
+        if (barrier) {
+            return barrier.isAlive();
+        }
         const building = node.getComponent(Building);
         if (building) {
             return building.isAlive();
@@ -286,6 +315,11 @@ export class EnemyBoss extends Component {
         const log = node.getComponent(Log);
         if (log?.isAttackable()) {
             log.takeDamage(GameConfig.bossAttackDamage);
+            return;
+        }
+        const barrier = node.getComponent(Barrier);
+        if (barrier?.isAlive()) {
+            barrier.takeDamage(GameConfig.bossAttackDamage);
             return;
         }
         const building = node.getComponent(Building);

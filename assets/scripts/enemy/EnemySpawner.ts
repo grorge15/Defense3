@@ -29,6 +29,30 @@ export class EnemySpawner extends Component {
     private _timer = 0;
     private _alive = 0;
     private _farActive = true;
+    private _leftStopped = false;
+    private _rightStopped = false;
+    private _leftSpawnRoot: Node | null = null;
+    private _rightSpawnRoot: Node | null = null;
+
+    private readonly _leftSpawnTick = (): void => {
+        if (this._leftStopped || !this._leftSpawnRoot) {
+            return;
+        }
+        if (this._alive >= GameConfig.poolMaxEnemies) {
+            return;
+        }
+        this._spawnAt(this._leftSpawnRoot);
+    };
+
+    private readonly _rightSpawnTick = (): void => {
+        if (this._rightStopped || !this._rightSpawnRoot) {
+            return;
+        }
+        if (this._alive >= GameConfig.poolMaxEnemies) {
+            return;
+        }
+        this._spawnAt(this._rightSpawnRoot);
+    };
 
     onLoad(): void {
         if (!this.spawnPoint) {
@@ -41,10 +65,12 @@ export class EnemySpawner extends Component {
             this.rightSpawnRoot.active = false;
         }
         EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
     }
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
     }
 
     setTarget(target: Node | null): void {
@@ -86,20 +112,38 @@ export class EnemySpawner extends Component {
     private _onLogFixed = (): void => {
         if (this.leftSpawnRoot) {
             this.leftSpawnRoot.active = true;
-            this._startSideSpawning(this.leftSpawnRoot);
+            this._startSideSpawning(this.leftSpawnRoot, 'left');
         }
         if (this.rightSpawnRoot) {
             this.rightSpawnRoot.active = true;
-            this._startSideSpawning(this.rightSpawnRoot);
+            this._startSideSpawning(this.rightSpawnRoot, 'right');
         }
     };
 
-    private _startSideSpawning(root: Node): void {
-        this.schedule(() => {
-            if (this._alive >= GameConfig.poolMaxEnemies) {
-                return;
-            }
-            this._spawnAt(root);
-        }, GameConfig.farSpawnInterval);
+    private _startSideSpawning(root: Node, side: 'left' | 'right'): void {
+        if (side === 'left') {
+            this._leftSpawnRoot = root;
+            this.schedule(this._leftSpawnTick, GameConfig.farSpawnInterval);
+            return;
+        }
+        this._rightSpawnRoot = root;
+        this.schedule(this._rightSpawnTick, GameConfig.farSpawnInterval);
     }
+
+    stopSide(side: 'left' | 'right'): void {
+        if (side === 'left') {
+            this._leftStopped = true;
+            this.unschedule(this._leftSpawnTick);
+        } else {
+            this._rightStopped = true;
+            this.unschedule(this._rightSpawnTick);
+        }
+    }
+
+    private _onBuildComplete = (payload: { buildType?: string; spawnSide?: string }): void => {
+        const side = payload?.spawnSide;
+        if (side === 'left' || side === 'right') {
+            this.stopSide(side);
+        }
+    };
 }

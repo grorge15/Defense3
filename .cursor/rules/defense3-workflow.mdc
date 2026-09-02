@@ -42,11 +42,18 @@ alwaysApply: true
 
 > **为何旧约束无效**：仅有「须编辑器验收」等原则、计划里 AC 标 optional、或 fix-bug 走 goal-agent 不跑校验 → agent 仍可标 done。以下命令 **必须在标 done / 写「全部 AC 通过」前执行**；任一失败即 **阻塞**，禁止用「待用户确认」绕过。
 
+### 批次验收（机器 AC 每任务只跑一次 — 强制）
+
+同一任务内可能多次 MCP 写 / 多次 `scene-save`：完整机器 AC（AC-S1 / AC-S1b + `verify-mcp-gate.ps1`）**只在任务最后一次 `scene-save` 后执行一次**；中间轮次禁止反复跑完整门禁，也禁止为中间状态写「通过」。编辑器验收（步骤 5）同样只在任务收尾统一做一次。这样避免「每绑一条就验证/重开一轮」的时间损耗。
+
 ### 前置门（任意 MCP 写操作前）
 1. `assets-query-path`（或等价）确认绑定 **Defense3** 的 `assets` 目录（非 Defense2 / 其他工程）。
 2. MCP 不可用或工程绑错 → **终止**，禁止手写 prefab/scene JSON 降级。
 
 ### 场景后置门（`scene-save` 或改动 `Main.scene` 后）
+
+> 批次验收：仅任务最后一次 `scene-save` 后执行本组 AC（见上「批次验收」）。
+
 | AC | 命令 / 动作 | 预期 |
 |---|---|---|
 | **AC-S1** | `rg '"_id": "Node\.' assets/scenes/Main.scene` | **0 匹配**（MCP 常落盘非法占位 `_id`，是 Main.scene 节点报错的已知根因） |

@@ -19,6 +19,13 @@ export class HeroShrine extends Component {
     @property({ type: Prefab, tooltip: '英雄 02 预制体 pref_hero_02' })
     heroPrefab02: Prefab | null = null;
 
+    /**
+     * G4 兜底：为 true 时跳过 UI 直接选英雄 0。
+     * 场景已有 `GameRoot/UI/HeroSelect`+HeroSelectUI；正式二选一手测时请在 Inspector 关闭本开关。
+     */
+    @property({ tooltip: '为 true 时跳过 UI 自动选英雄 0（G4；正式 UI 手测请关）' })
+    autoSelectOnActivate = true;
+
     /** P5-002 UI 可注册此回调弹出二选一界面 */
     public onHeroSelectRequested: ((shrine: HeroShrine) => void) | null = null;
 
@@ -63,6 +70,11 @@ export class HeroShrine extends Component {
     }
 
     private _requestHeroSelect(): void {
+        // G4：自动选优先，便于无卡面美术时跑通跟随/拓展
+        if (this.autoSelectOnActivate) {
+            this.onHeroSelected(0);
+            return;
+        }
         if (this.onHeroSelectRequested) {
             this.onHeroSelectRequested(this);
             return;

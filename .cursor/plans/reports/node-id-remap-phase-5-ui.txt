@@ -1,0 +1,8 @@
+pref_joystick.prefab: patched 2
+pref_ui_coin.prefab: patched 4
+pref_ui_game_over.prefab: patched 5
+pref_ui_hero_select.prefab: patched 13
+pref_ui_hp_bar_boss.prefab: patched 5
+pref_ui_hp_bar_enemy.prefab: patched 3
+pref_ui_hp_bar_player.prefab: patched 3
+pref_ui_joystick_hint.prefab: patched 1

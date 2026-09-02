@@ -59,3 +59,11 @@ model: inherit
 - **禁止**在脚本 `onLoad`/`start` 用 `instantiate` 生成静态关卡布局；须 MCP 或编辑器预先摆入场景。
 - `scene-save` 后 **必须**跑 AC-S1（`rg '"_id": "Node\.' assets/scenes/Main.scene` → 0 匹配）；失败则按 workflow 做 `_id` 最小 patch + library 同步，或终止。
 - 不得仅凭 MCP `scene-query`「节点名存在」标 AC 通过；必须含 AC-S2（nodeId 非 `Node.*`）。
+
+### 场景快路径（与 Defense2「一次串行做对」对齐 — 强制）
+详见 `.cursor/rules/cocos-mcp.mdc`「场景装配快路径」。摘要：
+1. **幂等**：先 query 路径；有则 update/bind，无则 create **一次**。禁止 `*_001/*_002` 重复组件/实例。
+2. **Comp.\*** 仅当前 `scene-open` 会话有效；crash / close / reimport 后必须重新 query。优先 `节点路径/组件类型名` 作 `componentPath`。
+3. 置 null / 删引用：cocos-cli 已打 null 容错补丁（`ComponentDump.decode`），允许置空、允许先删被引用节点；仍须同一次 open 内完成并最后 save 一次。
+4. **一批绑完再 save 一次**；禁止绑一条 save 一次、禁止跨崩溃用旧 Comp 重试放大失败。
+5. 可脚本 `_resolveRefs` 兜底的引用，优先脚本，少折腾场景字段。

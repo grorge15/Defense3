@@ -5,13 +5,16 @@ import {
     Contact2DType,
     IPhysics2DContact,
     Node,
+    Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
+import { GameConfig } from '../core/GameConfig';
+import { TweenUtil } from '../core/TweenUtil';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 弓箭拾取道具：Trigger 碰到玩家后 setHasBow(true) 并销毁自身。
+ * 弓箭拾取道具：Trigger 碰到玩家后短弧飞向玩家再 setHasBow(true) 并销毁。
  */
 @ccclass('BowItem')
 export class BowItem extends Component {
@@ -20,6 +23,7 @@ export class BowItem extends Component {
 
     private _collider: Collider2D | null = null;
     private _consumed = false;
+    private readonly _tmp = new Vec3();
 
     onLoad(): void {
         this._collider = this.getComponent(Collider2D);
@@ -52,7 +56,19 @@ export class BowItem extends Component {
         }
 
         this._consumed = true;
-        player.setHasBow(true);
-        this.node.destroy();
+        if (this._collider) {
+            this._collider.enabled = false;
+        }
+        player.node.getWorldPosition(this._tmp);
+        TweenUtil.hopToWorld(
+            this.node,
+            this._tmp,
+            GameConfig.itemPickupArcDuration,
+            GameConfig.itemPickupArcHeight,
+            () => {
+                player.setHasBow(true);
+                this.node.destroy();
+            },
+        );
     };
 }

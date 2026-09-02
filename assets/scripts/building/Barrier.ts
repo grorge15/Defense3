@@ -1,5 +1,6 @@
 import { _decorator, Collider2D, Component, Node } from 'cc';
 import { GameConfig } from '../core/GameConfig';
+import { HitFlash } from '../core/HitFlash';
 
 const { ccclass, property } = _decorator;
 
@@ -37,6 +38,10 @@ export class Barrier extends Component {
         return this._hp;
     }
 
+    isAlive(): boolean {
+        return !this._dead && this._hp > 0 && this.node.active;
+    }
+
     takeDamage(amount: number): void {
         if (this._dead || amount <= 0) {
             return;
@@ -51,9 +56,8 @@ export class Barrier extends Component {
         }
     }
 
-    /** 受击闪红占位；完整表现属后续阶段。 */
     flashRed(): void {
-        // placeholder for hit flash
+        HitFlash.flash(this.visualNode ?? this.node);
     }
 
     private _die(): void {

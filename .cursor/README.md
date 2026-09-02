@@ -55,4 +55,4 @@
 
 小任务（如 P1-001）可直接 `@goal-agent`，但仍须跑该任务的 AC 命令。
 
-**预制体 / 场景 MCP**：须遵循 `cocos-mcp.mdc` 五步流程 + `verify-mcp-gate.ps1`；AC-S1 禁止 `Node.*` scene `_id`；AC-P1~P2 禁止 prefab 嵌套 Canvas/Camera/1×1 UI；AC-P3 须 `assets-query-asset-info` + `scene-query-component`；编辑器无红错为必选。
+**预制体 / 场景 MCP**：须遵循 `cocos-mcp.mdc` 五步流程 + **场景装配快路径**（幂等查改、禁跨会话 Comp.*、禁引用置 null、一批一 save）+ `verify-mcp-gate.ps1`；AC-S1 禁止 `Node.*` scene `_id`（`node .cursor/scripts/patch-scene-node-ids.mjs`）；AC-P1~P2 禁止 prefab 嵌套 Canvas/Camera/1×1 UI；AC-P3 须 `assets-query-asset-info` + `scene-query-component`；编辑器无红错为必选。

@@ -433,7 +433,10 @@
         "__id__": 16
       }
     ],
-    "soldierPrefab": null,
+    "soldierPrefab": {
+      "__uuid__": "921ae842-8fba-4e20-8586-8173c9c61650",
+      "__expectedType__": "cc.Prefab"
+    },
     "advancedVisualScale": 1.25,
     "towerType": "basic",
     "_id": ""

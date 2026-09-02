@@ -1,9 +1,11 @@
 import { _decorator, Collider2D, Component, Node, RigidBody2D, Vec2, Vec3 } from 'cc';
-import { Player } from '../character/Player';
 import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { CoinSystem } from '../game/CoinSystem';
+import { UIManager } from '../ui/UIManager';
+import { EnemyAI } from './EnemyAI';
 
 const { ccclass, property } = _decorator;
 
@@ -15,17 +17,17 @@ export class EnemyMinion extends Component {
     @property({ tooltip: '近战攻击范围（世界单位）' })
     attackRange = 1.5;
 
-    @property({ tooltip: '攻击冷却（秒）' })
+    @property({ tooltip: '攻击冷却（秒）；同步到 EnemyAI' })
     attackCooldown = 1.0;
 
     private _rb: RigidBody2D | null = null;
     private _collider: Collider2D | null = null;
+    private _ai: EnemyAI | null = null;
     private _hp = GameConfig.minionMaxHp;
     private _target: Node | null = null;
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
-    private _attackTimer = 0;
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
@@ -34,24 +36,31 @@ export class EnemyMinion extends Component {
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         this._collider = this.getComponent(Collider2D);
+        this._ai = this.getComponent(EnemyAI) ?? this.addComponent(EnemyAI);
+        this._ai.attackCooldown = this.attackCooldown;
+    }
+
+    start(): void {
+        this.scheduleOnce(() => {
+            UIManager.instance?.spawnHpBar('enemy', this.node, this.visualNode ?? this.node);
+        }, 0);
     }
 
     setTarget(target: Node | null): void {
         this._target = target;
+        this._ai?.setTarget(target);
     }
 
     tryAttack(): void {
-        if (this._isDead || !this._target || this._attackTimer > 0) {
+        if (this._isDead || !this._ai) {
             return;
         }
 
-        const player = this._target.getComponent(Player);
-        if (player) {
-            player.takeDamage(GameConfig.minionAttackDamage);
+        if (!this._ai.tryAttack(this.attackRange)) {
+            return;
         }
 
         this._isAttacking = true;
-        this._attackTimer = this.attackCooldown;
         if (this.visualNode) {
             playAnim(this.visualNode, 'attack');
         }
@@ -80,11 +89,12 @@ export class EnemyMinion extends Component {
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.minionMaxHp;
         this._target = null;
-        this._attackTimer = 0;
         this._isDead = false;
         this._canMove = true;
         this._isAttacking = false;
         this._currentLocomotionClip = '';
+        this._ai?.reset();
+        this._ai?.setTarget(null);
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -97,12 +107,18 @@ export class EnemyMinion extends Component {
         }
     }
 
-    fixedUpdate(dt: number): void {
-        if (this._attackTimer > 0) {
-            this._attackTimer -= dt;
+    fixedUpdate(_dt: number): void {
+        if (!this._canMove || !this._rb || this._isDead) {
+            return;
         }
 
-        if (!this._canMove || !this._rb || this._isDead) {
+        // 近距有 Barrier：停下优先拆障
+        const barrier = this._ai?.findNearestBarrier(this.attackRange) ?? null;
+        if (barrier) {
+            this._velocity.set(0, 0);
+            this._rb.linearVelocity = this._velocity;
+            this._updateLocomotionAnim(false);
+            this.tryAttack();
             return;
         }
 
@@ -146,6 +162,12 @@ export class EnemyMinion extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');
         }
+
+        this.node.getWorldPosition(this._selfPos);
+        const coinSys =
+            CoinSystem.instance ?? this.node.scene?.getComponentInChildren(CoinSystem) ?? null;
+        coinSys?.dropAt(this._selfPos);
+
         this.scheduleOnce(() => {
             this.node.active = false;
         }, 0.5);

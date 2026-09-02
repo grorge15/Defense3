@@ -5,14 +5,17 @@ import {
     Contact2DType,
     IPhysics2DContact,
     Node,
+    Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
+import { GameConfig } from '../core/GameConfig';
+import { TweenUtil } from '../core/TweenUtil';
 import { Log } from './Log';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 滚木加长道具：Trigger 碰到玩家或滚木后调用 Log.extend() 并销毁自身。
+ * 滚木加长道具：Trigger 碰到玩家或滚木后短弧再 Log.extend() 并销毁。
  */
 @ccclass('LogExtendItem')
 export class LogExtendItem extends Component {
@@ -24,6 +27,7 @@ export class LogExtendItem extends Component {
 
     private _collider: Collider2D | null = null;
     private _consumed = false;
+    private readonly _tmp = new Vec3();
 
     onLoad(): void {
         this._collider = this.getComponent(Collider2D);
@@ -45,6 +49,7 @@ export class LogExtendItem extends Component {
         _contact: IPhysics2DContact | null,
     ): void => {
         void selfCollider;
+        void _contact;
         if (this._consumed) {
             return;
         }
@@ -62,8 +67,20 @@ export class LogExtendItem extends Component {
         }
 
         this._consumed = true;
-        log.extend();
-        this.node.destroy();
+        if (this._collider) {
+            this._collider.enabled = false;
+        }
+        other.getWorldPosition(this._tmp);
+        TweenUtil.hopToWorld(
+            this.node,
+            this._tmp,
+            GameConfig.itemPickupArcDuration,
+            GameConfig.itemPickupArcHeight,
+            () => {
+                log.extend();
+                this.node.destroy();
+            },
+        );
     };
 
     private _findLogInScene(): Log | null {

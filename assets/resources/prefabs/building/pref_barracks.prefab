@@ -728,7 +728,10 @@
         "__id__": 26
       }
     ],
-    "soldierPrefab": null,
+    "soldierPrefab": {
+      "__uuid__": "749a6267-a64e-442b-9c16-9d1ee82a7b63",
+      "__expectedType__": "cc.Prefab"
+    },
     "_id": ""
   },
   {

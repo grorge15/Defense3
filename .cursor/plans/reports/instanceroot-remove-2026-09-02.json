@@ -1,0 +1,93 @@
+[
+  {
+    "removed": 24,
+    "parent": "LogAnchor",
+    "children": [
+      "pref_log"
+    ]
+  },
+  {
+    "removed": 42,
+    "parent": "SawTrap_1",
+    "children": [
+      "pref_trap_saw"
+    ]
+  },
+  {
+    "removed": 48,
+    "parent": "SawTrap_2",
+    "children": [
+      "pref_trap_saw"
+    ]
+  },
+  {
+    "removed": 54,
+    "parent": "SawTrap_3",
+    "children": [
+      "pref_trap_saw"
+    ]
+  },
+  {
+    "removed": 60,
+    "parent": "PreEnemy_3",
+    "children": [
+      "pref_enemy_minion"
+    ]
+  },
+  {
+    "removed": 71,
+    "parent": "PreEnemy_4",
+    "children": [
+      "pref_enemy_minion"
+    ]
+  },
+  {
+    "removed": 82,
+    "parent": "PreEnemy_5",
+    "children": [
+      "pref_enemy_minion_001"
+    ]
+  },
+  {
+    "removed": 93,
+    "parent": "PreEnemy_6",
+    "children": [
+      "pref_enemy_minion_001"
+    ]
+  },
+  {
+    "removed": 104,
+    "parent": "PreEnemy_7",
+    "children": [
+      "pref_enemy_minion_001"
+    ]
+  },
+  {
+    "removed": 115,
+    "parent": "PreEnemy_8",
+    "children": [
+      "pref_enemy_minion_001"
+    ]
+  },
+  {
+    "removed": 126,
+    "parent": "PreEnemy_1",
+    "children": [
+      "pref_enemy_minion"
+    ]
+  },
+  {
+    "removed": 139,
+    "parent": "PreEnemy_2",
+    "children": [
+      "pref_enemy_minion"
+    ]
+  },
+  {
+    "removed": 155,
+    "parent": "PlayerSpawn",
+    "children": [
+      "pref_player"
+    ]
+  }
+]

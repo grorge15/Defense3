@@ -176,7 +176,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "9594c832-5943-426c-8e6a-a3e74b745cf7@f9941",
+      "__uuid__": "2f01eee7-5ddc-4630-9748-77a428e47676@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -272,6 +272,7 @@
       "__id__": 12
     },
     "visualNode": null,
+    "offset": 0,
     "_id": ""
   },
   {
@@ -286,7 +287,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.936"
+    "fileId": "Node.936",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -306,7 +310,7 @@
     "_group": 1,
     "_type": 2,
     "_allowSleep": true,
-    "_gravityScale": 1,
+    "_gravityScale": 0,
     "_linearDamping": 0,
     "_angularDamping": 0,
     "_linearVelocity": {
@@ -315,7 +319,7 @@
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": false,
+    "_fixedRotation": true,
     "_id": ""
   },
   {
@@ -387,6 +391,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "c46/YsCPVOJYA4mWEpNYRx"
+    "fileId": "c46/YsCPVOJYA4mWEpNYRx",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

@@ -1,15 +1,18 @@
 import { _decorator, Collider2D, Component, Node } from 'cc';
+import { HitFlash } from '../core/HitFlash';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 玩家建造的矮墙式阻挡物：仅物理封路，不受击、无侧别逻辑。
- * 受击闪红与血量见 P2-013 Barrier.ts。
+ * 玩家建造的矮墙式阻挡物：仅物理封路，无血量；受击可闪红（供碰撞/调试调用）。
  */
 @ccclass('Wall')
 export class Wall extends Component {
     @property({ type: Node, tooltip: 'Visual 子节点（Sprite + Billboard + SortingOrder2D）' })
     visualNode: Node | null = null;
+
+    @property({ tooltip: '刷怪侧别（left/right）；供停刷/调试对齐' })
+    spawnSide: '' | 'left' | 'right' = '';
 
     private _isActive = false;
     private _collider: Collider2D | null = null;
@@ -30,6 +33,11 @@ export class Wall extends Component {
         if (this.visualNode) {
             this.visualNode.active = true;
         }
+    }
+
+    /** 无血量墙：仅视觉反馈 */
+    flashRed(): void {
+        HitFlash.flash(this.visualNode ?? this.node);
     }
 
     private _setBlockingEnabled(enabled: boolean): void {

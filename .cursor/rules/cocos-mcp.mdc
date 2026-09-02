@@ -22,9 +22,50 @@ alwaysApply: true
 ## 串行纪律（强制）
 
 1. **禁止并行** `assets-refresh` 与 `assets-reimport-asset`（同一轮交付内二选一、顺序执行；并行易导致 library 与磁盘不一致）。
-2. **scene `_id` 补丁链**（仅允许替换 `Node.*` 非法 `_id`）：`scene-close` → 最小 patch 磁盘 `Main.scene` → **单独** `assets-reimport-asset`（或同步 library 后 reimport）→ `scene-open` 复验 AC-S2。
+2. **scene `_id` 补丁链**（仅允许替换 `Node.*` 非法 `_id`）：`scene-close` → `node .cursor/scripts/patch-scene-node-ids.mjs`（或等价最小 patch）→ **单独** `assets-reimport-asset` → `scene-open` 复验 AC-S2。
 3. **单资源单写链**：对同一 `.prefab` / `Main.scene`，完成「MCP 写 → save → 步骤 4 校验」后再开始下一轮 MCP 写，禁止交叉并行两条写链。
 4. MCP 工具调用失败：最多重试 2 次；仍失败 → 终止并报告，禁止改用手写 JSON「抢救」。
+
+## 场景装配快路径（强制 — 解决「比 Defense2 慢一个数量级」）
+
+> Defense2 快在「一次会话内串行做对」；Defense3 慢在「非幂等重试 + 跨崩溃复用 Comp.* + 置 null 崩 CLI（已打 null 容错补丁）+ 反复 save/reimport」。下列为硬约束，违反即视为装配失败。
+
+### A. 幂等：查 → 有则改 → 无则建（一次）
+
+| 动作 | 正确 | 禁止 |
+|---|---|---|
+| 节点 | 先 `scene-query-node` 按**稳定路径**查；已存在 → 只 `update` / 绑属性 | 不查就 `create` → `UIManager_001/_002` |
+| 组件 | 先 `scene-query-component`：`节点路径/组件名`（如 `GameRoot/UI/UIManager/UIManager`） | 同一节点反复 `scene-add-component` 同脚本 |
+| Prefab 实例 | 路径已有实例 → 只绑引用 | 同挂点再 `scene-create-node-by-asset` 出第二份 |
+
+### B. `Comp.*` / 临时 uuid = **会话级**（崩溃即作废）
+
+- `scene-set-component-property` 的 `componentPath` **优先**用稳定路径：`GameRoot/UI/UIManager/UIManager`，**不要**跨工具调用缓存 `Comp.872` 当长期句柄。
+- 若不得不使用返回的 `Comp.*` / `uuid`：仅在**同一次** `scene-open` 且中间无 crash / `scene-close` / `reimport` / 编辑器重启时有效。
+- **任意** MCP 失败、CLI 崩溃、`scene-close`、进程重启后：必须重新 `scene-query-*` 取新 id，**禁止**拿报告/日志里的旧 `Comp.N` 继续 set → 典型症状：`No component found` / `scene is not opened`。
+
+### C. 置 null / 删引用（cocos-cli 已打 null 容错补丁）
+
+- cocos-cli `ComponentDump.decode` 已支持 null 值（`component-dump.ts/js`）：允许把组件/Node 引用 `set` 为 `null`，允许删除仍被 `@property` 引用的节点后继续 dump/set，不再触发 `TypeError`。
+- 仍要求：与其余绑定在同一 `scene-open` 会话内完成，结束后 `scene-save` 一次并跑任务级 AC（见 D）。
+- 若运行环境仍是未打补丁的旧 cocos-cli：按旧规避执行（先改绑、再删、不置 null），升级补丁后放开。
+
+### D. Save 节流（一次 open 内批量写）
+
+```
+scene-open（确认已开则跳过）
+→ 本任务全部 query + create/update/bind（内存中完成）
+→ 仅 scene-save 一次
+→ 立刻 AC-S1；若有 Node.* → close → patch-scene-node-ids → reimport → open（最多一轮）
+```
+
+- **禁止**「绑一个 save 一次」「崩了再 save」「边删边 save」。
+- **禁止**为修一个引用而整轮重跑 create；只做幂等补绑。
+
+### E. 能脚本兜底则少动场景
+
+- 允许 `UIManager._resolveRefs` / `getComponentInChildren` 等运行时补引用，减少 MCP 对可空字段的反复 set。
+- 静态布局（挂点、prefab 实例、坐标）仍须 MCP/编辑器预摆，不走 `onLoad` instantiate。
 
 ## 允许
 

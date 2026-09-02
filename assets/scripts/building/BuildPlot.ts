@@ -8,6 +8,7 @@ import {
     Label,
     Node,
     Sprite,
+    Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
@@ -43,6 +44,9 @@ export class BuildPlot extends Component {
 
     @property({ tooltip: '玩家在区域内时每秒填充对应的金币量' })
     fillSpeedPerSecond = 20;
+
+    @property({ tooltip: '墙地块对应刷怪侧别（left/right）；非墙留空' })
+    spawnSide: '' | 'left' | 'right' = '';
 
     /** 购买完成回调，供 P4/P2-006+ 生成实际建筑 */
     public onBuildComplete: ((type: BuildPlotType) => void) | null = null;
@@ -190,7 +194,20 @@ export class BuildPlot extends Component {
         }
         this._isComplete = true;
         this._playerInside = false;
+        const anchor = this.node.parent ?? this.node;
+        const worldPosition = new Vec3();
+        anchor.getWorldPosition(worldPosition);
+        EventManager.instance.emitEvent(GameEvents.BUILD_COMPLETE, {
+            buildType: this._buildType,
+            spawnSide: this.spawnSide,
+            worldPosition,
+        });
         this.onBuildComplete?.(this._buildType);
-        this.node.destroy();
+        // 延迟销毁，便于 BuildSystem 同帧读完 type/side/位置
+        this.scheduleOnce(() => {
+            if (this.node?.isValid) {
+                this.node.destroy();
+            }
+        }, 0);
     }
 }

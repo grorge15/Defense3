@@ -45,4 +45,9 @@ export class GameManager extends Component {
         console.log(`[GameManager] phase_changed: ${phase}`);
         EventManager.instance.emitEvent(GameEvents.PHASE_CHANGED, phase);
     }
+
+    /** 预留：§4.H 游戏结束时调用 setPhase(GamePhase.GameOver) */
+    public setGameOver(): void {
+        this.setPhase(GamePhase.GameOver);
+    }
 }
