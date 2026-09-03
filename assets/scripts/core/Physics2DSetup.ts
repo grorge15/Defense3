@@ -18,6 +18,7 @@ export class Physics2DSetup extends Component {
         }
         phys.enable = true;
         phys.gravity = new Vec2(0, 0);
+        // 保证步进开启；速度驱动依赖物理更新
         this._configureBodies(this.node.scene ?? this.node);
     }
 

@@ -22,6 +22,8 @@ model: inherit
 ## 输出
 极简执行报告：修改文件列表、关键改动点、验收达成情况、验证结论。
 
+**Bug 修复收尾**：若本任务来自 `/fix-bug`（或明确为修 bug），完成后必须更新根目录 `bugs.md`（无则新建）：写清现象、原因、解决；同一 bug 多次修改则版本叠加（v2/v3…），不另开同名条目。
+
 ## 项目硬约束
 `.cursor/rules/defense3-workflow.mdc` 为项目强制约束（场景复杂度分级、MCP 空节点挂点、`SCENE_PLACEMENT.md`、脚本唯一性、**禁止手写整份 `.prefab`** 等），冲突时以该规则为准。任务入口见 `AI_TASK_LIST.md`。
 

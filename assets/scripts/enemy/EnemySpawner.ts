@@ -7,7 +7,7 @@ import { EnemyMinion } from './EnemyMinion';
 const { ccclass, property } = _decorator;
 
 /**
- * 远端刷怪：仅运行时在 SpawnPoint_Far 生成小怪；LOG_FIXED 后激活 Left/Right。
+ * 远端刷怪：对象池 + 死亡 5s 后在原 SpawnPoint 重生；上限读 GameConfig.poolMaxEnemies。
  */
 @ccclass('EnemySpawner')
 export class EnemySpawner extends Component {
@@ -33,25 +33,21 @@ export class EnemySpawner extends Component {
     private _rightStopped = false;
     private _leftSpawnRoot: Node | null = null;
     private _rightSpawnRoot: Node | null = null;
+    private readonly _pool: EnemyMinion[] = [];
+    private readonly _spawnOrigin = new Map<EnemyMinion, Node>();
 
     private readonly _leftSpawnTick = (): void => {
         if (this._leftStopped || !this._leftSpawnRoot) {
             return;
         }
-        if (this._alive >= GameConfig.poolMaxEnemies) {
-            return;
-        }
-        this._spawnAt(this._leftSpawnRoot);
+        this._trySpawnAt(this._leftSpawnRoot);
     };
 
     private readonly _rightSpawnTick = (): void => {
         if (this._rightStopped || !this._rightSpawnRoot) {
             return;
         }
-        if (this._alive >= GameConfig.poolMaxEnemies) {
-            return;
-        }
-        this._spawnAt(this._rightSpawnRoot);
+        this._trySpawnAt(this._rightSpawnRoot);
     };
 
     onLoad(): void {
@@ -71,6 +67,7 @@ export class EnemySpawner extends Component {
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
+        this.unscheduleAllCallbacks();
     }
 
     setTarget(target: Node | null): void {
@@ -90,24 +87,76 @@ export class EnemySpawner extends Component {
             return;
         }
         this._timer = 0;
-        this._spawnAt(this.spawnPoint);
+        this._trySpawnAt(this.spawnPoint);
     }
 
-    private _spawnAt(point: Node): void {
-        if (!this.enemyPrefab) {
+    private _trySpawnAt(point: Node): void {
+        if (this._alive >= GameConfig.poolMaxEnemies) {
             return;
         }
-        const node = instantiate(this.enemyPrefab);
-        const parent = point.parent ?? this.node.parent ?? this.node;
-        parent.addChild(node);
-        node.setWorldPosition(point.worldPosition);
-        const minion = node.getComponent(EnemyMinion);
-        if (minion) {
-            minion.setTarget(this.target);
+        if (!this._spawnAt(point)) {
+            return;
         }
-        this._alive += 1;
-        // 死亡后节点会 active=false；简化计数：上限靠池配置，不严格回收
     }
+
+    private _spawnAt(point: Node): boolean {
+        if (!this.enemyPrefab) {
+            return false;
+        }
+        const minion = this._acquireFromPool(point);
+        if (!minion) {
+            return false;
+        }
+        this._spawnOrigin.set(minion, point);
+        minion.node.setWorldPosition(point.worldPosition);
+        minion.reset();
+        minion.setTarget(this.target);
+        minion.onReturnedToPool = (m) => this._onMinionDied(m);
+        minion.node.active = true;
+        this._alive += 1;
+        return true;
+    }
+
+    private _acquireFromPool(point: Node): EnemyMinion | null {
+        for (const m of this._pool) {
+            if (m && m.isValid && !m.node.activeInHierarchy) {
+                return m;
+            }
+        }
+        if (this._pool.length >= GameConfig.poolMaxEnemies) {
+            return null;
+        }
+        const parent = point.parent ?? this.node.parent ?? this.node;
+        const node = instantiate(this.enemyPrefab!);
+        parent.addChild(node);
+        node.active = false;
+        const minion = node.getComponent(EnemyMinion);
+        if (!minion) {
+            node.destroy();
+            return null;
+        }
+        this._pool.push(minion);
+        return minion;
+    }
+
+    private _onMinionDied = (minion: EnemyMinion): void => {
+        this._alive = Math.max(0, this._alive - 1);
+        const origin = this._spawnOrigin.get(minion) ?? this.spawnPoint;
+        this.scheduleOnce(() => {
+            if (!minion?.isValid || !origin?.isValid) {
+                return;
+            }
+            if (this._alive >= GameConfig.poolMaxEnemies) {
+                return;
+            }
+            minion.node.setWorldPosition(origin.worldPosition);
+            minion.reset();
+            minion.setTarget(this.target);
+            minion.onReturnedToPool = (m) => this._onMinionDied(m);
+            minion.node.active = true;
+            this._alive += 1;
+        }, GameConfig.enemyRespawnDelay);
+    };
 
     private _onLogFixed = (): void => {
         if (this.leftSpawnRoot) {

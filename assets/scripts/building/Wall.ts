@@ -19,6 +19,10 @@ export class Wall extends Component {
 
     onLoad(): void {
         this._collider = this.getComponent(Collider2D);
+        if (!this.visualNode) {
+            this.visualNode = this.node.getChildByName('Visual');
+        }
+        // 未 activate 前只关碰撞，禁止关整节点（否则看起来像「没生成墙」）
         if (!this._isActive) {
             this._setBlockingEnabled(false);
         }
@@ -26,9 +30,15 @@ export class Wall extends Component {
 
     activate(): void {
         if (this._isActive) {
+            this.node.active = true;
+            if (this.visualNode) {
+                this.visualNode.active = true;
+            }
+            this._setBlockingEnabled(true);
             return;
         }
         this._isActive = true;
+        this.node.active = true;
         this._setBlockingEnabled(true);
         if (this.visualNode) {
             this.visualNode.active = true;
@@ -44,6 +54,5 @@ export class Wall extends Component {
         if (this._collider) {
             this._collider.enabled = enabled;
         }
-        this.node.active = enabled;
     }
 }

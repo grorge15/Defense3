@@ -3,20 +3,21 @@ import {
     Animation,
     BoxCollider2D,
     Component,
+    ERigidBody2DType,
     Node,
     RigidBody2D,
     Size,
-    UITransform,
     Vec2,
     Vec3,
-    tween,
 } from 'cc';
 import { Player } from '../character/Player';
 import { playAnim } from '../core/AnimUtil';
+import { Billboard } from '../core/Billboard';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { TweenUtil } from '../core/TweenUtil';
+import { UIManager } from '../ui/UIManager';
 
 const { ccclass, property } = _decorator;
 
@@ -30,9 +31,16 @@ export class Log extends Component {
     @property({ tooltip: '单段长度对应的世界单位尺寸' })
     segmentSize = 1;
 
+    @property({ type: Node, tooltip: '黄线节点；空则运行时按名查找 YellowLine' })
+    yellowLine: Node | null = null;
+
+    @property({ type: Node, tooltip: '蓝线节点；空则运行时按名查找 BlueLine' })
+    blueLine: Node | null = null;
+
     private _rb: RigidBody2D | null = null;
     private _collider: BoxCollider2D | null = null;
-    private _visualTransform: UITransform | null = null;
+    private _baseColliderWidth = 100;
+    private _baseColliderHeight = 76;
     private _phase: LogPhase = 'rolling';
     private _currentLength = GameConfig.logMinLength;
     private _isLocked = false;
@@ -40,27 +48,57 @@ export class Log extends Component {
     private _pushPlayer: Player | null = null;
     private readonly _selfPos = new Vec3();
     private readonly _playerPos = new Vec3();
+    private readonly _followOffset = new Vec3();
+    private readonly _tmpLinePos = new Vec3();
+    private _hasFollowOffset = false;
+    private _yellowTriggered = false;
+    private _blueTriggered = false;
     private readonly _baseVisualScale = new Vec3(1, 1, 1);
     private readonly _visualEuler = new Vec3();
-    private _chargePulsing = false;
+    private _hp = GameConfig.logMaxHp;
+    private _hpBarSpawned = false;
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         this._collider = this.getComponent(BoxCollider2D);
+        if (this._collider) {
+            // 必须在 _refreshLengthVisual 之前缓存；禁止用 segmentSize*length(=1) 覆盖成细条
+            const w = Math.abs(this._collider.size.width);
+            const h = Math.abs(this._collider.size.height);
+            if (w > 0.01) {
+                this._baseColliderWidth = w;
+            }
+            if (h > 0.01) {
+                this._baseColliderHeight = h;
+            }
+            // 传感器：不与 Dynamic 玩家产生固体顶撞（挡路/电锯接触靠逻辑与 Trigger）
+            this._collider.sensor = true;
+        }
+        if (!this.visualNode) {
+            this.visualNode = this.node.getChildByName('Visual');
+        }
         if (this.visualNode) {
-            this._visualTransform = this.visualNode.getComponent(UITransform);
             this._baseVisualScale.set(this.visualNode.scale);
         }
         this._refreshLengthVisual();
+    }
+
+    start(): void {
+        this._resolveParkourLines();
     }
 
     beginParkour(): void {
         this._phase = 'rolling';
         this._isLocked = false;
         this._isFading = false;
+        this._yellowTriggered = false;
+        this._blueTriggered = false;
         this._currentLength = GameConfig.logMinLength;
         this._refreshLengthVisual();
         this._playRollAnim();
+        if (this._pushPlayer) {
+            this._captureFollowOffset();
+        }
     }
 
     finishParkour(): void {
@@ -70,23 +108,64 @@ export class Log extends Component {
     bindPlayer(player: Node | null): void {
         this._pushPlayer = player ? player.getComponent(Player) : null;
         this._pushPlayer?.bindLog(this);
+        if (this._pushPlayer) {
+            this._captureFollowOffset();
+        } else {
+            this._hasFollowOffset = false;
+        }
     }
 
     unbindPlayer(): void {
         this._pushPlayer?.bindLog(null);
         this._pushPlayer = null;
+        this._hasFollowOffset = false;
     }
 
+    /**
+     * 固定后作为可攻击障碍。
+     * 跑酷中电锯砍短请用 canBeCutBySaw()。
+     */
     isAttackable(): boolean {
-        return !this._isLocked && !this._isFading && this.node.active;
+        return this._isLocked && !this._isFading && this._hp > 0 && this.node.active;
+    }
+
+    /** 跑酷段可被电锯缩短 */
+    canBeCutBySaw(): boolean {
+        return (
+            !this._isLocked &&
+            !this._isFading &&
+            this.node.active &&
+            (this._phase === 'rolling' || this._phase === 'charging')
+        );
     }
 
     getCurrentLength(): number {
         return this._currentLength;
     }
 
+    getPhase(): LogPhase {
+        return this._phase;
+    }
+
+    /** 供小怪 AABB 挡路 */
+    getBoxCollider(): BoxCollider2D | null {
+        return this._collider;
+    }
+
     takeDamage(amount: number): void {
-        void amount;
+        if (!this.isAttackable() || amount <= 0) {
+            return;
+        }
+        this._hp = Math.max(0, this._hp - amount);
+        EventManager.instance.emitEvent(
+            GameEvents.HP_CHANGED,
+            this.node,
+            this._hp,
+            GameConfig.logMaxHp,
+        );
+        if (this._hp <= 0) {
+            this._onDestroyedAsBarrier();
+        }
     }
 
     extend(): void {
@@ -112,70 +191,200 @@ export class Log extends Component {
     }
 
     enterChargeZone(): void {
+        if (this._phase === 'charging' || this._phase === 'fixed' || this._phase === 'failed') {
+            return;
+        }
         this._phase = 'charging';
-        this._startChargePulse();
+        this._pushPlayer?.setParkourCharging(true);
+        // 已去掉蓄力呼吸缩放动效
     }
 
     tryLockAtFinish(canLock: boolean): void {
-        this._stopChargePulse();
+        this._pushPlayer?.setParkourCharging(false);
         if (canLock) {
             this._phase = 'fixed';
             this._isLocked = true;
             this.unbindPlayer();
-            if (this._rb) {
-                this._rb.linearVelocity = new Vec2(0, 0);
-            }
             this._stopRollAnim();
+            this._freezeVisualRotation();
+            this._enableAsSolidBarrier();
+            this._spawnHpBar();
+            console.info(
+                `[Log] blue line LOCK OK length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength}`,
+            );
             EventManager.instance.emitEvent(GameEvents.LOG_FIXED);
             return;
         }
+        // 长度不足：不发 LOG_FIXED，后续建造/阶段不启动
         this._phase = 'failed';
         this._isFading = true;
         this.unbindPlayer();
         this._stopRollAnim();
+        this._freezeVisualRotation();
+        console.warn(
+            `[Log] blue line LOCK FAIL length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength} → fade out`,
+        );
+        EventManager.instance.emitEvent(GameEvents.LOG_FAILED, {
+            length: this._currentLength,
+            need: GameConfig.blueLineMinLogLength,
+        });
         this._fadeOut();
     }
 
-    fixedUpdate(dt: number): void {
-        if (!this._rb || this._isLocked || this._isFading) {
+    /** 固定后改为固体碰撞，挡住其它物体 */
+    private _enableAsSolidBarrier(): void {
+        if (this._collider) {
+            this._collider.sensor = false;
+        }
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Static;
+            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.angularVelocity = 0;
+            this._rb.fixedRotation = true;
+            this._rb.enabledContactListener = true;
+        }
+        this._hp = GameConfig.logMaxHp;
+    }
+
+    /** 使用玩家血条模板 */
+    private _spawnHpBar(): void {
+        if (this._hpBarSpawned) {
             return;
         }
-
-        if (this._phase === 'rolling' && this._pushPlayer) {
-            const velocity = this._pushPlayer.getVelocity();
-            const playerNode = this._pushPlayer.node;
-            this.node.getWorldPosition(this._selfPos);
-            playerNode.getWorldPosition(this._playerPos);
-            // 跟随玩家：X 对齐，Y 同速；用位移而非依赖 Dynamic 速度
-            this._selfPos.x = this._playerPos.x;
-            this._selfPos.y += velocity.y * dt;
-            this.node.setWorldPosition(this._selfPos);
-            if (this._rb) {
-                this._rb.linearVelocity = new Vec2(velocity.x, velocity.y);
+        this._hpBarSpawned = true;
+        this.scheduleOnce(() => {
+            const bar = UIManager.instance?.spawnHpBar(
+                'player',
+                this.node,
+                this.visualNode ?? this.node,
+            );
+            if (bar) {
+                bar.hideWhenFull = false;
+                EventManager.instance.emitEvent(
+                    GameEvents.HP_CHANGED,
+                    this.node,
+                    this._hp,
+                    GameConfig.logMaxHp,
+                );
             }
-            this._updateRollVisual(dt);
-            return;
+        }, 0);
+    }
+
+    private _onDestroyedAsBarrier(): void {
+        this._isFading = true;
+        if (this._collider) {
+            this._collider.enabled = false;
         }
+        this._fadeOut();
+    }
 
-        if (this._phase === 'charging' && this._pushPlayer) {
-            const velocity = this._pushPlayer.getVelocity();
-            this.node.getWorldPosition(this._selfPos);
-            this._selfPos.y += velocity.y * 0.5 * dt;
-            this.node.setWorldPosition(this._selfPos);
-            if (this._rb) {
-                this._rb.linearVelocity = new Vec2(velocity.x, velocity.y * 0.5);
-            }
-            this._updateRollVisual(dt);
-            return;
+    /** 固定/失败后停止滚动与 Billboard，避免 Visual 继续改 rotation */
+    private _freezeVisualRotation(): void {
+        if (this._rb) {
+            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.angularVelocity = 0;
+            this._rb.fixedRotation = true;
+        }
+        for (const billboard of this.node.getComponentsInChildren(Billboard)) {
+            billboard.enabled = false;
+        }
+        if (this.visualNode) {
+            this.visualNode.setRotationFromEuler(0, 0, 0);
         }
     }
 
-    /** 按前进速度绕长度轴（X）旋转 Visual；角速度系数复用 logRollSpeed */
-    private _updateRollVisual(dt: number): void {
-        if (!this.visualNode || !this._rb || dt <= 0) {
+    update(dt: number): void {
+        if (this._isLocked || this._isFading || dt <= 0 || !this._pushPlayer) {
             return;
         }
-        const speed = this._rb.linearVelocity.length();
+
+        if (this._phase !== 'rolling' && this._phase !== 'charging') {
+            return;
+        }
+
+        this._pushPlayer.node.getWorldPosition(this._playerPos);
+        if (!this._hasFollowOffset) {
+            this._captureFollowOffset();
+        }
+        this._selfPos.set(
+            this._playerPos.x + this._followOffset.x,
+            this._playerPos.y + this._followOffset.y,
+            this._playerPos.z + this._followOffset.z,
+        );
+        this.node.setWorldPosition(this._selfPos);
+
+        const velocity = this._pushPlayer.getVelocity();
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.gravityScale = 0;
+            this._rb.linearVelocity = new Vec2(velocity.x, velocity.y);
+        }
+        this._updateRollVisual(dt, velocity.length());
+        this._pollParkourLines();
+    }
+
+    private _captureFollowOffset(): void {
+        if (!this._pushPlayer) {
+            this._hasFollowOffset = false;
+            return;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        this._pushPlayer.node.getWorldPosition(this._playerPos);
+        Vec3.subtract(this._followOffset, this._selfPos, this._playerPos);
+        this._hasFollowOffset = true;
+    }
+
+    private _resolveParkourLines(): void {
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        if (!this.yellowLine) {
+            this.yellowLine = this._findNodeByName(scene, 'YellowLine');
+        }
+        if (!this.blueLine) {
+            this.blueLine = this._findNodeByName(scene, 'BlueLine');
+        }
+    }
+
+    private _findNodeByName(root: Node, name: string): Node | null {
+        if (root.name === name) {
+            return root;
+        }
+        for (const child of root.children) {
+            const found = this._findNodeByName(child, name);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    private _pollParkourLines(): void {
+        this._resolveParkourLines();
+        this.node.getWorldPosition(this._selfPos);
+
+        if (!this._yellowTriggered && this.yellowLine) {
+            this.yellowLine.getWorldPosition(this._tmpLinePos);
+            if (this._selfPos.y >= this._tmpLinePos.y) {
+                this._yellowTriggered = true;
+                this.enterChargeZone();
+            }
+        }
+        if (!this._blueTriggered && this.blueLine) {
+            this.blueLine.getWorldPosition(this._tmpLinePos);
+            if (this._selfPos.y >= this._tmpLinePos.y) {
+                this._blueTriggered = true;
+                const canLock = this.getCurrentLength() >= GameConfig.blueLineMinLogLength;
+                this.tryLockAtFinish(canLock);
+            }
+        }
+    }
+
+    private _updateRollVisual(dt: number, speed: number): void {
+        if (!this.visualNode || dt <= 0) {
+            return;
+        }
         if (speed < 0.001) {
             return;
         }
@@ -212,48 +421,10 @@ export class Log extends Component {
         }
         if (this._collider) {
             this._collider.size = new Size(
-                this.segmentSize * this._currentLength,
-                this._collider.size.height,
+                this._baseColliderWidth * lengthScale,
+                this._baseColliderHeight,
             );
         }
-        if (this._visualTransform) {
-            this._visualTransform.setContentSize(
-                this.segmentSize * this._currentLength,
-                this._visualTransform.contentSize.height,
-            );
-        }
-    }
-
-    private _startChargePulse(): void {
-        if (!this.visualNode || this._chargePulsing) {
-            return;
-        }
-        this._chargePulsing = true;
-        const lengthScale = this._currentLength / GameConfig.logMinLength;
-        const baseX = this._baseVisualScale.x * lengthScale;
-        const baseY = this._baseVisualScale.y;
-        const baseZ = this._baseVisualScale.z;
-        const pulse = GameConfig.logChargePulseScale;
-        const half = GameConfig.logChargePulseHalf;
-        tween(this.visualNode)
-            .repeatForever(
-                tween()
-                    .to(half, { scale: new Vec3(baseX * pulse, baseY * pulse, baseZ) })
-                    .to(half, { scale: new Vec3(baseX, baseY, baseZ) }),
-            )
-            .start();
-    }
-
-    private _stopChargePulse(): void {
-        if (!this.visualNode) {
-            this._chargePulsing = false;
-            return;
-        }
-        if (this._chargePulsing) {
-            tween(this.visualNode).stop();
-            this._chargePulsing = false;
-        }
-        this._refreshLengthVisual();
     }
 
     private _fadeOut(): void {

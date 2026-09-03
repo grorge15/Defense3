@@ -203,7 +203,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "5GcqEvX/ax75kfRb2YCiyQ"
+    "fileId": "5GcqEvX/ax75kfRb2YCiyQ",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -336,7 +339,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "6LYwqCd7pz6WOrJsbvcTFe"
+    "fileId": "6LYwqCd7pz6WOrJsbvcTFe",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -361,7 +367,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -196.126,
       "y": 0,
       "z": 0
     },
@@ -407,7 +413,7 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
+      "x": 0,
       "y": 0.5
     },
     "_id": ""
@@ -439,7 +445,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+      "__uuid__": "24a704da-2867-446d-8d1a-5e920c75e09d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 3,
@@ -451,7 +457,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 1,
+    "_fillRange": 0.5,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -469,7 +475,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "brunOWD74TomuREUwoAX77"
+    "fileId": "brunOWD74TomuREUwoAX77",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -495,7 +504,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": 39.823,
       "z": 0
     },
     "_lrot": {
@@ -535,8 +544,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 400,
-      "height": 40
+      "width": 141.69798278808594,
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -574,8 +583,8 @@
     "_string": "100/100",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 0,
-    "_fontSize": 24,
+    "_actualFontSize": 39.2,
+    "_fontSize": 39.2,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
@@ -625,7 +634,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "79ge5MWla7cb46eDRJguy/"
+    "fileId": "79ge5MWla7cb46eDRJguy/",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.UITransform",
@@ -680,6 +692,7 @@
     },
     "hideWhenFull": false,
     "hideWhenDead": true,
+    "followOffsetY": 40,
     "_id": ""
   },
   {
@@ -694,6 +707,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "QBPbSB3hSplAmHw7JecW3w"
+    "fileId": "QBPbSB3hSplAmHw7JecW3w",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

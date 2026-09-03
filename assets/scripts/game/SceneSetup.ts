@@ -68,14 +68,43 @@ export class SceneSetup extends Component {
             this.addComponent(Physics2DSetup);
         }
 
+        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        this._wireGameplay();
+        this._ensureCombatGuide();
+
+        const gm = GameManager.instance;
+        if (gm) {
+            gm.setPhase(GamePhase.RunParkour);
+        }
+    }
+
+    start(): void {
+        // prefab 实例可能在 onLoad 时尚未展开，再兜底绑一次
+        this._wireGameplay();
+    }
+
+    onDestroy(): void {
+        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+    }
+
+    /** 解析引用并绑定摇杆/滚木/刷怪/预置怪；可重复调用 */
+    private _wireGameplay(): void {
         this._resolveGameplayRefs();
 
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        const phase = GameManager.instance?.getPhase();
+        const inParkour = !phase || phase === GamePhase.RunParkour;
+        const moveMode = inParkour ? 'parkour' : 'defense';
+
+        if (this.player) {
+            this.player.setMode(moveMode);
+        }
 
         if (this.player && this.joystick) {
             this.joystick.bindPlayer(this.player);
-            this.joystick.setMode('parkour');
-        } else {
+            this.joystick.setMode(moveMode);
+        } else if (!this.player || !this.joystick) {
             console.warn(
                 '[SceneSetup] missing player/joystick binding',
                 !!this.player,
@@ -83,10 +112,9 @@ export class SceneSetup extends Component {
             );
         }
 
-        if (this.player && this.log) {
+        if (this.player && this.log && inParkour) {
             this.log.bindPlayer(this.player.node);
             this.log.beginParkour();
-            this.player.setMode('parkour');
         }
 
         if (this.joystickHint) {
@@ -105,16 +133,6 @@ export class SceneSetup extends Component {
         this._bindCoinSystem();
         this._bindBuildSystem();
         this._bindPreplacedMinions();
-        this._ensureCombatGuide();
-
-        const gm = GameManager.instance;
-        if (gm) {
-            gm.setPhase(GamePhase.RunParkour);
-        }
-    }
-
-    onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
     }
 
     /** 磁盘上 @property 常为 null（仅靠 targetOverrides）；运行时兜底查找 */
@@ -206,6 +224,9 @@ export class SceneSetup extends Component {
 
     private _onLogFixed = (): void => {
         // 唯一阶段出口：setPhase → PHASE_CHANGED(GamePhase.CombatGuide)；监听方映射为 defense 移动
+        this.player?.setMode('defense');
+        this.joystick?.setMode('defense');
+
         const gm = GameManager.instance;
         if (gm) {
             gm.setPhase(GamePhase.CombatGuide);
@@ -216,5 +237,11 @@ export class SceneSetup extends Component {
                 this.bossSpawner?.trySpawnFirst();
             }, GameConfig.bossFirstSpawnDelay);
         }
+    };
+
+    /** 蓝线失败：全向移动，但不进 CombatGuide/建造 */
+    private _onLogFailed = (): void => {
+        this.player?.setMode('defense');
+        this.joystick?.setMode('defense');
     };
 }

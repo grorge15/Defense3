@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Player } from '../character/Player';
 import { GameConfig } from '../core/GameConfig';
 import { EnemyMinion } from '../enemy/EnemyMinion';
@@ -23,12 +23,21 @@ export class CombatSystem extends Component {
     @property({ type: Node, tooltip: '箭矢父节点；空则用玩家父节点或场景' })
     projectileRoot: Node | null = null;
 
-    @property({ tooltip: '索敌范围（世界单位）' })
-    attackRange = 10;
+    @property({ tooltip: '索敌范围（世界单位）；≤20 时启动用 GameConfig.playerAttackRange 纠正旧场景绑定' })
+    attackRange = GameConfig.playerAttackRange;
 
     private _cooldown = 0;
+    private _loadingArrow = false;
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
+
+    onLoad(): void {
+        // 场景里若仍绑着旧默认值 10，按当前世界尺度纠正（不改 Main.scene）
+        if (this.attackRange <= 20) {
+            this.attackRange = GameConfig.playerAttackRange;
+        }
+        this._ensureArrowPrefab();
+    }
 
     private _resolvePlayer(): Player | null {
         if (this.player && this.player.isValid) {
@@ -37,13 +46,34 @@ export class CombatSystem extends Component {
         if (this.playerNode && this.playerNode.isValid) {
             this.player = this.playerNode.getComponent(Player);
         }
+        if (!this.player && this.node.scene) {
+            this.player = this.node.scene.getComponentInChildren(Player);
+        }
         return this.player;
+    }
+
+    private _ensureArrowPrefab(): void {
+        if (this.arrowPrefab || this._loadingArrow) {
+            return;
+        }
+        this._loadingArrow = true;
+        resources.load('prefabs/projectile/pref_projectile_arrow', Prefab, (err, prefab) => {
+            this._loadingArrow = false;
+            if (err || !prefab) {
+                console.warn('[CombatSystem] failed to load pref_projectile_arrow', err);
+                return;
+            }
+            if (!this.arrowPrefab) {
+                this.arrowPrefab = prefab;
+            }
+        });
     }
 
     update(dt: number): void {
         if (this._cooldown > 0) {
             this._cooldown -= dt;
         }
+        this._ensureArrowPrefab();
         this.tryAttack();
     }
 
@@ -57,6 +87,7 @@ export class CombatSystem extends Component {
             return;
         }
         if (!this.arrowPrefab) {
+            this._ensureArrowPrefab();
             return;
         }
 
@@ -85,7 +116,7 @@ export class CombatSystem extends Component {
         let nearestDist = this.attackRange;
 
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.active) {
+            if (!minion.node.activeInHierarchy) {
                 continue;
             }
             minion.node.getWorldPosition(this._targetPos);

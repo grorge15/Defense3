@@ -40,6 +40,8 @@ export class Joystick extends Component {
         this._resolveVisualNodes();
 
         EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
+        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
         input.on(Input.EventType.TOUCH_START, this._onTouchStart, this);
         input.on(Input.EventType.TOUCH_MOVE, this._onTouchMove, this);
         input.on(Input.EventType.TOUCH_END, this._onTouchEnd, this);
@@ -50,6 +52,8 @@ export class Joystick extends Component {
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
+        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
         input.off(Input.EventType.TOUCH_START, this._onTouchStart, this);
         input.off(Input.EventType.TOUCH_MOVE, this._onTouchMove, this);
         input.off(Input.EventType.TOUCH_END, this._onTouchEnd, this);
@@ -131,6 +135,16 @@ export class Joystick extends Component {
         }
         return null;
     }
+
+    /** 蓝线固定成功：全向摇杆 */
+    private _onLogFixed = (): void => {
+        this.setMode('defense');
+    };
+
+    /** 蓝线长度不足失败：仍切全向，便于操作；建造流程不启动（无 LOG_FIXED） */
+    private _onLogFailed = (): void => {
+        this.setMode('defense');
+    };
 
     private _onTouchStart(event: EventTouch): void {
         if (!this._enabledInput || !this.node.activeInHierarchy) {

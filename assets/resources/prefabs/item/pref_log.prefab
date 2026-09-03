@@ -40,7 +40,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -5.536,
       "z": 0
     },
     "_lrot": {
@@ -260,6 +260,7 @@
       "__id__": 12
     },
     "visualNode": null,
+    "offset": 0,
     "_id": ""
   },
   {
@@ -274,7 +275,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.970"
+    "fileId": "Node.970",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.RigidBody2D",
@@ -330,13 +334,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
+      "x": 0.1,
+      "y": 37.7
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 1,
-      "height": 1
+      "width": 100.9,
+      "height": 76.5
     },
     "_id": ""
   },
@@ -359,6 +363,7 @@
     "visualNode": {
       "__id__": 2
     },
+    "segmentSize": 1,
     "_id": ""
   },
   {
@@ -373,6 +378,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "c46/YsCPVOJYA4mWEpNYRx"
+    "fileId": "c46/YsCPVOJYA4mWEpNYRx",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

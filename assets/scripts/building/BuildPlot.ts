@@ -1,19 +1,26 @@
 import {
     _decorator,
+    BoxCollider2D,
     Collider2D,
     Color,
     Component,
     Contact2DType,
+    ERigidBody2DType,
     IPhysics2DContact,
     Label,
     Node,
+    RigidBody2D,
+    Size,
     Sprite,
+    UITransform,
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { CoinSystem } from '../game/CoinSystem';
+import { CoinUI } from '../ui/CoinUI';
 
 const { ccclass, property } = _decorator;
 
@@ -48,6 +55,12 @@ export class BuildPlot extends Component {
     @property({ tooltip: '墙地块对应刷怪侧别（left/right）；非墙留空' })
     spawnSide: '' | 'left' | 'right' = '';
 
+    @property({ tooltip: '无可靠碰撞时的站立判定半宽（世界单位）' })
+    standHalfWidth = 60;
+
+    @property({ tooltip: '无可靠碰撞时的站立判定半高（世界单位）' })
+    standHalfHeight = 60;
+
     /** 购买完成回调，供 P4/P2-006+ 生成实际建筑 */
     public onBuildComplete: ((type: BuildPlotType) => void) | null = null;
 
@@ -57,6 +70,10 @@ export class BuildPlot extends Component {
     private _playerInside = false;
     private _coinGetter: (() => number) | null = null;
     private _fillSprite: Sprite | null = null;
+    private _collider: Collider2D | null = null;
+    private _rb: RigidBody2D | null = null;
+    private readonly _selfPos = new Vec3();
+    private readonly _playerPos = new Vec3();
 
     onLoad(): void {
         this._fillSprite = this.fillBar;
@@ -66,23 +83,49 @@ export class BuildPlot extends Component {
             this._fillSprite.fillRange = 0;
             this._fillSprite.color = new Color(80, 220, 80, 255);
         }
+
+        this._rb = this.getComponent(RigidBody2D);
+        if (!this._rb) {
+            this._rb = this.addComponent(RigidBody2D);
+        }
+        this._rb.type = ERigidBody2DType.Kinematic;
+        this._rb.gravityScale = 0;
+        this._rb.allowSleep = false;
+        this._rb.enabledContactListener = true;
+
+        this._collider = this.getComponent(Collider2D);
+        if (this._collider) {
+            this._collider.sensor = true;
+            if (this._collider instanceof BoxCollider2D) {
+                const w = Math.abs(this._collider.size.width);
+                const h = Math.abs(this._collider.size.height);
+                // 旧 prefab 碰撞盒 2×2，相对百级像素世界几乎摸不到
+                if (w < 8 || h < 8) {
+                    const ui =
+                        this.backgroundSprite?.getComponent(UITransform) ??
+                        this.node.getComponent(UITransform);
+                    const bw = ui ? Math.max(ui.contentSize.width, 80) : 100;
+                    const bh = ui ? Math.max(ui.contentSize.height, 80) : 100;
+                    this._collider.size = new Size(bw, bh);
+                }
+            }
+        }
         this._refreshCostDisplay();
     }
 
     onEnable(): void {
-        const collider = this.getComponent(Collider2D);
-        if (collider) {
-            collider.on(Contact2DType.BEGIN_CONTACT, this.onTriggerEnter, this);
-            collider.on(Contact2DType.END_CONTACT, this.onTriggerExit, this);
+        if (this._collider) {
+            this._collider.on(Contact2DType.BEGIN_CONTACT, this.onTriggerEnter, this);
+            this._collider.on(Contact2DType.END_CONTACT, this.onTriggerExit, this);
         }
     }
 
     onDisable(): void {
-        const collider = this.getComponent(Collider2D);
-        if (collider) {
-            collider.off(Contact2DType.BEGIN_CONTACT, this.onTriggerEnter, this);
-            collider.off(Contact2DType.END_CONTACT, this.onTriggerExit, this);
+        if (this._collider) {
+            this._collider.off(Contact2DType.BEGIN_CONTACT, this.onTriggerEnter, this);
+            this._collider.off(Contact2DType.END_CONTACT, this.onTriggerExit, this);
         }
+        this._playerInside = false;
     }
 
     setBuildType(type: BuildPlotType): void {
@@ -114,6 +157,8 @@ export class BuildPlot extends Component {
     }
 
     update(dt: number): void {
+        this._pollPlayerInside();
+
         if (this._isComplete || !this._playerInside) {
             return;
         }
@@ -136,12 +181,21 @@ export class BuildPlot extends Component {
         }
 
         this._paidAmount += spend;
-        EventManager.instance.emitEvent(
-            GameEvents.COIN_CHANGED,
-            -spend,
-            this._paidAmount,
-            totalCost,
-        );
+        // 直接扣余额 → CoinSystem emit (delta, balance) → CoinUI 渐变；再飞币视觉
+        const cs = CoinSystem.instance;
+        if (cs) {
+            cs.addCoins(-spend);
+        } else {
+            // 无 CoinSystem 时仍走旧事件，供 BuildSystem 兜底（CoinUI 已忽略三参）
+            EventManager.instance.emitEvent(
+                GameEvents.COIN_CHANGED,
+                -spend,
+                this._paidAmount,
+                totalCost,
+            );
+        }
+        this.node.getWorldPosition(this._selfPos);
+        CoinUI.instance?.playDeliverFly(this._selfPos);
         this._updateFillBar();
 
         if (this._paidAmount >= totalCost) {
@@ -149,28 +203,73 @@ export class BuildPlot extends Component {
         }
     }
 
+    /** 玩家 setPosition + 传感器时接触常丢：用 AABB/距离轮询站立 */
+    private _pollPlayerInside(): void {
+        if (this._isComplete || !this.node.activeInHierarchy) {
+            this._playerInside = false;
+            return;
+        }
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        const player = scene.getComponentInChildren(Player);
+        if (!player || player.isDead) {
+            this._playerInside = false;
+            return;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        player.node.getWorldPosition(this._playerPos);
+
+        if (this._collider instanceof BoxCollider2D) {
+            const a = this._collider.worldAABB;
+            const pw = 24;
+            const ph = 24;
+            const px = this._playerPos.x;
+            const py = this._playerPos.y;
+            this._playerInside = !(
+                px + pw < a.xMin ||
+                px - pw > a.xMax ||
+                py + ph < a.yMin ||
+                py - ph > a.yMax
+            );
+            return;
+        }
+
+        const dx = Math.abs(this._playerPos.x - this._selfPos.x);
+        const dy = Math.abs(this._playerPos.y - this._selfPos.y);
+        this._playerInside = dx <= this.standHalfWidth && dy <= this.standHalfHeight;
+    }
+
     private onTriggerEnter(
-        selfCollider: Collider2D,
+        _selfCollider: Collider2D,
         otherCollider: Collider2D,
         _contact: IPhysics2DContact | null,
     ): void {
+        void _selfCollider;
+        void _contact;
         if (this._isPlayerCollider(otherCollider)) {
             this._playerInside = true;
         }
     }
 
     private onTriggerExit(
-        selfCollider: Collider2D,
+        _selfCollider: Collider2D,
         otherCollider: Collider2D,
         _contact: IPhysics2DContact | null,
     ): void {
+        void _selfCollider;
+        void _contact;
         if (this._isPlayerCollider(otherCollider)) {
             this._playerInside = false;
         }
     }
 
     private _isPlayerCollider(collider: Collider2D): boolean {
-        return collider.node.getComponent(Player) !== null;
+        return (
+            collider.node.getComponent(Player) !== null ||
+            collider.node.parent?.getComponent(Player) !== null
+        );
     }
 
     private _refreshCostDisplay(): void {
@@ -194,16 +293,17 @@ export class BuildPlot extends Component {
         }
         this._isComplete = true;
         this._playerInside = false;
-        const anchor = this.node.parent ?? this.node;
+        // Plot_Wall_R / Plot_Tower_* 等父挂点；建成物应挂在此节点下
+        const plotRoot = this.node.parent ?? this.node;
         const worldPosition = new Vec3();
-        anchor.getWorldPosition(worldPosition);
+        plotRoot.getWorldPosition(worldPosition);
         EventManager.instance.emitEvent(GameEvents.BUILD_COMPLETE, {
             buildType: this._buildType,
             spawnSide: this.spawnSide,
             worldPosition,
+            plotRoot,
         });
         this.onBuildComplete?.(this._buildType);
-        // 延迟销毁，便于 BuildSystem 同帧读完 type/side/位置
         this.scheduleOnce(() => {
             if (this.node?.isValid) {
                 this.node.destroy();

@@ -2,6 +2,7 @@ import {
     _decorator,
     Collider2D,
     Component,
+    ERigidBody2DType,
     Node,
     RigidBody2D,
     Vec2,
@@ -53,6 +54,7 @@ export class EnemyBoss extends Component {
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _toTarget = new Vec2();
+    private readonly _nextWorld = new Vec3();
     private _attackTimer = 0;
     private _isDead = false;
     private _canMove = true;
@@ -62,11 +64,39 @@ export class EnemyBoss extends Component {
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         this._collider = this.getComponent(Collider2D);
+        if (!this.visualNode) {
+            this.visualNode = this.node.getChildByName('Visual');
+        }
+        this._hp = GameConfig.bossMaxHp;
+        // 旧预制若仍是「约 1 单位」世界，抬到百级像素尺度
+        if (this.attackTriggerRange < 20) {
+            this.attackTriggerRange = 120;
+        }
+        if (this.attackLength < 20) {
+            this.attackLength = 160;
+        }
+        if (this.attackWidth < 10) {
+            this.attackWidth = 80;
+        }
     }
 
     start(): void {
         this.scheduleOnce(() => {
-            UIManager.instance?.spawnHpBar('boss', this.node, this.visualNode ?? this.node);
+            const bar = UIManager.instance?.spawnHpBar(
+                'boss',
+                this.node,
+                this.visualNode ?? this.node,
+            );
+            if (bar) {
+                bar.hideWhenFull = false;
+                bar.showMaxInLabel = false;
+            }
+            EventManager.instance.emitEvent(
+                GameEvents.HP_CHANGED,
+                this.node,
+                this._hp,
+                GameConfig.bossMaxHp,
+            );
         }, 0);
     }
 
@@ -93,19 +123,20 @@ export class EnemyBoss extends Component {
     }
 
     pickTarget(): Node | null {
+        if (!this._playerNode && this.node.scene) {
+            this._playerNode =
+                this.node.scene.getComponentInChildren(Player)?.node ?? null;
+        }
+        // 追击优先玩家
+        if (this._isTargetAlive(this._playerNode)) {
+            return this._playerNode;
+        }
         this._injectBarriersIntoBuildings();
         const building = this._pickNearestAlive(this._buildings);
         if (building) {
             return building;
         }
-        const hero = this._pickNearestAlive(this._heroes);
-        if (hero) {
-            return hero;
-        }
-        if (this._isTargetAlive(this._playerNode)) {
-            return this._playerNode;
-        }
-        return null;
+        return this._pickNearestAlive(this._heroes);
     }
 
     tryAttack(): void {
@@ -180,6 +211,12 @@ export class EnemyBoss extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'idle');
         }
+        EventManager.instance.emitEvent(
+            GameEvents.HP_CHANGED,
+            this.node,
+            this._hp,
+            GameConfig.bossMaxHp,
+        );
     }
 
     fixedUpdate(dt: number): void {
@@ -187,14 +224,17 @@ export class EnemyBoss extends Component {
             this._attackTimer -= dt;
         }
 
-        if (!this._canMove || !this._rb || this._isDead) {
+        if (!this._canMove || this._isDead || dt <= 0) {
             return;
         }
 
+        // 始终追玩家（无玩家再退回建筑/英雄）
         const target = this.pickTarget();
         if (!target) {
             this._velocity.set(0, 0);
-            this._rb.linearVelocity = this._velocity;
+            if (this._rb) {
+                this._rb.linearVelocity = this._velocity;
+            }
             this._updateLocomotionAnim(false);
             return;
         }
@@ -211,7 +251,9 @@ export class EnemyBoss extends Component {
 
         if (dist <= this.attackTriggerRange) {
             this._velocity.set(0, 0);
-            this._rb.linearVelocity = this._velocity;
+            if (this._rb) {
+                this._rb.linearVelocity = this._velocity;
+            }
             this._updateLocomotionAnim(false);
             this.tryAttack();
             return;
@@ -220,7 +262,16 @@ export class EnemyBoss extends Component {
         const invDist = 1 / dist;
         this._velocity.x = dx * invDist * GameConfig.bossMoveSpeed;
         this._velocity.y = dy * invDist * GameConfig.bossMoveSpeed;
-        this._rb.linearVelocity = this._velocity;
+        this._nextWorld.set(
+            this._selfPos.x + this._velocity.x * dt,
+            this._selfPos.y + this._velocity.y * dt,
+            this._selfPos.z,
+        );
+        this.node.setWorldPosition(this._nextWorld);
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.linearVelocity = this._velocity;
+        }
         this._updateLocomotionAnim(true);
     }
 

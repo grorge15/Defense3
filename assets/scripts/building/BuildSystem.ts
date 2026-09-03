@@ -17,6 +17,8 @@ type BuildCompletePayload = {
     buildType?: BuildPlotType | string;
     spawnSide?: '' | 'left' | 'right' | string;
     worldPosition?: Vec3;
+    /** pref_build_plot 的父节点（Plot_Wall_R 等），建成物挂于此 */
+    plotRoot?: Node;
 };
 
 /**
@@ -131,9 +133,10 @@ export class BuildSystem extends Component {
         const buildType = payload.buildType;
         const spawnSide = payload.spawnSide ?? '';
         const worldPos = payload.worldPosition;
+        const plotRoot = payload.plotRoot;
 
         if (buildType === 'wall') {
-            this._spawnWall(spawnSide, worldPos);
+            this._spawnWall(spawnSide, worldPos, plotRoot);
             if (spawnSide === 'left') {
                 this._wallLeftDone = true;
             } else if (spawnSide === 'right') {
@@ -146,18 +149,18 @@ export class BuildSystem extends Component {
         }
 
         if (buildType === 'towerBasic') {
-            this._spawnTower(worldPos);
+            this._spawnTower(worldPos, plotRoot);
             return;
         }
 
         if (buildType === 'barracks') {
-            this._spawnBarracks(worldPos);
+            this._spawnBarracks(worldPos, plotRoot);
             this._revealPlots(this.heroShrinePlots, 'heroShrine');
             return;
         }
 
         if (buildType === 'heroShrine') {
-            this._spawnHeroShrine(worldPos);
+            this._spawnHeroShrine(worldPos, plotRoot);
             return;
         }
 
@@ -167,15 +170,18 @@ export class BuildSystem extends Component {
         }
 
         if (buildType === 'towerAdvanced') {
-            this._onAdvancedTowerBuilt(spawnSide, worldPos);
+            this._onAdvancedTowerBuilt(spawnSide, worldPos, plotRoot);
         }
     };
 
     /**
-     * BuildPlot 以 (delta, paid, totalCost) 三参 emit；CoinSystem 以 (delta, balance) 两参。
-     * 仅对建造扣费三参同步余额。
+     * BuildPlot 已直接扣 CoinSystem 时不再二次扣费。
+     * 仅兼容无 CoinSystem.instance、仍发三参事件的兜底路径。
      */
     private _onCoinChanged = (...args: unknown[]): void => {
+        if (CoinSystem.instance) {
+            return;
+        }
         const delta = args[0];
         const totalCost = args[2];
         if (typeof delta !== 'number' || delta >= 0 || typeof totalCost !== 'number') {
@@ -196,13 +202,50 @@ export class BuildSystem extends Component {
     }
 
     private _ensureInitialHidden(): void {
-        this._setPlotsActive(this.wallPlots, false);
+        this._resolveWallPlotsIfEmpty();
+        // 墙地块开局保持可见（可站上去蓄建造）；其余地块仍隐藏，按阶段 reveal
+        this._setPlotsActive(this.wallPlots, true);
+        this._configurePlots(this.wallPlots, 'wall');
         this._setPlotsActive(this.towerPlots, false);
         this._setPlotsActive(this.barracksPlots, false);
         this._setPlotsActive(this.heroShrinePlots, false);
         this._setPlotsActive(this.expandPlots, false);
         this._setPlotsActive(this.towerAdvancedPlots, false);
         this._setBarrierRootsActive(false);
+    }
+
+    /** Inspector 未绑 wallPlots 时按节点名兜底 */
+    private _resolveWallPlotsIfEmpty(): void {
+        if (this.wallPlots.length > 0 || !this.node.scene) {
+            return;
+        }
+        const found: Node[] = [];
+        const walk = (n: Node) => {
+            if (n.name === 'Plot_Wall_L' || n.name === 'Plot_Wall_R') {
+                found.push(n);
+            }
+            for (const c of n.children) {
+                walk(c);
+            }
+        };
+        walk(this.node.scene);
+        this.wallPlots = found;
+    }
+
+    private _setPlotsActive(plots: Node[], active: boolean): void {
+        for (const plotRoot of plots) {
+            if (!plotRoot) {
+                continue;
+            }
+            plotRoot.active = active;
+            for (const child of plotRoot.children) {
+                child.active = active;
+            }
+            const bp = plotRoot.getComponentInChildren(BuildPlot);
+            if (bp) {
+                bp.node.active = active;
+            }
+        }
     }
 
     private _wirePlots(): void {
@@ -254,32 +297,23 @@ export class BuildSystem extends Component {
         }
     }
 
-    private _setPlotsActive(plots: Node[], active: boolean): void {
-        for (const plotRoot of plots) {
-            if (!plotRoot) {
-                continue;
-            }
-            for (const child of plotRoot.children) {
-                child.active = active;
-            }
-            const bp = plotRoot.getComponentInChildren(BuildPlot);
-            if (bp) {
-                bp.node.active = active;
-            }
-        }
-    }
-
-    private _spawnWall(spawnSide: string, worldPos?: Vec3): void {
+    private _spawnWall(spawnSide: string, worldPos?: Vec3, plotRoot?: Node): void {
         if (!this.wallPrefab) {
             return;
         }
-        const anchor =
+        // 优先挂在 Plot_Wall_L/R；无 plotRoot 时退回 Stairs 锚点仅定坐标
+        const fallbackAnchor =
             spawnSide === 'left'
                 ? this.wallSpawnLeft
                 : spawnSide === 'right'
                   ? this.wallSpawnRight
                   : null;
-        const node = this._instantiateAt(this.wallPrefab, anchor, worldPos);
+        const node = this._instantiateAt(
+            this.wallPrefab,
+            plotRoot ?? null,
+            worldPos,
+            plotRoot ? null : fallbackAnchor,
+        );
         if (!node) {
             return;
         }
@@ -292,11 +326,11 @@ export class BuildSystem extends Component {
         }
     }
 
-    private _spawnTower(worldPos?: Vec3): void {
+    private _spawnTower(worldPos?: Vec3, plotRoot?: Node): void {
         if (!this.towerBasicPrefab) {
             return;
         }
-        const node = this._instantiateAt(this.towerBasicPrefab, null, worldPos);
+        const node = this._instantiateAt(this.towerBasicPrefab, plotRoot ?? null, worldPos);
         if (!node) {
             return;
         }
@@ -304,11 +338,11 @@ export class BuildSystem extends Component {
         tower?.activate();
     }
 
-    private _spawnBarracks(worldPos?: Vec3): void {
+    private _spawnBarracks(worldPos?: Vec3, plotRoot?: Node): void {
         if (!this.barracksPrefab) {
             return;
         }
-        const node = this._instantiateAt(this.barracksPrefab, null, worldPos);
+        const node = this._instantiateAt(this.barracksPrefab, plotRoot ?? null, worldPos);
         if (!node) {
             return;
         }
@@ -316,11 +350,11 @@ export class BuildSystem extends Component {
         barracks?.activate();
     }
 
-    private _spawnHeroShrine(worldPos?: Vec3): void {
+    private _spawnHeroShrine(worldPos?: Vec3, plotRoot?: Node): void {
         if (!this.heroShrinePrefab) {
             return;
         }
-        const node = this._instantiateAt(this.heroShrinePrefab, null, worldPos);
+        const node = this._instantiateAt(this.heroShrinePrefab, plotRoot ?? null, worldPos);
         if (!node) {
             return;
         }
@@ -359,15 +393,17 @@ export class BuildSystem extends Component {
     }
 
     /** 高级塔建成追踪；两侧齐备后 emit + setPhase(Ultimate)（大招逻辑留给 4.33） */
-    private _onAdvancedTowerBuilt(spawnSide: string, worldPos?: Vec3): void {
-        void worldPos;
-        // 优先用 spawnSide；否则按地块名推断（Plot_TowerAdvanced_L/R）
+    private _onAdvancedTowerBuilt(spawnSide: string, worldPos?: Vec3, plotRoot?: Node): void {
+        // 尚无独立高级塔 prefab 时，用初级塔挂在原地块下占位
+        if (this.towerBasicPrefab) {
+            const node = this._instantiateAt(this.towerBasicPrefab, plotRoot ?? null, worldPos);
+            node?.getComponent(Tower)?.activate();
+        }
         let side = spawnSide;
         if (side !== 'left' && side !== 'right') {
             side = '';
         }
         if (!side) {
-            // 无法区分则按完成次数：第一次 left，第二次 right
             if (!this._advLeftDone) {
                 side = 'left';
             } else if (!this._advRightDone) {
@@ -429,12 +465,25 @@ export class BuildSystem extends Component {
         }
     }
 
-    private _instantiateAt(prefab: Prefab, anchor: Node | null, worldPos?: Vec3): Node | null {
-        const parent = this.buildingRoot ?? this.node;
+    /**
+     * @param plotParent 建成物父节点（优先 Plot_*）
+     * @param worldPos 世界坐标；有父节点时也可本地置零
+     * @param positionOnlyAnchor 无 plotParent 时用此节点世界坐标（如 Stairs 墙锚点）
+     */
+    private _instantiateAt(
+        prefab: Prefab,
+        plotParent: Node | null,
+        worldPos?: Vec3,
+        positionOnlyAnchor: Node | null = null,
+    ): Node | null {
+        const parent = plotParent ?? this.buildingRoot ?? this.node;
         const node = instantiate(prefab);
         parent.addChild(node);
-        if (anchor) {
-            node.setWorldPosition(anchor.worldPosition);
+        if (plotParent) {
+            // 挂在 Plot_* 下：本地原点 = 地块位置
+            node.setPosition(0, 0, 0);
+        } else if (positionOnlyAnchor) {
+            node.setWorldPosition(positionOnlyAnchor.worldPosition);
         } else if (worldPos) {
             this._spawnPos.set(worldPos.x, worldPos.y, worldPos.z);
             node.setWorldPosition(this._spawnPos);

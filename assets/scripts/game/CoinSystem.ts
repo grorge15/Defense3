@@ -53,7 +53,7 @@ export class CoinSystem extends Component {
     }
 
     /**
-     * 在世界坐标掉落一枚金币并开始吸附。
+     * 在死亡点生成一枚金币，立即飞向玩家；拾取后 addCoins → COIN_CHANGED 同步 UI。
      */
     dropAt(worldPos: Vec3): void {
         if (!this.coinPrefab) {
@@ -63,6 +63,7 @@ export class CoinSystem extends Component {
             return;
         }
 
+        this._ensurePlayer();
         const parent = this._resolveDropRoot();
         const node = instantiate(this.coinPrefab);
         parent.addChild(node);
@@ -75,21 +76,39 @@ export class CoinSystem extends Component {
             return;
         }
 
-        const from = new Vec3(
-            worldPos.x,
-            worldPos.y + GameConfig.coinDropArcHeight * 0.5,
-            worldPos.z,
-        );
         this._aliveCoins += 1;
-        coin.setup(
-            this.playerNode,
-            GameConfig.coinDropAmount,
-            (amount) => {
-                this._aliveCoins = Math.max(0, this._aliveCoins - 1);
-                this.addCoins(amount);
-            },
-            from,
-        );
+        coin.setup(this.playerNode, GameConfig.coinDropAmount, (amount) => {
+            this._aliveCoins = Math.max(0, this._aliveCoins - 1);
+            this.addCoins(amount);
+        });
+    }
+
+    private _ensurePlayer(): void {
+        if (this.playerNode && this.playerNode.isValid) {
+            return;
+        }
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        // 避免 CoinSystem ↔ Player 循环 import：按节点名兜底
+        const named = this._findNodeByName(scene, 'Player');
+        if (named) {
+            this.playerNode = named;
+        }
+    }
+
+    private _findNodeByName(root: Node, name: string): Node | null {
+        if (root.name === name) {
+            return root;
+        }
+        for (const child of root.children) {
+            const found = this._findNodeByName(child, name);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
     }
 
     addCoins(delta: number): void {

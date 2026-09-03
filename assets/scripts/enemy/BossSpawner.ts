@@ -42,6 +42,9 @@ export class BossSpawner extends Component {
 
         const boss = node.getComponent(EnemyBoss);
         if (boss) {
+            if (!boss.visualNode) {
+                boss.visualNode = node.getChildByName('Visual');
+            }
             boss.registerTargets({
                 player: this.player,
                 buildings: [],

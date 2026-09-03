@@ -5,7 +5,7 @@ import { TweenUtil } from '../core/TweenUtil';
 const { ccclass, property } = _decorator;
 
 /**
- * 金币：掉落后短抛物线落地，再朝玩家带弧吸附；进入拾取距离后回调并销毁。
+ * 金币：生成后立即朝玩家带弧飞行；进入拾取距离后回调并销毁（余额由 CoinSystem 同步 UI）。
  */
 @ccclass('Coin')
 export class Coin extends Component {
@@ -16,7 +16,6 @@ export class Coin extends Component {
     private _amount = 1;
     private _onCollected: ((amount: number) => void) | null = null;
     private _consumed = false;
-    private _dropping = false;
     private _magnetizing = false;
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
@@ -27,41 +26,24 @@ export class Coin extends Component {
     private _magnetDur = 0.4;
 
     /**
-     * @param dropFrom 若提供，先从此点抛物线落到当前节点世界坐标（落地目标）
+     * @param dropFrom 已废弃：不再做落地抛物线；保留参数以免调用方编译失败
      */
     setup(
         target: Node | null,
         amount: number,
         onCollected: (amount: number) => void,
-        dropFrom: Vec3 | null = null,
+        _dropFrom: Vec3 | null = null,
     ): void {
+        void _dropFrom;
         this._target = target;
         this._amount = Math.max(1, amount | 0);
         this._onCollected = onCollected;
         this._consumed = false;
         this._magnetizing = false;
-        this._dropping = false;
-
-        if (dropFrom) {
-            const land = new Vec3();
-            this.node.getWorldPosition(land);
-            this._dropping = true;
-            this.node.setWorldPosition(dropFrom);
-            TweenUtil.moveWorldParabola(
-                this.node,
-                dropFrom,
-                land,
-                GameConfig.coinDropArcDuration,
-                GameConfig.coinDropArcHeight,
-                () => {
-                    this._dropping = false;
-                },
-            );
-        }
     }
 
     update(dt: number): void {
-        if (this._consumed || this._dropping) {
+        if (this._consumed) {
             return;
         }
         if (!this._target || !this._target.isValid || !this._target.active) {
@@ -79,17 +61,12 @@ export class Coin extends Component {
             return;
         }
 
-        if (dist > GameConfig.coinMagnetRange || dist < 1e-5) {
-            this._magnetizing = false;
-            return;
-        }
-
         if (!this._magnetizing) {
             this._magnetizing = true;
             this._magnetT = 0;
             this._magnetFrom.set(this._selfPos);
             const speed = Math.max(0.1, GameConfig.coinMagnetSpeed);
-            this._magnetDur = Math.min(1.2, Math.max(0.15, dist / speed));
+            this._magnetDur = Math.min(1.5, Math.max(0.12, dist / speed));
         }
 
         this._magnetT += dt;

@@ -118,7 +118,12 @@ export class UIManager extends Component {
         }
         const anchor = followAnchor ?? target;
         bar.bindTarget(target, anchor);
-        if (kind === 'player') {
+        if (kind === 'boss') {
+            bar.showMaxInLabel = false;
+            bar.hideWhenFull = false;
+        }
+        // 仅玩家本体写入 playerHpBar；滚木等复用玩家模板时勿覆盖
+        if (kind === 'player' && target.getComponent(Player)) {
             this.playerHpBar = bar;
         }
         return bar;

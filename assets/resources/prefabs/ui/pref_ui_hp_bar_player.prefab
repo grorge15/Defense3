@@ -197,7 +197,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "097kfkHKYmhtH/iMsWjtHo"
+    "fileId": "097kfkHKYmhtH/iMsWjtHo",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -222,7 +225,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -56.592,
       "y": 0,
       "z": 0
     },
@@ -268,7 +271,7 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
+      "x": 0,
       "y": 0.5
     },
     "_id": ""
@@ -300,7 +303,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+      "__uuid__": "24a704da-2867-446d-8d1a-5e920c75e09d@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 3,
@@ -312,7 +315,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 1,
+    "_fillRange": 0.5,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -330,7 +333,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "PPOB8//ksQXo7ZyW8hCpde"
+    "fileId": "PPOB8//ksQXo7ZyW8hCpde",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.UITransform",
@@ -381,6 +387,7 @@
     "valueLabel": null,
     "hideWhenFull": false,
     "hideWhenDead": true,
+    "followOffsetY": 40,
     "_id": ""
   },
   {
@@ -395,6 +402,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "LFHy2x3PWDd6ymc3hghSv/"
+    "fileId": "LFHy2x3PWDd6ymc3hghSv/",
+    "instance": null,
+    "targetOverrides": null
   }
 ]
