@@ -327,7 +327,7 @@
       "__uuid__": "4ef8ecc7-84f2-4a3d-8b37-f49432e42a3f",
       "__expectedType__": "cc.Prefab"
     },
-    "autoSelectOnActivate": true,
+    "autoSelectOnActivate": false,
     "_id": ""
   },
   {

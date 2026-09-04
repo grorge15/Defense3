@@ -8,12 +8,13 @@ import { EnemyMinion } from '../enemy/EnemyMinion';
 import { EnemySpawner } from '../enemy/EnemySpawner';
 import { CameraFollow } from './CameraFollow';
 import { GameManager } from './GameManager';
+import { GamePhase } from './GamePhase';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 大招系统：两侧高级塔完成后解锁；空格触发 Player.castUltimate → 清场 → 镜头拉远 → GameOver。
- * 无结束 UI prefab（§5.8）。
+ * 大招/收尾：两侧高级塔完成后自动清场 → 锁移动 → 镜头拉远 → GameOver。
+ * 空格仍可手动触发（若尚未自动播完）。
  */
 @ccclass('UltimateSystem')
 export class UltimateSystem extends Component {
@@ -87,7 +88,9 @@ export class UltimateSystem extends Component {
     private _onBothAdvanced = (): void => {
         this._unlocked = true;
         this._bindPlayerCallback();
-        console.log('[UltimateSystem] unlocked (BOTH_ADVANCED_TOWERS_COMPLETE); press Space to cast');
+        console.log('[UltimateSystem] unlocked (BOTH_ADVANCED_TOWERS_COMPLETE) → auto finale');
+        // 不依赖空格 / castUltimate 回调，直接收尾（锁移动、拉镜头、GameOver）
+        this._runFinale();
     };
 
     private _onKeyDown = (event: EventKeyboard): void => {
@@ -105,13 +108,18 @@ export class UltimateSystem extends Component {
             return;
         }
         this._resolveRefs();
-        if (!this.player || this.player.isDead) {
+        if (this.player && !this.player.isDead && this.player.onUltimateCast) {
+            this.player.castUltimate();
             return;
         }
-        this.player.castUltimate();
+        this._runFinale();
     }
 
     private readonly _onUltimateCast = (): void => {
+        this._runFinale();
+    };
+
+    private _runFinale(): void {
         if (!this._unlocked || this._finishing) {
             return;
         }
@@ -121,20 +129,28 @@ export class UltimateSystem extends Component {
         this._castCount += 1;
         this._finishing = true;
 
-        this.clearAllEnemies();
-        console.log('[UltimateSystem] ultimate cast — cleared enemies');
-
         this._resolveRefs();
+        this.player?.setCanMove(false);
+        GameManager.instance?.setPhase(GamePhase.Ultimate);
+
+        this.clearAllEnemies();
+        console.log('[UltimateSystem] finale — cleared enemies, locked move, zooming');
+
         const dist = GameConfig.ultimateZoomDistance;
         const dur = GameConfig.ultimateZoomDuration;
-        this.cameraFollow?.zoomOut(dist, dur);
+        if (this.cameraFollow) {
+            this.cameraFollow.zoomOut(dist, dur);
+        } else {
+            console.warn('[UltimateSystem] cameraFollow missing — skip zoomOut');
+        }
 
         const delay = dur + GameConfig.ultimateGameOverDelay;
         this.scheduleOnce(() => {
             GameManager.instance?.setGameOver();
+            this.player?.setCanMove(false);
             console.log('[UltimateSystem] setGameOver');
         }, delay);
-    };
+    }
 
     private _bindPlayerCallback(): void {
         this._resolveRefs();

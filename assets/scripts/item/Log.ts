@@ -7,6 +7,7 @@ import {
     Node,
     RigidBody2D,
     Size,
+    UITransform,
     Vec2,
     Vec3,
 } from 'cc';
@@ -206,13 +207,16 @@ export class Log extends Component {
             this._isLocked = true;
             this.unbindPlayer();
             this._stopRollAnim();
-            this._freezeVisualRotation();
             this._enableAsSolidBarrier();
             this._spawnHpBar();
             console.info(
                 `[Log] blue line LOCK OK length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength}`,
             );
             EventManager.instance.emitEvent(GameEvents.LOG_FIXED);
+            EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, {
+                node: this.node,
+                kind: 'log',
+            });
             return;
         }
         // 长度不足：不发 LOG_FIXED，后续建造/阶段不启动
@@ -231,10 +235,15 @@ export class Log extends Component {
         this._fadeOut();
     }
 
-    /** 固定后改为固体碰撞，挡住其它物体 */
+    /** 固定后改为固体碰撞，并同步碰撞盒与 Visual 世界尺寸 */
     private _enableAsSolidBarrier(): void {
+        this._freezeVisualRotation();
+        this._refreshLengthVisual();
+        this._syncColliderToVisual();
         if (this._collider) {
             this._collider.sensor = false;
+            // 强制把尺寸写回物理世界（Static 切换后偶发不同步）
+            this._collider.apply();
         }
         if (this._rb) {
             this._rb.type = ERigidBody2DType.Static;
@@ -244,6 +253,28 @@ export class Log extends Component {
             this._rb.enabledContactListener = true;
         }
         this._hp = GameConfig.logMaxHp;
+    }
+
+    /** 用 Visual 的 contentSize×worldScale 对齐 BoxCollider2D，避免固定后长短不一致 */
+    private _syncColliderToVisual(): void {
+        if (!this._collider) {
+            return;
+        }
+        const visual = this.visualNode;
+        if (!visual) {
+            this._refreshLengthVisual();
+            return;
+        }
+        const ui = visual.getComponent(UITransform);
+        const ws = visual.worldScale;
+        if (ui) {
+            const w = Math.max(Math.abs(ui.contentSize.width * ws.x), 1);
+            const h = Math.max(Math.abs(ui.contentSize.height * ws.y), 1);
+            this._collider.size = new Size(w, h);
+            this._collider.offset = new Vec2(0, 0);
+            return;
+        }
+        this._refreshLengthVisual();
     }
 
     /** 使用玩家血条模板 */
@@ -424,6 +455,8 @@ export class Log extends Component {
                 this._baseColliderWidth * lengthScale,
                 this._baseColliderHeight,
             );
+            // 拾取加长时必须 apply，否则物理盒仍是旧尺寸
+            this._collider.apply();
         }
     }
 

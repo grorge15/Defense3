@@ -15,6 +15,12 @@ export const GameEvents = {
     BUILD_COMPLETE: 'build_complete',
     /** 左右高级塔均建完 */
     BOTH_ADVANCED_TOWERS_COMPLETE: 'both_advanced_towers_complete',
+    /**
+     * Boss 索敌名单注册/更新。
+     * payload: { node: Node, kind: 'player'|'hero'|'building'|'barrier'|'log' }
+     * 优先级：hero > building(塔/兵营) > barrier/wall > log > player
+     */
+    BOSS_TARGET_REGISTER: 'boss_target_register',
 } as const;
 
 export type GameEventName = (typeof GameEvents)[keyof typeof GameEvents];

@@ -88,9 +88,21 @@ export class SawTrap extends Component {
         }
 
         const player = scene.getComponentInChildren(Player);
-        if (player && !player.isDead && this._overlaps(player.node, player.getComponent(Collider2D))) {
+        if (player && !player.isDead && this._hitsPlayer(player)) {
             this._hitPlayer(player);
         }
+    }
+
+    /** 玩家用位移驱动时 AABB 常过期，优先世界距离 */
+    private _hitsPlayer(player: Player): boolean {
+        player.node.getWorldPosition(this._otherPos);
+        const dx = this._otherPos.x - this._selfPos.x;
+        const dy = this._otherPos.y - this._selfPos.y;
+        const r = Math.max(this.hitRadius, 80);
+        if (dx * dx + dy * dy <= r * r) {
+            return true;
+        }
+        return this._overlaps(player.node, player.getComponent(Collider2D));
     }
 
     private _overlaps(other: Node, otherBox: Collider2D | null): boolean {

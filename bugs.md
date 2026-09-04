@@ -1,6 +1,8 @@
 # Bug 修复记录
 
-> 每次 `/fix-bug`（或等价修复）**完成后**追加一条。同一 bug 多次修改时在原条目下叠加 `v2` / `v3`…，不要另开同名条目。  
+> 每次 `/fix-bug`（或等价修复）**完成后**写入。  
+> **一点一条**：用户若一次列了 N 个独立问题，必须写成 N 条独立条目（禁止把多点塞进同一条的 ①②③）。  
+> **同题升版**：写入前先全文检索是否已有同类现象/主题；有则在原条目下叠加 `v2` / `v3`…，勿另开同名条目；没有再新建。  
 > 每条须含：**现象**、**原因**、**解决**（各 1–3 句即可）。
 
 ---
@@ -86,3 +88,253 @@
 | **现象** | 小怪上限过低且死后不重生；Boss 不追玩家；固定滚木挡不住玩家。 |
 | **原因** | `poolMaxEnemies/farSpawnMaxAlive` 过小且只 instantiate 不回收；Boss `pickTarget` 优先建筑且只写 `linearVelocity`；玩家 sensor+`setPosition` 不吃固体。 |
 | **解决** | 上限 200 + 对象池，死后 5s 在原 SpawnPoint 重生；Boss 优先追玩家并用 `setWorldPosition`；玩家对固定滚木做 AABB 分离。 |
+
+---
+
+## fix-coin-fly-start — 飞币起点应为玩家
+
+### v1（2026-09-03）
+见 `fix-build-coin-log-boss` / `fix-coin-fly-arrow-pierce`：已有飞币/吸币逻辑，但起点未固定为玩家。
+
+### v2（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 建造交付时飞币从 UI 金币图标出发，而不是从玩家位置飞向图标。 |
+| **原因** | `CoinUI` 飞币用图标世界/UI 坐标当起点。 |
+| **解决** | 飞币起点改为玩家世界坐标（再转换到 UI），终点仍为 CoinUI 图标。 |
+
+---
+
+## fix-boss-spawn-chase — Boss 生成时机与追玩家
+
+### v1（2026-09-03）
+见 `fix-enemy-pool-boss-chase-log-block`：Boss 不追玩家、索敌偏建筑。
+
+### v2（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 过早生成；应在首座初始箭塔或兵营解锁时生成，朝玩家靠近；无索敌距离限制，仅按优先级索敌。 |
+| **原因** | Boss 挂在 `LOG_FIXED` 时机；索敌仍带距离或未统一优先级。 |
+| **解决** | 首座初级塔/兵营建成后再 spawn；全程按优先级追击玩家（无距离阈值）。 |
+
+---
+
+## fix-log-fixed-collider-visual — 固定后滚木碰撞与视觉长短不一
+
+### v1（2026-09-03）
+见 `fix-build-coin-log-boss` / `fix-enemy-pool-boss-chase-log-block`：固定后挡物/可打性问题。
+
+### v2（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木固定后碰撞体长度与 Visual 视觉长度不一致。 |
+| **原因** | 固定后未按 Visual 世界尺寸重同步 `BoxCollider2D`。 |
+| **解决** | 固定时用 Visual `contentSize×scale` 对齐碰撞盒尺寸与偏移。 |
+
+---
+
+
+## fix-parkour-hide-after-walls — 两墙解锁后隐藏 ParkourContent
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `Plot_Wall_L` / `Plot_Wall_R` 解锁建完后，`ParkourContent` 仍可见。 |
+| **原因** | `PhaseTransition` 在 `BOTH_WALLS_COMPLETE` 时只藏部分子节点，未隐藏整棵 `ParkourContent`。 |
+| **解决** | 两墙完成后 `ParkourContent.active=false`（滚木实例须挂在其外并保持可见）。 |
+
+---
+
+## fix-boss-not-moving — Boss 不移动
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 生成后一直不移动。 |
+| **原因** | 依赖 `fixedUpdate` + 过大近战停步（约 120），且 Kinematic 下 `linearVelocity` 不可靠。 |
+| **解决** | 改 `update` + `setWorldPosition` 追玩家；近战停步收至约 56。 |
+
+---
+
+## fix-barracks-soldier-no-attack — 兵营小兵不攻击敌人
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 兵营生成的小兵不会攻击 enemy。 |
+| **原因** | `Soldier` 攻击/移动范围仍是约 1~4，且用 `fixedUpdate`+`linearVelocity`。 |
+| **解决** | 放大索敌/近战/移速到百级像素；`update`+`setWorldPosition` 追敌并出手。 |
+
+---
+
+## fix-hero-shrine-no-select-ui — 英雄碑不弹 HeroSelect
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄召唤碑解锁后不跳 HeroSelect UI。 |
+| **原因** | `autoSelectOnActivate=true`（脚本默认与 prefab）直接选英雄 0，跳过 UI。 |
+| **解决** | 默认与 `pref_hero_shrine` 改为 false；`BuildSystem` 建成时强制关闭自动选，走 `HERO_SELECT_REQUESTED`。 |
+
+### v2（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | HeroSelect 又不显示；选完无英雄；拓展区 `Plot_Expand` 也不出现。 |
+| **原因** | 场景里 `pref_ui_hero_select` 开局 `_active=false`，`HeroSelectUI.onLoad` 不跑 → 未监听 `HERO_SELECT_REQUESTED`；事件丢失则不生成英雄，`_onHeroSpawned` 不触发 → 拓展地块不 reveal。 |
+| **解决** | 新增 `HeroSelectUI.ensureReady()`（inactive 也可挂监听）；`UIManager`/`SceneSetup`/`BuildSystem` 在弹窗前调用；去掉 onLoad 里强制关节点以免首次打开被关掉。 |
+
+---
+
+## fix-boss-aggro-priority — Boss 未按优先级动态索敌
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 索敌未按优先级；塔/兵营/英雄建成后仍可能死盯玩家，或攻击候选引用失效。 |
+| **原因** | 索敌表虽按 priority 选目标，但建成时未发 `BOSS_TARGET_REGISTER`；`_collectAttackCandidates` 仍引用已删的 `_buildings`/`_heroes`。 |
+| **解决** | `BuildSystem`/滚木固定发事件写入表（hero40 > building30 > barrier20 > log15 > player10）；攻击候选改读 `_targetList`。 |
+
+
+---
+
+## fix-soldier-melee-move-too-fast — 近战小兵移速过快
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_soldier_melee` 配置 speed≈2~3，实际冲刺过快。 |
+| **原因** | `Soldier.onLoad` 把 `moveSpeed < 20` 强制抬到 90，未像小怪/Boss 使用 `GameConfig`。 |
+| **解决** | 新增 `GameConfig.soldierMoveSpeed=2`，近战位移统一读配置；去掉错误抬速。 |
+
+---
+
+## fix-boss-cannot-destroy-buildings — Boss 打不死塔/兵营
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 能靠近塔/兵营但无法消灭。 |
+| **原因** | 非缺 collider：索敌靠距离表。`Tower`/`Barracks` 原不继承 `Building`，无血量/`takeDamage`，伤害落空。 |
+| **解决** | `Tower`/`Barracks` 继承 `Building` 并设 `towerMaxHp`/`barracksMaxHp`；Boss 伤害走 `Building.takeDamage`。 |
+
+---
+
+## fix-advanced-towers-no-ultimate — 双高级塔后无后续
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 建完两侧高级箭塔后不进大招/收尾流程。 |
+| **原因** | 场景无 `UltimateSystem` 监听 `BOTH_ADVANCED_TOWERS_COMPLETE`；且 `spawnSide`/reveal 未用地块名纠正，两侧可能只记成一边。 |
+| **解决** | `SceneSetup` 运行时挂上 `UltimateSystem`；reveal/建成用地块名判 L/R，并 `>=2` 座兜底 emit。 |
+
+
+---
+
+## fix-boss-building-oneshot — Boss 一击拆建筑
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 打塔/兵营/屏障一下就拆掉。 |
+| **原因** | `bossBuildingDamage=9999`，远超 `towerMaxHp`/`barracksMaxHp`。 |
+| **解决** | 建筑/屏障改吃 `bossAttackDamage`（与打人一致，需多下）。 |
+
+---
+
+## fix-player-arrow-boss-priority — 玩家箭优先打 Boss
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家索敌应优先 Boss，但箭常先打小怪甚至打不到 Boss。 |
+| **原因** | `CombatSystem` 已优先 Boss，但 `Arrow._pollEnemyHits` 先扫小怪，穿透名额被占满。 |
+| **解决** | 箭矢命中轮询与 `_applyHit` 均改为 Boss 优先于小怪。 |
+
+---
+
+## fix-advanced-towers-no-gameover — 双高级塔无收尾
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 两座高级塔齐后无 GameOver、不锁移动、镜头不拉远。 |
+| **原因** | 收尾依赖 `castUltimate` 回调；`pref_ui_game_over` 开局 inactive，`GameOverUI.onLoad` 未挂监听。 |
+| **解决** | `UltimateSystem` 解锁后直接 `_runFinale`；`GameOverUI.ensureReady` + `UIManager` 显示前唤醒。 |
+
+---
+
+## fix-log-extend-collider — 滚木加长碰撞未变长
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 拾取加长道具后 Visual 变长，碰撞体仍是旧长度。 |
+| **原因** | `_refreshLengthVisual` 改了 `size` 但未 `apply()` 同步物理。 |
+| **解决** | 改尺寸后调用 `BoxCollider2D.apply()`。 |
+
+---
+
+## fix-player-death-no-gameover — 玩家死亡无结束与暂停
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家死亡不弹 GameOver，世界仍在跑。 |
+| **原因** | `Player._die` 只播死亡动画，未 `setGameOver` / `director.pause`。 |
+| **解决** | 死亡时 `GameManager.setGameOver` + `director.pause`（UI 由阶段事件唤起）。 |
+
+
+---
+
+## fix-minion-saw-no-player-damage — 小怪/电锯不伤玩家
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 小怪贴近、电锯碰到玩家都不掉血。 |
+| **原因** | 小怪 `PLAYER_SEPARATION(48) > attackRange(40)`，永远进不了出手距；电锯依赖易过期的 AABB。 |
+| **解决** | 出手距至少覆盖分离+余量；电锯优先世界距离判定命中。 |
+
+---
+
+## fix-player-hit-flash — 玩家受击不闪红
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家掉血时 Visual 无闪红。 |
+| **原因** | `takeDamage` 未调用 `HitFlash`。 |
+| **解决** | `Player.takeDamage` 时对 `visualNode` 调用 `HitFlash.flash`。 |
+
+---
+
+## fix-heroselect-no-hero-spawn — 选英雄后不生成
+
+### v1（2026-09-03）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | HeroSelect 选完后场上没有英雄。 |
+| **原因** | 生成放在 UI fade 回调末尾，易丢；prefab 空时静默失败；父节点可能不当。 |
+| **解决** | 点选后立刻 `onHeroSelected`；缺 prefab 时 `resources.load`；生成挂到 `GameRoot/World`。 |
+

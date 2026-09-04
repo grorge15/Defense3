@@ -1,5 +1,6 @@
 import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { GameConfig } from '../core/GameConfig';
+import { Building } from './Building';
 
 const { ccclass, property } = _decorator;
 
@@ -11,7 +12,7 @@ interface ISoldierDeployment {
 }
 
 @ccclass('Barracks')
-export class Barracks extends Component {
+export class Barracks extends Building {
     @property({ type: Node, tooltip: '兵营 Visual 子节点（Sprite + Billboard + SortingOrder2D）' })
     visualNode: Node | null = null;
 
@@ -23,6 +24,13 @@ export class Barracks extends Component {
 
     private _isActive = false;
     private readonly _spawnedSoldiers: Node[] = [];
+
+    onLoad(): void {
+        if (this.maxHp <= 0) {
+            this.maxHp = GameConfig.barracksMaxHp;
+        }
+        super.onLoad();
+    }
 
     activate(): void {
         if (this._isActive) {
@@ -37,7 +45,7 @@ export class Barracks extends Component {
         this._isActive = false;
         this.unschedule(this.spawnWave);
         for (const soldierNode of this._spawnedSoldiers) {
-            const soldier = soldierNode.getComponent('Soldier') as Component & ISoldierDeployment | null;
+            const soldier = soldierNode.getComponent('Soldier') as (Component & ISoldierDeployment) | null;
             soldier?.deactivate?.();
             if (soldierNode.isValid) {
                 soldierNode.active = false;
@@ -61,7 +69,7 @@ export class Barracks extends Component {
             soldierNode.setPosition(Vec3.ZERO);
             soldierNode.active = this._isActive;
 
-            const soldier = soldierNode.getComponent('Soldier') as Component & ISoldierDeployment | null;
+            const soldier = soldierNode.getComponent('Soldier') as (Component & ISoldierDeployment) | null;
             soldier?.setDeployment('barracks');
             soldier?.activate?.();
 
@@ -78,6 +86,12 @@ export class Barracks extends Component {
     onDestroy(): void {
         this.unschedule(this.spawnWave);
         this._clearSpawnedSoldiers();
+    }
+
+    protected _onDestroyed(): void {
+        this.deactivate();
+        this._clearSpawnedSoldiers();
+        super._onDestroyed();
     }
 
     private _clearSpawnedSoldiers(): void {

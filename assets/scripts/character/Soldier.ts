@@ -2,6 +2,7 @@ import {
     _decorator,
     Collider2D,
     Component,
+    ERigidBody2DType,
     instantiate,
     Node,
     Prefab,
@@ -24,11 +25,11 @@ export class Soldier extends Component {
     @property({ tooltip: 'Visual 子节点，挂有 Animation 组件' })
     visualNode: Node | null = null;
 
-    @property({ tooltip: '攻击范围（世界单位）' })
-    attackRange = 4;
+    @property({ tooltip: '远程攻击范围（世界单位）' })
+    attackRange = 280;
 
     @property({ tooltip: '近战攻击范围（世界单位）' })
-    meleeAttackRange = 1.5;
+    meleeAttackRange = 48;
 
     @property({ tooltip: '攻击冷却（秒）' })
     attackCooldown = 1.0;
@@ -36,10 +37,10 @@ export class Soldier extends Component {
     @property({ tooltip: '攻击伤害' })
     attackDamage = 10;
 
-    @property({ tooltip: '近战移动速度（世界单位/秒）' })
-    moveSpeed = 3;
+    @property({ tooltip: '近战移动速度（世界单位/秒；运行时用 GameConfig.soldierMoveSpeed）' })
+    moveSpeed = 2;
 
-    @property({ type: Prefab, tooltip: '远程弹道占位 pref_projectile_arrow（P2-013 可后补）' })
+    @property({ type: Prefab, tooltip: '远程弹道占位 pref_projectile_arrow' })
     projectilePrefab: Prefab | null = null;
 
     private _rb: RigidBody2D | null = null;
@@ -55,21 +56,40 @@ export class Soldier extends Component {
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
+    private readonly _nextWorld = new Vec3();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         this._collider = this.getComponent(Collider2D);
-        // Prefab 名约定：melee → barracks 近战，其余默认 tower 远程
+        if (!this.visualNode) {
+            this.visualNode = this.node.getChildByName('Visual');
+        }
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.gravityScale = 0;
+            this._rb.fixedRotation = true;
+            this._rb.allowSleep = false;
+            this._rb.linearVelocity = new Vec2(0, 0);
+        }
+        if (this._collider) {
+            this._collider.sensor = true;
+        }
         if (/melee/i.test(this.node.name)) {
             this._deployment = 'barracks';
         } else if (/ranged/i.test(this.node.name)) {
             this._deployment = 'tower';
         }
+        // 近战移速与小怪同量级：读 GameConfig，禁止把 prefab 的 2~3 误抬到 90
+        this.moveSpeed = GameConfig.soldierMoveSpeed;
+        this.meleeAttackRange = GameConfig.soldierMeleeAttackRange;
+        if (this.attackRange < 40) {
+            this.attackRange = 280;
+        }
     }
 
     setDeployment(deployment: SoldierDeployment): void {
         this._deployment = deployment;
-        if (deployment === 'tower' && this._rb) {
+        if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
         }
     }
@@ -98,8 +118,9 @@ export class Soldier extends Component {
 
     deactivate(): void {
         this._canAct = false;
+        this._velocity.set(0, 0);
         if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.linearVelocity = this._velocity;
         }
     }
 
@@ -163,26 +184,28 @@ export class Soldier extends Component {
         if (this._collider) {
             this._collider.enabled = true;
         }
+        this._velocity.set(0, 0);
         if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.linearVelocity = this._velocity;
         }
         if (this.visualNode) {
             playAnim(this.visualNode, 'idle');
         }
     }
 
-    fixedUpdate(dt: number): void {
+    update(dt: number): void {
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
         }
 
-        if (!this._canAct || this._isDead) {
+        if (!this._canAct || this._isDead || dt <= 0) {
             return;
         }
 
         if (this._deployment === 'tower') {
+            this._velocity.set(0, 0);
             if (this._rb) {
-                this._rb.linearVelocity = this._velocity.set(0, 0);
+                this._rb.linearVelocity = this._velocity;
             }
             this._updateLocomotionAnim(false);
             if (this._findNearestEnemy(this.attackRange)) {
@@ -191,15 +214,12 @@ export class Soldier extends Component {
             return;
         }
 
-        // barracks: melee, can move toward enemy
-        if (!this._rb) {
-            return;
-        }
-
         const enemy = this._findNearestEnemy(Number.POSITIVE_INFINITY);
         if (!enemy) {
             this._velocity.set(0, 0);
-            this._rb.linearVelocity = this._velocity;
+            if (this._rb) {
+                this._rb.linearVelocity = this._velocity;
+            }
             this._updateLocomotionAnim(false);
             return;
         }
@@ -212,21 +232,33 @@ export class Soldier extends Component {
 
         if (dist <= this.meleeAttackRange) {
             this._velocity.set(0, 0);
-            this._rb.linearVelocity = this._velocity;
+            if (this._rb) {
+                this._rb.linearVelocity = this._velocity;
+            }
             this._updateLocomotionAnim(false);
             this.tryAttack();
             return;
         }
 
-        const invDist = 1 / dist;
-        this._velocity.x = dx * invDist * this.moveSpeed;
-        this._velocity.y = dy * invDist * this.moveSpeed;
-        this._rb.linearVelocity = this._velocity;
+        const invDist = 1 / Math.max(dist, 0.001);
+        const speed = GameConfig.soldierMoveSpeed;
+        this._velocity.x = dx * invDist * speed;
+        this._velocity.y = dy * invDist * speed;
+        this._nextWorld.set(
+            this._selfPos.x + this._velocity.x * dt,
+            this._selfPos.y + this._velocity.y * dt,
+            this._selfPos.z,
+        );
+        this.node.setWorldPosition(this._nextWorld);
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.linearVelocity = this._velocity;
+        }
         this._updateLocomotionAnim(true);
     }
 
     private _resolveTargetEnemy(): EnemyMinion | null {
-        if (this._target && this._target.active) {
+        if (this._target && this._target.activeInHierarchy) {
             const fromTarget = this._target.getComponent(EnemyMinion);
             if (fromTarget) {
                 return fromTarget;
@@ -247,7 +279,7 @@ export class Soldier extends Component {
         let nearestDist = maxRange;
 
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.active) {
+            if (!minion.node.activeInHierarchy) {
                 continue;
             }
             minion.node.getWorldPosition(this._targetPos);
@@ -298,8 +330,9 @@ export class Soldier extends Component {
     private _die(): void {
         this._isDead = true;
         this._canAct = false;
+        this._velocity.set(0, 0);
         if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.linearVelocity = this._velocity;
         }
         if (this._collider) {
             this._collider.enabled = false;
@@ -316,7 +349,6 @@ export class Soldier extends Component {
         if (!this.visualNode || this._isDead || this._isAttacking) {
             return;
         }
-        // soldier 无 walk clip（ANIM_MANIFEST），移动与站立均播 idle
         if (this._currentLocomotionClip === 'idle') {
             return;
         }

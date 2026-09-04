@@ -2,14 +2,18 @@ import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
+import { BossSpawner } from '../enemy/BossSpawner';
 import { CoinSystem } from '../game/CoinSystem';
 import { GameManager } from '../game/GameManager';
 import { GamePhase } from '../game/GamePhase';
 import { Barracks } from './Barracks';
+import { Barrier } from './Barrier';
 import { BuildPlot, BuildPlotType } from './BuildPlot';
 import { HeroShrine } from './HeroShrine';
 import { Tower } from './Tower';
 import { Wall } from './Wall';
+import type { BossTargetKind } from '../enemy/EnemyBoss';
+import { HeroSelectUI } from '../ui/HeroSelectUI';
 
 const { ccclass, property } = _decorator;
 
@@ -52,6 +56,9 @@ export class BuildSystem extends Component {
     @property({ type: Prefab, tooltip: 'pref_tower_basic' })
     towerBasicPrefab: Prefab | null = null;
 
+    @property({ type: Prefab, tooltip: 'pref_tower_advanced；空则用 basic 并 setTowerType(advanced)' })
+    towerAdvancedPrefab: Prefab | null = null;
+
     @property({ type: Prefab, tooltip: 'pref_barracks' })
     barracksPrefab: Prefab | null = null;
 
@@ -91,11 +98,15 @@ export class BuildSystem extends Component {
     @property({ type: CoinSystem, tooltip: '金币系统；空则运行时查找' })
     coinSystem: CoinSystem | null = null;
 
+    @property({ type: BossSpawner, tooltip: 'Boss 生成器；空则运行时查找；首座初级塔或兵营建成时 spawn' })
+    bossSpawner: BossSpawner | null = null;
+
     private _wallLeftDone = false;
     private _wallRightDone = false;
     private _bothWallsEmitted = false;
     private _advLeftDone = false;
     private _advRightDone = false;
+    private _advBuiltCount = 0;
     private _bothAdvEmitted = false;
     private readonly _spawnPos = new Vec3();
 
@@ -150,11 +161,13 @@ export class BuildSystem extends Component {
 
         if (buildType === 'towerBasic') {
             this._spawnTower(worldPos, plotRoot);
+            this._trySpawnBossOnFirstDefenseBuilding();
             return;
         }
 
         if (buildType === 'barracks') {
             this._spawnBarracks(worldPos, plotRoot);
+            this._trySpawnBossOnFirstDefenseBuilding();
             this._revealPlots(this.heroShrinePlots, 'heroShrine');
             return;
         }
@@ -199,6 +212,16 @@ export class BuildSystem extends Component {
         EventManager.instance.emitEvent(GameEvents.BOTH_WALLS_COMPLETE);
         this._revealPlots(this.towerPlots, 'towerBasic');
         this._revealPlots(this.barracksPlots, 'barracks');
+    }
+
+    /** 首座初级箭塔或兵营建成后生成 Boss（只一次） */
+    private _trySpawnBossOnFirstDefenseBuilding(): void {
+        const spawner =
+            this.bossSpawner ??
+            this.node.scene?.getComponentInChildren(BossSpawner) ??
+            null;
+        this.bossSpawner = spawner;
+        spawner?.trySpawnFirst();
     }
 
     private _ensureInitialHidden(): void {
@@ -292,6 +315,14 @@ export class BuildSystem extends Component {
             if (bp) {
                 bp.node.active = true;
                 bp.setBuildType(type);
+                if (type === 'wall' || type === 'towerAdvanced') {
+                    const name = plotRoot.name;
+                    if (name.includes('_L') || name.endsWith('L')) {
+                        bp.spawnSide = 'left';
+                    } else if (name.includes('_R') || name.endsWith('R')) {
+                        bp.spawnSide = 'right';
+                    }
+                }
                 bp.setAvailableCoins(() => this._getBalance());
             }
         }
@@ -324,6 +355,7 @@ export class BuildSystem extends Component {
             }
             wall.activate();
         }
+        // 矮墙无血量，不进 Boss 索敌表
     }
 
     private _spawnTower(worldPos?: Vec3, plotRoot?: Node): void {
@@ -336,6 +368,7 @@ export class BuildSystem extends Component {
         }
         const tower = node.getComponent(Tower);
         tower?.activate();
+        this._registerBossTarget(node, 'building');
     }
 
     private _spawnBarracks(worldPos?: Vec3, plotRoot?: Node): void {
@@ -348,6 +381,7 @@ export class BuildSystem extends Component {
         }
         const barracks = node.getComponent(Barracks);
         barracks?.activate();
+        this._registerBossTarget(node, 'building');
     }
 
     private _spawnHeroShrine(worldPos?: Vec3, plotRoot?: Node): void {
@@ -368,10 +402,30 @@ export class BuildSystem extends Component {
         if (this.heroPrefab02) {
             shrine.heroPrefab02 = this.heroPrefab02;
         }
+        if (!shrine.heroPrefab01 || !shrine.heroPrefab02) {
+            console.warn(
+                '[BuildSystem] hero prefab missing on shrine; HeroShrine will resources.load fallback',
+                !!shrine.heroPrefab01,
+                !!shrine.heroPrefab02,
+            );
+        }
+        // 强制走 HeroSelectUI（监听 HERO_SELECT_REQUESTED）
+        shrine.autoSelectOnActivate = false;
         shrine.onHeroSpawned = (heroNode: Node) => {
             this._onHeroSpawned(heroNode);
         };
+        // 场景里 HeroSelect 常开局 inactive → onLoad 未跑、听不到事件；先挂监听再 activate
+        this._ensureHeroSelectReady();
         shrine.activate();
+    }
+
+    private _ensureHeroSelectReady(): void {
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        const ui = scene.getComponentInChildren(HeroSelectUI);
+        ui?.ensureReady();
     }
 
     private _onHeroSpawned(heroNode: Node): void {
@@ -379,6 +433,7 @@ export class BuildSystem extends Component {
         if (hero && this.playerNode) {
             hero.setFollowTarget(this.playerNode);
         }
+        this._registerBossTarget(heroNode, 'hero');
         this._revealPlots(this.expandPlots, 'expandArea');
     }
 
@@ -392,17 +447,23 @@ export class BuildSystem extends Component {
         GameManager.instance?.setPhase(GamePhase.DefensePhase);
     }
 
-    /** 高级塔建成追踪；两侧齐备后 emit + setPhase(Ultimate)（大招逻辑留给 4.33） */
+    /** 高级塔建成追踪；两侧齐备后 emit + setPhase(Ultimate) */
     private _onAdvancedTowerBuilt(spawnSide: string, worldPos?: Vec3, plotRoot?: Node): void {
-        // 尚无独立高级塔 prefab 时，用初级塔挂在原地块下占位
-        if (this.towerBasicPrefab) {
-            const node = this._instantiateAt(this.towerBasicPrefab, plotRoot ?? null, worldPos);
-            node?.getComponent(Tower)?.activate();
+        const prefab = this.towerAdvancedPrefab ?? this.towerBasicPrefab;
+        if (prefab) {
+            const node = this._instantiateAt(prefab, plotRoot ?? null, worldPos);
+            const tower = node?.getComponent(Tower);
+            if (tower) {
+                tower.setTowerType('advanced');
+                tower.activate();
+            }
+            if (node) {
+                this._registerBossTarget(node, 'building');
+            }
         }
-        let side = spawnSide;
-        if (side !== 'left' && side !== 'right') {
-            side = '';
-        }
+
+        // 优先用地块名纠正 spawnSide（场景里 R 曾被误标 left）
+        let side = this._resolveSideFromPlot(plotRoot, spawnSide);
         if (!side) {
             if (!this._advLeftDone) {
                 side = 'left';
@@ -415,9 +476,30 @@ export class BuildSystem extends Component {
         } else if (side === 'right') {
             this._advRightDone = true;
         }
-        if (this._advLeftDone && this._advRightDone) {
+        this._advBuiltCount += 1;
+        if (
+            (this._advLeftDone && this._advRightDone) ||
+            this._advBuiltCount >= 2
+        ) {
             this._emitBothAdvancedTowers();
         }
+    }
+
+    private _resolveSideFromPlot(
+        plotRoot: Node | undefined,
+        spawnSide: string,
+    ): '' | 'left' | 'right' {
+        const name = plotRoot?.name ?? '';
+        if (name.includes('_L') || name.endsWith('L')) {
+            return 'left';
+        }
+        if (name.includes('_R') || name.endsWith('R')) {
+            return 'right';
+        }
+        if (spawnSide === 'left' || spawnSide === 'right') {
+            return spawnSide;
+        }
+        return '';
     }
 
     private _emitBothAdvancedTowers(): void {
@@ -463,6 +545,19 @@ export class BuildSystem extends Component {
         for (const child of root.children) {
             child.active = true;
         }
+        for (const barrier of root.getComponentsInChildren(Barrier)) {
+            if (barrier.isAlive()) {
+                this._registerBossTarget(barrier.node, 'barrier');
+            }
+        }
+    }
+
+    /** 建成/生成后插入 Boss 索敌表（英雄/塔兵营优先于玩家） */
+    private _registerBossTarget(node: Node, kind: BossTargetKind): void {
+        if (!node?.isValid) {
+            return;
+        }
+        EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, { node, kind });
     }
 
     /**

@@ -7,7 +7,6 @@ const { ccclass, property } = _decorator;
 
 /**
  * 游戏结束 UI：听 PHASE_CHANGED(GameOver) 显示；Next Level 按钮占位回调。
- * 无 UIManager 时本组件自订事件；完整编排见 §5.9。
  */
 @ccclass('GameOverUI')
 export class GameOverUI extends Component {
@@ -20,29 +19,50 @@ export class GameOverUI extends Component {
     /** 外部可注册：点 Next 时回调（重开/下一关留给后续） */
     public onNextLevel: (() => void) | null = null;
 
+    private _listening = false;
+    private _nextBound = false;
+
     onLoad(): void {
-        if (!this.panelRoot) {
-            this.panelRoot = this.node;
-        }
-        this._setVisible(false);
-        EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
-        if (this.nextButton) {
-            this.nextButton.on(Node.EventType.TOUCH_END, this._onNext, this);
-        }
+        this.ensureReady();
     }
 
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
-        if (this.nextButton) {
+        if (this._listening) {
+            EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
+            this._listening = false;
+        }
+        if (this.nextButton && this._nextBound) {
             this.nextButton.off(Node.EventType.TOUCH_END, this._onNext, this);
+            this._nextBound = false;
         }
     }
 
+    /**
+     * 场景实例常开局 `_active=false`，onLoad 不跑则听不到 PHASE_CHANGED。
+     * UIManager 在 show 前调用。
+     */
+    ensureReady(): void {
+        if (!this.panelRoot) {
+            this.panelRoot = this.node;
+        }
+        if (this.nextButton && !this._nextBound) {
+            this.nextButton.on(Node.EventType.TOUCH_END, this._onNext, this);
+            this._nextBound = true;
+        }
+        if (this._listening) {
+            return;
+        }
+        this._listening = true;
+        EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
+    }
+
     show(): void {
+        this.ensureReady();
         this._setVisible(true);
     }
 
     hide(): void {
+        this.ensureReady();
         this._setVisible(false);
     }
 
@@ -58,8 +78,13 @@ export class GameOverUI extends Component {
     };
 
     private _setVisible(visible: boolean): void {
+        if (visible) {
+            this.node.active = true;
+        }
         if (this.panelRoot) {
             this.panelRoot.active = visible;
+        } else {
+            this.node.active = visible;
         }
     }
 }

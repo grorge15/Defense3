@@ -62,17 +62,37 @@ export class HeroSelectUI extends Component {
     private _busy = false;
     private _canClick = false;
     private _inited = false;
+    private _listening = false;
     private readonly _tmpColor = new Color();
 
     onLoad(): void {
-        this._ensureInit();
-        this.node.active = false;
-        EventManager.instance.onEvent(GameEvents.HERO_SELECT_REQUESTED, this._onSelectRequested, this);
+        // 勿在此强制 active=false：节点可能因 ensureReady 后首次弹出才跑 onLoad
+        this.ensureReady();
     }
 
     onDestroy(): void {
         this._unbindCardTouches();
-        EventManager.instance.offEvent(GameEvents.HERO_SELECT_REQUESTED, this._onSelectRequested, this);
+        if (this._listening) {
+            EventManager.instance.offEvent(
+                GameEvents.HERO_SELECT_REQUESTED,
+                this._onSelectRequested,
+                this,
+            );
+            this._listening = false;
+        }
+    }
+
+    /**
+     * 场景实例常开局 `_active=false`，此时 onLoad 不会执行、事件听不到。
+     * UIManager / BuildSystem 在弹窗前调用，使监听挂上（无需先显示面板）。
+     */
+    ensureReady(): void {
+        this._ensureInit();
+        if (this._listening) {
+            return;
+        }
+        this._listening = true;
+        EventManager.instance.onEvent(GameEvents.HERO_SELECT_REQUESTED, this._onSelectRequested, this);
     }
 
     private _ensureInit(): void {
@@ -260,13 +280,14 @@ export class HeroSelectUI extends Component {
                 })
                 .start();
         }
+        // 先生成再关 UI，避免 fade/inactive 导致回调丢 shrine 或用户以为没生成
         const shrine = this._shrine;
+        this._shrine = null;
+        shrine?.onHeroSelected(heroIdx);
         this._fadeOut(() => {
             this.node.active = false;
             this._busy = false;
-            this._shrine = null;
             this._unbindCardTouches();
-            shrine?.onHeroSelected(heroIdx);
         });
     }
 

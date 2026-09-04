@@ -82,6 +82,10 @@ export class Hero extends Component {
         }, 0.1);
     }
 
+    get isDead(): boolean {
+        return this._isDead;
+    }
+
     takeDamage(amount: number): void {
         if (this._isDead) {
             return;

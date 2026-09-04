@@ -32,4 +32,4 @@ draft（计划已落盘）→ active（用户确认/build 开始）→ verifying
 ## 入口命令
 `/plan-task <目标>` Plan 前置门（superpowers 检查+安装+澄清→落盘计划） · `/new-feature` 新需求 · `/fix-bug` Bug 修复 · `/build-plan <slug>` 执行计划 · `/replan <slug>` 修订计划 · `/verify-plan <slug>` 只跑校验
 
-**Bug 记录**：`/fix-bug` 修完后写入根目录 `bugs.md`（无则新建）：现象 / 原因 / 解决；同 bug 多次改 → 条目内 v2/v3 叠加。
+**Bug 记录**：`/fix-bug` 修完后写入根目录 `bugs.md`（无则新建）：**一点一条**（用户列 N 点 → N 条，禁止 ①②③ 合并）；现象 / 原因 / 解决；写入前检索同类主题，有则条目内 v2/v3 升版，勿另开同名。

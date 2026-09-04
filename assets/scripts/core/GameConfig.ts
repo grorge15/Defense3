@@ -10,6 +10,9 @@ export class GameConfig {
     static readonly minionMaxHp = 30;
     static readonly soldierMaxHp = 20;
     static readonly barrierMaxHp = 200;
+    /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
+    static readonly towerMaxHp = 200;
+    static readonly barracksMaxHp = 200;
     /** 滚木固定后作为可攻击障碍的最大生命 */
     static readonly logMaxHp = 100;
 
@@ -42,10 +45,14 @@ export class GameConfig {
     static readonly playerMoveSpeed = 5;
     static readonly playerParkourForwardSpeed = 3;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 1.5;
+    static readonly playerParkourChargeSpeed = 2;
     static readonly heroFollowSpeed = 4;
     static readonly minionMoveSpeed = 2;
-    static readonly bossMoveSpeed = 80;
+    static readonly bossMoveSpeed = 3;
+    /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
+    static readonly soldierMoveSpeed = 2;
+    /** 近战小兵停步/出手距离 */
+    static readonly soldierMeleeAttackRange = 40;
 
     // --- 滚木 ---
     static readonly logRollSpeed = 4;
@@ -60,7 +67,7 @@ export class GameConfig {
     static readonly sawTrapDamage = 15;
     static readonly farSpawnInterval = 2.5;
     /** 场上同时存活小怪上限（含侧路） */
-    static readonly farSpawnMaxAlive = 200;
+    static readonly farSpawnMaxAlive = 50;
     /** 小怪死亡后回池并在 SpawnPoint 重生的延迟（秒） */
     static readonly enemyRespawnDelay = 5;
     static readonly joystickHintDelay = 3;
@@ -71,13 +78,13 @@ export class GameConfig {
     /** LOG_FIXED 后首次 Boss 生成延迟（秒） */
     static readonly bossFirstSpawnDelay = 1.5;
 
-    // --- 建造 ---
-    static readonly wallBuildCost = 50;
-    static readonly towerBasicBuildCost = 80;
-    static readonly towerAdvancedBuildCost = 150;
-    static readonly barracksBuildCost = 100;
-    static readonly heroShrineBuildCost = 120;
-    static readonly expandAreaBuildCost = 200;
+    // --- 建造（调试期统一 10 金）---
+    static readonly wallBuildCost = 10;
+    static readonly towerBasicBuildCost = 10;
+    static readonly towerAdvancedBuildCost = 10;
+    static readonly barracksBuildCost = 10;
+    static readonly heroShrineBuildCost = 10;
+    static readonly expandAreaBuildCost = 10;
     static readonly barracksSpawnInterval = 3;
 
     // --- 金币 ---

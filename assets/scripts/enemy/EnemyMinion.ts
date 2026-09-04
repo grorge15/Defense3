@@ -98,7 +98,9 @@ export class EnemyMinion extends Component {
         if (this._isDead || !this._ai) {
             return;
         }
-        if (!this._ai.tryAttack(this.attackRange)) {
+        // 与 update 中 meleeRange 一致，避免分离半径大于 attackRange 时出手失败
+        const range = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
+        if (!this._ai.tryAttack(range)) {
             return;
         }
         this._isAttacking = true;
@@ -175,7 +177,9 @@ export class EnemyMinion extends Component {
         const dy = this._targetPos.y - this._selfPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (dist <= this.attackRange) {
+        // 分离半径 48 曾大于 attackRange 40 → 永远摸不到攻击距；出手距至少覆盖分离
+        const meleeRange = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
+        if (dist <= meleeRange) {
             this._pushAwayFromPlayer(PLAYER_SEPARATION);
             this._halt(true);
             return;

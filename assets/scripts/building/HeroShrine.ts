@@ -1,9 +1,14 @@
-import { _decorator, Component, instantiate, Node, Prefab } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
 
 const { ccclass, property } = _decorator;
+
+const HERO_PREFAB_PATHS = [
+    'prefabs/character/pref_hero_01',
+    'prefabs/character/pref_hero_02',
+] as const;
 
 @ccclass('HeroShrine')
 export class HeroShrine extends Component {
@@ -23,8 +28,8 @@ export class HeroShrine extends Component {
      * G4 兜底：为 true 时跳过 UI 直接选英雄 0。
      * 场景已有 `GameRoot/UI/HeroSelect`+HeroSelectUI；正式二选一手测时请在 Inspector 关闭本开关。
      */
-    @property({ tooltip: '为 true 时跳过 UI 自动选英雄 0（G4；正式 UI 手测请关）' })
-    autoSelectOnActivate = true;
+    @property({ tooltip: '为 true 时跳过 UI 自动选英雄 0；正式二选一请保持 false' })
+    autoSelectOnActivate = false;
 
     /** P5-002 UI 可注册此回调弹出二选一界面 */
     public onHeroSelectRequested: ((shrine: HeroShrine) => void) | null = null;
@@ -34,6 +39,7 @@ export class HeroShrine extends Component {
 
     private _isActivated = false;
     private _hasSelected = false;
+    private readonly _spawnPos = new Vec3();
 
     activate(): void {
         if (this._isActivated || this._hasSelected) {
@@ -49,28 +55,60 @@ export class HeroShrine extends Component {
         }
         this._hasSelected = true;
 
-        const prefab = heroIndex === 0 ? this.heroPrefab01 : this.heroPrefab02;
-        if (!prefab) {
+        const existing = heroIndex === 0 ? this.heroPrefab01 : this.heroPrefab02;
+        if (existing) {
+            this._spawnHero(existing, heroIndex);
             return;
         }
 
-        const spawnParent = this.heroSpawnPoint?.parent ?? this.node.parent ?? this.node.scene;
+        const path = HERO_PREFAB_PATHS[heroIndex];
+        resources.load(path, Prefab, (err, prefab) => {
+            if (err || !prefab) {
+                console.warn(`[HeroShrine] missing heroPrefab index=${heroIndex} path=${path}`, err);
+                this._hasSelected = false;
+                return;
+            }
+            if (heroIndex === 0) {
+                this.heroPrefab01 = prefab;
+            } else {
+                this.heroPrefab02 = prefab;
+            }
+            this._spawnHero(prefab, heroIndex);
+        });
+    }
+
+    private _spawnHero(prefab: Prefab, heroIndex: 0 | 1): void {
+        const spawnParent = this._resolveSpawnParent();
         const heroNode = instantiate(prefab);
-        heroNode.setParent(spawnParent);
+        spawnParent.addChild(heroNode);
 
         const spawnPoint = this.heroSpawnPoint ?? this.node;
-        const spawnPos = spawnPoint.worldPosition;
-        heroNode.setWorldPosition(spawnPos);
+        spawnPoint.getWorldPosition(this._spawnPos);
+        heroNode.setWorldPosition(this._spawnPos);
 
         const hero = heroNode.getComponent(Hero);
         hero?.setHeroVariant(heroIndex === 0 ? 1 : 2);
+
+        console.info(
+            `[HeroShrine] spawned hero${heroIndex + 1} at (${this._spawnPos.x.toFixed(1)}, ${this._spawnPos.y.toFixed(1)})`,
+        );
 
         this.onHeroSpawned?.(heroNode);
         this.node.active = false;
     }
 
+    private _resolveSpawnParent(): Node {
+        const scene = this.node.scene;
+        if (scene) {
+            const world = scene.getChildByName('GameRoot')?.getChildByName('World');
+            if (world) {
+                return world;
+            }
+        }
+        return this.heroSpawnPoint?.parent ?? this.node.parent ?? this.node;
+    }
+
     private _requestHeroSelect(): void {
-        // G4：自动选优先，便于无卡面美术时跑通跟随/拓展
         if (this.autoSelectOnActivate) {
             this.onHeroSelected(0);
             return;

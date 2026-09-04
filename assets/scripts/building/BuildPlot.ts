@@ -195,7 +195,14 @@ export class BuildPlot extends Component {
             );
         }
         this.node.getWorldPosition(this._selfPos);
-        CoinUI.instance?.playDeliverFly(this._selfPos);
+        const player = this.node.scene?.getComponentInChildren(Player) ?? null;
+        const from = new Vec3();
+        if (player) {
+            player.node.getWorldPosition(from);
+        } else {
+            from.set(this._selfPos);
+        }
+        CoinUI.instance?.playDeliverFly(this._selfPos, from);
         this._updateFillBar();
 
         if (this._paidAmount >= totalCost) {

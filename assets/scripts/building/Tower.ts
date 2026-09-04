@@ -1,4 +1,6 @@
 import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
+import { GameConfig } from '../core/GameConfig';
+import { Building } from './Building';
 
 const { ccclass, property } = _decorator;
 
@@ -12,7 +14,7 @@ interface ISoldierDeployment {
 }
 
 @ccclass('Tower')
-export class Tower extends Component {
+export class Tower extends Building {
     @property({ type: Node, tooltip: '塔身 Visual 子节点（Sprite + Billboard + SortingOrder2D）' })
     visualNode: Node | null = null;
 
@@ -33,6 +35,10 @@ export class Tower extends Component {
     private readonly _spawnedSoldiers: Node[] = [];
 
     onLoad(): void {
+        if (this.maxHp <= 0) {
+            this.maxHp = GameConfig.towerMaxHp;
+        }
+        super.onLoad();
         this.setTowerType(this.towerType);
     }
 
@@ -52,7 +58,7 @@ export class Tower extends Component {
         this._isActive = true;
         this.spawnSoldiers();
         for (const soldierNode of this._spawnedSoldiers) {
-            const soldier = soldierNode.getComponent('Soldier') as Component & ISoldierDeployment | null;
+            const soldier = soldierNode.getComponent('Soldier') as (Component & ISoldierDeployment) | null;
             soldier?.activate?.();
         }
     }
@@ -60,7 +66,7 @@ export class Tower extends Component {
     deactivate(): void {
         this._isActive = false;
         for (const soldierNode of this._spawnedSoldiers) {
-            const soldier = soldierNode.getComponent('Soldier') as Component & ISoldierDeployment | null;
+            const soldier = soldierNode.getComponent('Soldier') as (Component & ISoldierDeployment) | null;
             soldier?.deactivate?.();
             soldierNode.active = false;
         }
@@ -79,7 +85,7 @@ export class Tower extends Component {
             soldierNode.setPosition(Vec3.ZERO);
             soldierNode.active = this._isActive;
 
-            const soldier = soldierNode.getComponent('Soldier') as Component & ISoldierDeployment | null;
+            const soldier = soldierNode.getComponent('Soldier') as (Component & ISoldierDeployment) | null;
             soldier?.setDeployment('tower');
 
             this._spawnedSoldiers.push(soldierNode);
@@ -103,6 +109,11 @@ export class Tower extends Component {
 
     onDestroy(): void {
         this.clearSoldiers();
+    }
+
+    protected _onDestroyed(): void {
+        this.clearSoldiers();
+        super._onDestroyed();
     }
 
     private _resolveMounts(): Node[] {

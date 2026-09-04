@@ -73,21 +73,30 @@ export class EnemyAI extends Component {
             return true;
         }
 
-        return this.tryAttackPlayer();
+        return this.tryAttackPlayer(range);
     }
 
     /**
-     * 尝试攻击当前目标玩家。
-     * @returns 是否成功造成伤害
+     * 尝试攻击当前目标玩家（须在 range 内）。
      */
-    tryAttackPlayer(): boolean {
-        if (!this._target || !this._target.active || this._attackTimer > 0) {
+    tryAttackPlayer(range = Number.POSITIVE_INFINITY): boolean {
+        if (!this._target || !this._target.activeInHierarchy || this._attackTimer > 0) {
             return false;
         }
 
         const player = this._target.getComponent(Player);
         if (!player || player.isDead) {
             return false;
+        }
+
+        if (Number.isFinite(range) && range > 0) {
+            this.node.getWorldPosition(this._selfPos);
+            this._target.getWorldPosition(this._barrierPos);
+            const dx = this._barrierPos.x - this._selfPos.x;
+            const dy = this._barrierPos.y - this._selfPos.y;
+            if (dx * dx + dy * dy > range * range) {
+                return false;
+            }
         }
 
         player.takeDamage(GameConfig.minionAttackDamage);

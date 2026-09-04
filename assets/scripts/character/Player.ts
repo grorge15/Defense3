@@ -3,6 +3,7 @@ import {
     BoxCollider2D,
     Collider2D,
     Component,
+    director,
     ERigidBody2DType,
     Node,
     Rect,
@@ -13,6 +14,7 @@ import {
 } from 'cc';
 import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
+import { HitFlash } from '../core/HitFlash';
 import { CombatSystem } from '../game/CombatSystem';
 import { HealthSystem } from '../game/HealthSystem';
 import { EventManager } from '../core/EventManager';
@@ -166,10 +168,23 @@ export class Player extends Component {
         this.onUltimateCast();
     }
 
+    /** 大招/结束时锁定移动 */
+    setCanMove(enabled: boolean): void {
+        this._canMove = enabled;
+        if (!enabled) {
+            this._moveDir.set(0, 0);
+            this._velocity.set(0, 0);
+            if (this._rb) {
+                this._rb.linearVelocity = new Vec2(0, 0);
+            }
+        }
+    }
+
     takeDamage(amount: number): void {
-        if (this._isDead) {
+        if (this._isDead || amount <= 0) {
             return;
         }
+        HitFlash.flash(this.visualNode ?? this.node);
         this._health?.takeDamage(amount);
     }
 
@@ -362,6 +377,9 @@ export class Player extends Component {
     };
 
     private _die(): void {
+        if (this._isDead) {
+            return;
+        }
         this._isDead = true;
         this._canMove = false;
         this._velocity.set(0, 0);
@@ -371,6 +389,8 @@ export class Player extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');
         }
+        GameManager.instance?.setGameOver();
+        director.pause();
     }
 
     private _updateLocomotionAnim(): void {

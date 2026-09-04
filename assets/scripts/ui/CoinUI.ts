@@ -83,8 +83,8 @@ export class CoinUI extends Component {
         this._setAmount(this._displayBalance);
     }
 
-    /** 从 HUD 图标飞一枚视觉币到地块世界坐标（余额已由 CoinSystem 扣减） */
-    playDeliverFly(toWorld: Vec3): void {
+    /** 从玩家世界坐标飞一枚视觉币到地块（余额已由 CoinSystem 扣减） */
+    playDeliverFly(toWorld: Vec3, fromWorld?: Vec3 | null): void {
         if (this._flyCd > 0 || !this.iconSprite) {
             return;
         }
@@ -95,9 +95,9 @@ export class CoinUI extends Component {
         fly.setParent(parent);
         this._resolveCamera();
 
-        const fromWorld = this.iconSprite.node.worldPosition;
+        const startWorld = fromWorld ?? this.iconSprite.node.worldPosition;
         if (this._camera) {
-            this._camera.convertToUINode(fromWorld, parent, this._fromUi);
+            this._camera.convertToUINode(startWorld, parent, this._fromUi);
             this._camera.convertToUINode(toWorld, parent, this._toUi);
             fly.setPosition(this._fromUi);
             const start = this._fromUi.clone();
@@ -124,7 +124,7 @@ export class CoinUI extends Component {
             return;
         }
 
-        fly.setWorldPosition(fromWorld);
+        fly.setWorldPosition(startWorld);
         TweenUtil.hopToWorld(fly, toWorld, 0.28, 40, () => {
             if (fly.isValid) {
                 fly.destroy();

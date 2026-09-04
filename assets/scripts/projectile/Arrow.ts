@@ -94,6 +94,21 @@ export class Arrow extends Component {
         const r2 = r * r;
         this.node.getWorldPosition(this._pos);
 
+        // Boss 优先于小怪：同帧先结算 Boss，避免穿透名额被小怪占满
+        for (const boss of scene.getComponentsInChildren(EnemyBoss)) {
+            if (!boss.node.activeInHierarchy || boss.isDead) {
+                continue;
+            }
+            boss.node.getWorldPosition(this._enemyPos);
+            const dx = this._enemyPos.x - this._pos.x;
+            const dy = this._enemyPos.y - this._pos.y;
+            if (dx * dx + dy * dy <= r2) {
+                this._applyHit(boss.node);
+                if (!this._alive) {
+                    return;
+                }
+            }
+        }
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
             if (!minion.node.activeInHierarchy) {
                 continue;
@@ -103,20 +118,6 @@ export class Arrow extends Component {
             const dy = this._enemyPos.y - this._pos.y;
             if (dx * dx + dy * dy <= r2) {
                 this._applyHit(minion.node);
-                if (!this._alive) {
-                    return;
-                }
-            }
-        }
-        for (const boss of scene.getComponentsInChildren(EnemyBoss)) {
-            if (!boss.node.activeInHierarchy) {
-                continue;
-            }
-            boss.node.getWorldPosition(this._enemyPos);
-            const dx = this._enemyPos.x - this._pos.x;
-            const dy = this._enemyPos.y - this._pos.y;
-            if (dx * dx + dy * dy <= r2) {
-                this._applyHit(boss.node);
                 if (!this._alive) {
                     return;
                 }
@@ -158,14 +159,15 @@ export class Arrow extends Component {
 
         let cur: Node | null = node;
         while (cur) {
-            const minion = cur.getComponent(EnemyMinion);
-            if (minion) {
-                this._damageEnemy(cur.uuid, () => minion.takeDamage(this._damage));
-                return;
-            }
+            // 命中节点树上 Boss 优先于小怪（与索敌一致）
             const boss = cur.getComponent(EnemyBoss);
             if (boss) {
                 this._damageEnemy(cur.uuid, () => boss.takeDamage(this._damage));
+                return;
+            }
+            const minion = cur.getComponent(EnemyMinion);
+            if (minion) {
+                this._damageEnemy(cur.uuid, () => minion.takeDamage(this._damage));
                 return;
             }
             const log = cur.getComponent(Log);

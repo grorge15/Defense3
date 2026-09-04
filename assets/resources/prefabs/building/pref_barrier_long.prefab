@@ -136,8 +136,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 4,
-      "height": 1
+      "width": 150,
+      "height": 70
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -243,7 +243,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.4306"
+    "fileId": "Node.4306",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -296,7 +299,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.4307"
+    "fileId": "Node.4307",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.BoxCollider2D",
@@ -364,6 +370,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.4299"
+    "fileId": "Node.4299",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

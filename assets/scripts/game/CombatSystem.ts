@@ -1,13 +1,14 @@
 import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Player } from '../character/Player';
 import { GameConfig } from '../core/GameConfig';
+import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
 import { Arrow } from '../projectile/Arrow';
 
 const { ccclass, property } = _decorator;
 
 /**
- * 玩家射箭入口：有弓后自动寻最近 EnemyMinion 射击；冷却读 GameConfig。
+ * 玩家射箭入口：有弓后自动索敌；范围内 Boss 优先于小怪。
  */
 @ccclass('CombatSystem')
 export class CombatSystem extends Component {
@@ -91,17 +92,18 @@ export class CombatSystem extends Component {
             return;
         }
 
-        const enemy = this._findNearestEnemy();
-        if (!enemy) {
+        const target = this._findAttackTarget();
+        if (!target) {
             return;
         }
 
         this._cooldown = GameConfig.playerAttackInterval;
         player.playAttackAnim();
-        this._spawnArrow(enemy.node);
+        this._spawnArrow(target);
     }
 
-    private _findNearestEnemy(): EnemyMinion | null {
+    /** 范围内优先 Boss，其次最近小怪 */
+    private _findAttackTarget(): Node | null {
         const player = this._resolvePlayer();
         if (!player) {
             return null;
@@ -112,24 +114,45 @@ export class CombatSystem extends Component {
         }
 
         player.node.getWorldPosition(this._selfPos);
-        let nearest: EnemyMinion | null = null;
-        let nearestDist = this.attackRange;
+        const range = this.attackRange;
 
+        let bestBoss: Node | null = null;
+        let bestBossDist = range;
+        for (const boss of scene.getComponentsInChildren(EnemyBoss)) {
+            if (!boss.node.activeInHierarchy || boss.isDead) {
+                continue;
+            }
+            const dist = this._distTo(boss.node);
+            if (dist <= bestBossDist) {
+                bestBossDist = dist;
+                bestBoss = boss.node;
+            }
+        }
+        if (bestBoss) {
+            return bestBoss;
+        }
+
+        let nearest: Node | null = null;
+        let nearestDist = range;
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
             if (!minion.node.activeInHierarchy) {
                 continue;
             }
-            minion.node.getWorldPosition(this._targetPos);
-            const dx = this._targetPos.x - this._selfPos.x;
-            const dy = this._targetPos.y - this._selfPos.y;
-            const dz = this._targetPos.z - this._selfPos.z;
-            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            const dist = this._distTo(minion.node);
             if (dist <= nearestDist) {
                 nearestDist = dist;
-                nearest = minion;
+                nearest = minion.node;
             }
         }
         return nearest;
+    }
+
+    private _distTo(node: Node): number {
+        node.getWorldPosition(this._targetPos);
+        const dx = this._targetPos.x - this._selfPos.x;
+        const dy = this._targetPos.y - this._selfPos.y;
+        const dz = this._targetPos.z - this._selfPos.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     private _spawnArrow(target: Node): void {

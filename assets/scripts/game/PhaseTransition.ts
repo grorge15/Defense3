@@ -13,9 +13,8 @@ const PRE_ENEMY_NAMES = [
 ] as const;
 
 /**
- * 跑酷物件分阶段隐藏（按 ParkourContent 子节点，禁止整棵 active=false）。
- * LOG_FIXED：电锯 + 滚木加长道具；BOTH_WALLS_COMPLETE：预置怪 + 黄蓝线。
- * 滚木实例须挂在 ParkourContent 外（RoadRoot/LogAnchor）。
+ * 跑酷物件分阶段隐藏。
+ * LOG_FIXED：电锯 + 滚木加长道具；BOTH_WALLS_COMPLETE：隐藏整棵 ParkourContent（滚木须在子树外）。
  * 阶段切换走 GameManager.setPhase，不裸发 PHASE_CHANGED 字符串。
  */
 @ccclass('PhaseTransition')
@@ -54,7 +53,10 @@ export class PhaseTransition extends Component {
         if (this.defenseContentRoot) {
             this.defenseContentRoot.active = true;
         }
-        // 两墙后进入建造二期（塔/兵营）；阶段唯一出口 setPhase
+        // 用户需求：两墙解锁后整棵隐藏 ParkourContent（滚木须在其外）
+        if (this.parkourContent) {
+            this.parkourContent.active = false;
+        }
         GameManager.instance?.setPhase(GamePhase.BuildPhase2);
     };
 

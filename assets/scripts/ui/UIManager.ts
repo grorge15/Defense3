@@ -80,6 +80,7 @@ export class UIManager extends Component {
         this._ensureGameOver();
         this._ensurePlayerHpBar();
         this._bindPlayerHp();
+        this._ensureHeroSelectReady();
         this._applyPhase(this._currentPhaseFallback());
     }
 
@@ -131,10 +132,13 @@ export class UIManager extends Component {
 
     showGameOver(): void {
         this._ensureGameOver();
+        this.gameOverUI?.ensureReady();
         this.gameOverUI?.show();
     }
 
     hideGameOver(): void {
+        this._ensureGameOver();
+        this.gameOverUI?.ensureReady();
         this.gameOverUI?.hide();
     }
 
@@ -174,17 +178,23 @@ export class UIManager extends Component {
     }
 
     private _ensureGameOver(): void {
-        if (this.gameOverUI) {
-            return;
+        if (!this.gameOverUI) {
+            if (this.gameOverPrefab && this.uiRoot) {
+                const node = instantiate(this.gameOverPrefab);
+                this.uiRoot.addChild(node);
+                this.gameOverUI = node.getComponent(GameOverUI);
+            } else {
+                this.gameOverUI = this.node.scene?.getComponentInChildren(GameOverUI) ?? null;
+            }
         }
-        if (!this.gameOverPrefab || !this.uiRoot) {
-            this.gameOverUI = this.node.scene?.getComponentInChildren(GameOverUI) ?? null;
-            return;
+        this.gameOverUI?.ensureReady();
+        // 开局常 inactive：保持隐藏但已挂 PHASE_CHANGED
+        if (this.gameOverUI && this.gameOverUI.node.active) {
+            const phase = this._currentPhaseFallback();
+            if (phase !== GamePhase.GameOver && phase !== 'game_over') {
+                this.gameOverUI.hide();
+            }
         }
-        const node = instantiate(this.gameOverPrefab);
-        this.uiRoot.addChild(node);
-        this.gameOverUI = node.getComponent(GameOverUI);
-        this.gameOverUI?.hide();
     }
 
     private _resolveRefs(): void {
@@ -211,6 +221,14 @@ export class UIManager extends Component {
             this.player = scene.getComponentInChildren(Player);
         }
         // playerHpBar 不自动抓取任意 HpBarUI（避免误绑小怪条）；由 _ensurePlayerHpBar / 场景引用负责
+    }
+
+    /** 开局 inactive 的 HeroSelect 不会跑 onLoad；提前挂上 HERO_SELECT_REQUESTED */
+    private _ensureHeroSelectReady(): void {
+        if (!this.heroSelectUI) {
+            this.heroSelectUI = this.node.scene?.getComponentInChildren(HeroSelectUI) ?? null;
+        }
+        this.heroSelectUI?.ensureReady();
     }
 
     private _ensurePlayerHpBar(): void {

@@ -2,7 +2,6 @@ import { _decorator, Component, Node } from 'cc';
 import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
-import { GameConfig } from '../core/GameConfig';
 import { Physics2DSetup } from '../core/Physics2DSetup';
 import { BossSpawner } from '../enemy/BossSpawner';
 import { EnemyMinion } from '../enemy/EnemyMinion';
@@ -18,6 +17,7 @@ import { CombatGuideController } from './CombatGuideController';
 import { CombatSystem } from './CombatSystem';
 import { GameManager } from './GameManager';
 import { GamePhase } from './GamePhase';
+import { UltimateSystem } from './UltimateSystem';
 
 const { ccclass, property } = _decorator;
 
@@ -72,6 +72,7 @@ export class SceneSetup extends Component {
         EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
         this._wireGameplay();
         this._ensureCombatGuide();
+        this._ensureUltimateSystem();
 
         const gm = GameManager.instance;
         if (gm) {
@@ -200,6 +201,7 @@ export class SceneSetup extends Component {
         if (!this.heroSelectUI && this.node.scene) {
             this.heroSelectUI = this.node.scene.getComponentInChildren(HeroSelectUI);
         }
+        this.heroSelectUI?.ensureReady();
     }
 
     private _bindPreplacedMinions(): void {
@@ -222,6 +224,16 @@ export class SceneSetup extends Component {
         }
     }
 
+    private _ensureUltimateSystem(): void {
+        const scene = this.node.scene;
+        if (!scene) {
+            return;
+        }
+        if (!scene.getComponentInChildren(UltimateSystem)) {
+            this.addComponent(UltimateSystem);
+        }
+    }
+
     private _onLogFixed = (): void => {
         // 唯一阶段出口：setPhase → PHASE_CHANGED(GamePhase.CombatGuide)；监听方映射为 defense 移动
         this.player?.setMode('defense');
@@ -231,12 +243,7 @@ export class SceneSetup extends Component {
         if (gm) {
             gm.setPhase(GamePhase.CombatGuide);
         }
-
-        if (this.bossSpawner) {
-            this.scheduleOnce(() => {
-                this.bossSpawner?.trySpawnFirst();
-            }, GameConfig.bossFirstSpawnDelay);
-        }
+        // Boss 改在首座初级塔/兵营建成后由 BuildSystem 生成
     };
 
     /** 蓝线失败：全向移动，但不进 CombatGuide/建造 */

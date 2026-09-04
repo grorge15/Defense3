@@ -40,7 +40,7 @@ model: inherit
 - 校验点达成表（AC 编号：通过/失败/阻塞）
 - 失败项与障碍说明
 
-**Bug 计划收尾**：若 slug 以 `fix-` 开头（或计划明确为修 bug），机器 AC 通过并标完成后，必须更新根目录 `bugs.md`（无则新建）：现象 / 原因 / 解决；同 bug 多次改 → 原条目下 v2/v3 叠加，写入 `bugs.md` 也计入报告「修改文件列表」。
+**Bug 计划收尾**：若 slug 以 `fix-` 开头（或计划明确为修 bug），机器 AC 通过并标完成后，必须更新根目录 `bugs.md`（无则新建）：**一点一条**（N 点 → N 条，禁止合并）；现象 / 原因 / 解决；同题检索后升版 v2/v3，勿另开同名；写入 `bugs.md` 也计入报告「修改文件列表」。
 
 ## 项目硬约束
 `.cursor/rules/defense3-workflow.mdc` 与 `.cursor/rules/cocos-mcp.mdc` 优先级高于计划文件中的一般步骤；计划若违反项目硬约束（含禁止创建 *Controller 重复脚本、禁止手写整份 `.prefab`、禁止并行 refresh+reimport），按异常分支终止。

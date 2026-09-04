@@ -8,8 +8,11 @@ import {
     Vec2,
     Vec3,
 } from 'cc';
+import { Barracks } from '../building/Barracks';
 import { Barrier } from '../building/Barrier';
 import { Building } from '../building/Building';
+import { Tower } from '../building/Tower';
+import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
 import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
@@ -19,6 +22,28 @@ import { Log } from '../item/Log';
 import { UIManager } from '../ui/UIManager';
 
 const { ccclass, property } = _decorator;
+
+export type BossTargetKind = 'player' | 'hero' | 'building' | 'barrier' | 'log';
+
+export interface BossTargetRegisterPayload {
+    node: Node;
+    kind: BossTargetKind;
+}
+
+/** 索敌优先级：数值越大越优先（英雄/塔兵营 > 障碍 > 玩家） */
+const BOSS_TARGET_PRIORITY: Record<BossTargetKind, number> = {
+    hero: 40,
+    building: 30,
+    barrier: 20,
+    log: 15,
+    player: 10,
+};
+
+type BossTargetEntry = {
+    node: Node;
+    kind: BossTargetKind;
+    priority: number;
+};
 
 export interface BossTargetOptions {
     buildings?: Node[];
@@ -46,8 +71,8 @@ export class EnemyBoss extends Component {
     private _rb: RigidBody2D | null = null;
     private _collider: Collider2D | null = null;
     private _hp = GameConfig.bossMaxHp;
-    private _buildings: Node[] = [];
-    private _heroes: Node[] = [];
+    /** 事件维护的索敌表：priority 高者优先，同级取最近 */
+    private readonly _targetList: BossTargetEntry[] = [];
     private _playerNode: Node | null = null;
     private readonly _velocity = new Vec2();
     private readonly _facingDir = new Vec2(0, 1);
@@ -68,9 +93,9 @@ export class EnemyBoss extends Component {
             this.visualNode = this.node.getChildByName('Visual');
         }
         this._hp = GameConfig.bossMaxHp;
-        // 旧预制若仍是「约 1 单位」世界，抬到百级像素尺度
-        if (this.attackTriggerRange < 20) {
-            this.attackTriggerRange = 120;
+        // 近战停步/出手距离（百级像素）；追击无上限
+        if (this.attackTriggerRange < 20 || this.attackTriggerRange > 80) {
+            this.attackTriggerRange = 56;
         }
         if (this.attackLength < 20) {
             this.attackLength = 160;
@@ -78,9 +103,25 @@ export class EnemyBoss extends Component {
         if (this.attackWidth < 10) {
             this.attackWidth = 80;
         }
+        if (this._rb) {
+            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.gravityScale = 0;
+            this._rb.fixedRotation = true;
+            this._rb.allowSleep = false;
+            this._rb.linearVelocity = new Vec2(0, 0);
+        }
+        if (this._collider) {
+            this._collider.sensor = true;
+        }
+        EventManager.instance.onEvent(
+            GameEvents.BOSS_TARGET_REGISTER,
+            this._onTargetRegister,
+            this,
+        );
     }
 
     start(): void {
+        this._bootstrapExistingTargets();
         this.scheduleOnce(() => {
             const bar = UIManager.instance?.spawnHpBar(
                 'boss',
@@ -100,43 +141,150 @@ export class EnemyBoss extends Component {
         }, 0);
     }
 
-    registerTargets(options: BossTargetOptions): void {
-        this._buildings = options.buildings ?? [];
-        this._heroes = options.heroes ?? [];
-        this._playerNode = options.player ?? null;
-        this._injectBarriersIntoBuildings();
+    onDestroy(): void {
+        EventManager.instance.offEvent(
+            GameEvents.BOSS_TARGET_REGISTER,
+            this._onTargetRegister,
+            this,
+        );
     }
 
-    /** 将场景内存活 Barrier 并入建筑索敌列表（BossSpawner 未注入时仍生效） */
-    private _injectBarriersIntoBuildings(): void {
+    registerTargets(options: BossTargetOptions): void {
+        if (options.player) {
+            this._upsertTarget(options.player, 'player');
+        }
+        for (const n of options.buildings ?? []) {
+            if (n) {
+                this._upsertTarget(n, 'building');
+            }
+        }
+        for (const n of options.heroes ?? []) {
+            if (n) {
+                this._upsertTarget(n, 'hero');
+            }
+        }
+        this._injectSceneDefenseTargets();
+    }
+
+    /** 扫描场景内已有防守目标（Boss 晚于塔/兵营生成时补表） */
+    private _bootstrapExistingTargets(): void {
+        if (!this._playerNode && this.node.scene) {
+            const p = this.node.scene.getComponentInChildren(Player);
+            if (p) {
+                this._upsertTarget(p.node, 'player');
+            }
+        }
+        this._injectSceneDefenseTargets();
+    }
+
+    private _injectSceneDefenseTargets(): void {
         const scene = this.node.scene;
         if (!scene) {
             return;
         }
-        const set = new Set(this._buildings.filter((n) => !!n));
-        for (const barrier of scene.getComponentsInChildren(Barrier)) {
-            if (barrier.isAlive()) {
-                set.add(barrier.node);
+        for (const t of scene.getComponentsInChildren(Tower)) {
+            if (t.node.activeInHierarchy) {
+                this._upsertTarget(t.node, 'building');
             }
         }
-        this._buildings = [...set];
+        for (const b of scene.getComponentsInChildren(Barracks)) {
+            if (b.node.activeInHierarchy) {
+                this._upsertTarget(b.node, 'building');
+            }
+        }
+        for (const h of scene.getComponentsInChildren(Hero)) {
+            if (h.node.activeInHierarchy) {
+                this._upsertTarget(h.node, 'hero');
+            }
+        }
+        for (const barrier of scene.getComponentsInChildren(Barrier)) {
+            if (barrier.isAlive()) {
+                this._upsertTarget(barrier.node, 'barrier');
+            }
+        }
+        for (const log of scene.getComponentsInChildren(Log)) {
+            if (log.isAttackable()) {
+                this._upsertTarget(log.node, 'log');
+            }
+        }
     }
 
+    private _onTargetRegister = (...args: unknown[]): void => {
+        const payload = (args[0] ?? null) as BossTargetRegisterPayload | null;
+        if (!payload?.node?.isValid || !payload.kind) {
+            return;
+        }
+        this._upsertTarget(payload.node, payload.kind);
+    };
+
+    private _upsertTarget(node: Node, kind: BossTargetKind): void {
+        if (!node?.isValid) {
+            return;
+        }
+        if (kind === 'player') {
+            this._playerNode = node;
+        }
+        const priority = BOSS_TARGET_PRIORITY[kind];
+        const idx = this._targetList.findIndex((e) => e.node === node);
+        if (idx >= 0) {
+            if (priority > this._targetList[idx].priority) {
+                this._targetList[idx].kind = kind;
+                this._targetList[idx].priority = priority;
+            }
+            return;
+        }
+        this._targetList.push({ node, kind, priority });
+    }
+
+    /**
+     * 无索敌距离：表内最高优先级；同级取最近。
+     * 初期可只有玩家；塔/兵营/英雄注册后压过玩家。
+     */
     pickTarget(): Node | null {
-        if (!this._playerNode && this.node.scene) {
-            this._playerNode =
-                this.node.scene.getComponentInChildren(Player)?.node ?? null;
+        this._pruneDeadTargets();
+        if (this._targetList.length === 0) {
+            this._bootstrapExistingTargets();
         }
-        // 追击优先玩家
-        if (this._isTargetAlive(this._playerNode)) {
-            return this._playerNode;
+
+        let bestPriority = Number.NEGATIVE_INFINITY;
+        for (const e of this._targetList) {
+            if (!this._isTargetAlive(e.node)) {
+                continue;
+            }
+            if (e.priority > bestPriority) {
+                bestPriority = e.priority;
+            }
         }
-        this._injectBarriersIntoBuildings();
-        const building = this._pickNearestAlive(this._buildings);
-        if (building) {
-            return building;
+        if (bestPriority === Number.NEGATIVE_INFINITY) {
+            return null;
         }
-        return this._pickNearestAlive(this._heroes);
+
+        let nearest: Node | null = null;
+        let nearestDistSq = Number.POSITIVE_INFINITY;
+        this.node.getWorldPosition(this._selfPos);
+        for (const e of this._targetList) {
+            if (e.priority !== bestPriority || !this._isTargetAlive(e.node)) {
+                continue;
+            }
+            e.node.getWorldPosition(this._targetPos);
+            const dx = this._targetPos.x - this._selfPos.x;
+            const dy = this._targetPos.y - this._selfPos.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < nearestDistSq) {
+                nearestDistSq = distSq;
+                nearest = e.node;
+            }
+        }
+        return nearest;
+    }
+
+    private _pruneDeadTargets(): void {
+        for (let i = this._targetList.length - 1; i >= 0; i--) {
+            const e = this._targetList[i];
+            if (!e.node?.isValid || !this._isTargetAlive(e.node)) {
+                this._targetList.splice(i, 1);
+            }
+        }
     }
 
     tryAttack(): void {
@@ -144,6 +292,7 @@ export class EnemyBoss extends Component {
             return;
         }
 
+        // 无索敌距离：始终按优先级选目标；仅近战距离内出手
         const target = this.pickTarget();
         if (!target) {
             return;
@@ -154,7 +303,8 @@ export class EnemyBoss extends Component {
         const dx = this._targetPos.x - this._selfPos.x;
         const dy = this._targetPos.y - this._selfPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > this.attackTriggerRange) {
+        const melee = Math.max(this.attackTriggerRange, 48);
+        if (dist > melee) {
             return;
         }
 
@@ -189,11 +339,14 @@ export class EnemyBoss extends Component {
         }
     }
 
+    get isDead(): boolean {
+        return this._isDead;
+    }
+
     reset(): void {
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.bossMaxHp;
-        this._buildings = [];
-        this._heroes = [];
+        this._targetList.length = 0;
         this._playerNode = null;
         this._attackTimer = 0;
         this._isDead = false;
@@ -211,6 +364,7 @@ export class EnemyBoss extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'idle');
         }
+        this._bootstrapExistingTargets();
         EventManager.instance.emitEvent(
             GameEvents.HP_CHANGED,
             this.node,
@@ -219,7 +373,7 @@ export class EnemyBoss extends Component {
         );
     }
 
-    fixedUpdate(dt: number): void {
+    update(dt: number): void {
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
         }
@@ -228,7 +382,7 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        // 始终追玩家（无玩家再退回建筑/英雄）
+        // 始终追索敌表最高优先级目标；不用 linearVelocity 驱动位移
         const target = this.pickTarget();
         if (!target) {
             this._velocity.set(0, 0);
@@ -249,7 +403,8 @@ export class EnemyBoss extends Component {
             this._facingDir.set(dx / dist, dy / dist);
         }
 
-        if (dist <= this.attackTriggerRange) {
+        const melee = Math.max(this.attackTriggerRange, 48);
+        if (dist <= melee) {
             this._velocity.set(0, 0);
             if (this._rb) {
                 this._rb.linearVelocity = this._velocity;
@@ -259,7 +414,7 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        const invDist = 1 / dist;
+        const invDist = 1 / Math.max(dist, 0.001);
         this._velocity.x = dx * invDist * GameConfig.bossMoveSpeed;
         this._velocity.y = dy * invDist * GameConfig.bossMoveSpeed;
         this._nextWorld.set(
@@ -305,46 +460,18 @@ export class EnemyBoss extends Component {
     }
 
     private _collectAttackCandidates(): Node[] {
-        const set = new Set<Node>();
-        for (const node of this._buildings) {
-            if (node) {
-                set.add(node);
+        this._pruneDeadTargets();
+        const out: Node[] = [];
+        for (const e of this._targetList) {
+            if (e.node?.isValid && this._isTargetAlive(e.node)) {
+                out.push(e.node);
             }
         }
-        for (const node of this._heroes) {
-            if (node) {
-                set.add(node);
-            }
-        }
-        if (this._playerNode) {
-            set.add(this._playerNode);
-        }
-        return [...set];
-    }
-
-    private _pickNearestAlive(nodes: Node[]): Node | null {
-        let nearest: Node | null = null;
-        let nearestDistSq = Number.POSITIVE_INFINITY;
-        this.node.getWorldPosition(this._selfPos);
-
-        for (const node of nodes) {
-            if (!this._isTargetAlive(node)) {
-                continue;
-            }
-            node.getWorldPosition(this._targetPos);
-            const dx = this._targetPos.x - this._selfPos.x;
-            const dy = this._targetPos.y - this._selfPos.y;
-            const distSq = dx * dx + dy * dy;
-            if (distSq < nearestDistSq) {
-                nearestDistSq = distSq;
-                nearest = node;
-            }
-        }
-        return nearest;
+        return out;
     }
 
     private _isTargetAlive(node: Node | null): boolean {
-        if (!node || !node.active) {
+        if (!node || !node.activeInHierarchy) {
             return false;
         }
         const barrier = node.getComponent(Barrier);
@@ -355,9 +482,25 @@ export class EnemyBoss extends Component {
         if (building) {
             return building.isAlive();
         }
+        const tower = node.getComponent(Tower);
+        if (tower) {
+            return tower.isAlive();
+        }
+        const barracks = node.getComponent(Barracks);
+        if (barracks) {
+            return barracks.isAlive();
+        }
         const log = node.getComponent(Log);
         if (log) {
             return log.isAttackable();
+        }
+        const player = node.getComponent(Player);
+        if (player) {
+            return !player.isDead;
+        }
+        const hero = node.getComponent(Hero);
+        if (hero) {
+            return !hero.isDead;
         }
         return true;
     }
@@ -376,6 +519,11 @@ export class EnemyBoss extends Component {
         const building = node.getComponent(Building);
         if (building?.isAlive()) {
             building.takeDamage(GameConfig.bossAttackDamage);
+            return;
+        }
+        const hero = node.getComponent(Hero);
+        if (hero && !hero.isDead) {
+            hero.takeDamage(GameConfig.bossAttackDamage);
             return;
         }
         const player = node.getComponent(Player);
