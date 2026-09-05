@@ -65,6 +65,11 @@ export class HpBarUI extends Component {
         this._syncFromTarget();
     }
 
+    /** 宿主无 HealthSystem 时（Hero/Boss/Log）可主动推一次满血/当前值 */
+    applyHp(hp: number, maxHp: number, init = true): void {
+        this._applyRatio(hp, maxHp, init);
+    }
+
     /** 绑定后立刻同步一次，避免早于血条创建的 HP_CHANGED 丢失 */
     private _syncFromTarget(): void {
         if (!this.targetNode) {
@@ -75,7 +80,7 @@ export class HpBarUI extends Component {
             this._applyRatio(hs.currentHp, hs.getMaxHp(), true);
             return;
         }
-        // Boss / Log 等非 HealthSystem：等宿主 emit；先不要写成 1/1
+        // Boss / Log / Hero 等非 HealthSystem：保持 onLoad 满血态，等宿主 emit 或 applyHp
     }
 
     lateUpdate(dt: number): void {

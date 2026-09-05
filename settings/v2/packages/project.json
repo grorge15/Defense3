@@ -6,5 +6,37 @@
       "width": 720,
       "height": 1280
     }
+  },
+  "physics": {
+    "collisionGroups": [
+      {
+        "index": 1,
+        "name": "player"
+      },
+      {
+        "index": 2,
+        "name": "log"
+      },
+      {
+        "index": 3,
+        "name": "enemy"
+      },
+      {
+        "index": 4,
+        "name": "Structure"
+      },
+      {
+        "index": 5,
+        "name": "hero"
+      }
+    ],
+    "collisionMatrix": {
+      "0": 63,
+      "1": 57,
+      "2": 9,
+      "3": 47,
+      "4": 3,
+      "5": 11
+    }
   }
 }

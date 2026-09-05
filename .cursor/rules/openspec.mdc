@@ -1,0 +1,27 @@
+---
+description: OpenSpec 在 Defense3 的用法：行为规格唯一真相；plan 只引用；MCP 装配可跳过
+alwaysApply: true
+---
+
+# OpenSpec × Defense3
+
+> 行为规格在 `openspec/`；装配与机器 AC 在 `.cursor/plans/`。**禁止**同一 WHEN/THEN 维护两份。
+
+## 何时写 OpenSpec
+| 写 | 不写 |
+|---|---|
+| 玩家可感知行为（阶段切换、战斗、建造链、金币/UI 反馈、胜负） | 纯挂点/坐标/批量实例化 prefab、只绑 `@property`、只改文档 |
+| Bug 改变已约定行为（先读 `openspec/specs/` + 未归档 delta） | 无行为语义的资源修复 |
+
+Schema 默认：**`defense3-lite`**（仅 `proposal.md` + `specs/**`）。无 design/tasks artifact——实现步骤在 plan。
+
+## 与 Plan-Build 分工
+1. 有行为 → 创建/更新 `openspec/changes/<slug>/`（`/opsx-propose` 或 plan-agent 写入）。
+2. 同时（或随后）`.cursor/plans/<slug>.md`：文件清单、禁做项、MCP todos、AC-GATE…；节 **OpenSpec 引用** 指向该 change，**不抄** Scenario 正文。
+3. 实现：优先 **`/build-plan <slug>`**（单 agent 续跑 + MCP 批次门禁）。`/opsx-apply` 仅适合无 MCP 重装配的纯脚本变更；有 plan 时不要用 apply 重做一遍 MCP。
+4. 完成后：机器 AC 按 workflow；行为用 AC-PLAY / 对照 specs。可 `/opsx-archive` 合并 delta → `openspec/specs/`。
+5. `/replan`：改失败步 + 同步改 OpenSpec delta（若有）。
+
+## Lite 规格要求
+- Requirement + Scenario（WHEN/THEN）；SHALL/MUST 保留英文关键字。
+- 禁止写入：类名、MCP 步骤、坐标表、prefab 节点树（那些归 plan / SCENE_PLACEMENT）。

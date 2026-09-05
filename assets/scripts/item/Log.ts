@@ -12,6 +12,7 @@ import {
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
+import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim } from '../core/AnimUtil';
 import { Billboard } from '../core/Billboard';
 import { EventManager } from '../core/EventManager';
@@ -49,8 +50,11 @@ export class Log extends Component {
     private _pushPlayer: Player | null = null;
     private readonly _selfPos = new Vec3();
     private readonly _playerPos = new Vec3();
+    private readonly _desiredPos = new Vec3();
     private readonly _followOffset = new Vec3();
     private readonly _tmpLinePos = new Vec3();
+    private readonly _followVel = new Vec2();
+    private _airWalls: BoxCollider2D[] = [];
     private _hasFollowOffset = false;
     private _yellowTriggered = false;
     private _blueTriggered = false;
@@ -328,7 +332,24 @@ export class Log extends Component {
         if (this._isLocked || this._isFading || dt <= 0 || !this._pushPlayer) {
             return;
         }
+        if (this._phase !== 'rolling' && this._phase !== 'charging') {
+            return;
+        }
+        // 滚动视觉用玩家速度；跟木贴位放 lateUpdate，避免误差/dt 追赶导致根节点坐标跳
+        const spd = this._pushPlayer.getVelocity().length();
+        this._updateRollVisual(dt, spd);
+        this._pollParkourLines();
+    }
 
+    /**
+     * 玩家 Dynamic 物理步进之后再贴 offset：根节点直接落到目标点，
+     * 同步玩家速度（禁止 (desired-self)/dt）。
+     * 贴位后对 airWall 做 AABB 推出（sensor 时引擎不挡）；仍用 setWorldPosition，不追误差。
+     */
+    lateUpdate(): void {
+        if (this._isLocked || this._isFading || !this._pushPlayer) {
+            return;
+        }
         if (this._phase !== 'rolling' && this._phase !== 'charging') {
             return;
         }
@@ -337,21 +358,36 @@ export class Log extends Component {
         if (!this._hasFollowOffset) {
             this._captureFollowOffset();
         }
-        this._selfPos.set(
+        this._desiredPos.set(
             this._playerPos.x + this._followOffset.x,
             this._playerPos.y + this._followOffset.y,
             this._playerPos.z + this._followOffset.z,
         );
-        this.node.setWorldPosition(this._selfPos);
 
-        const velocity = this._pushPlayer.getVelocity();
+        const pv = this._pushPlayer.getVelocity();
+        this._followVel.set(pv.x, pv.y);
+        const size = AirWallAabb.bodySize(this.node, this._baseColliderWidth, this._baseColliderHeight);
+        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+        AirWallAabb.resolveWorldPos(
+            this._desiredPos,
+            size.w,
+            size.h,
+            walls,
+            this._followVel,
+        );
+        this.node.setWorldPosition(this._desiredPos);
+
         if (this._rb) {
             this._rb.type = ERigidBody2DType.Kinematic;
             this._rb.gravityScale = 0;
-            this._rb.linearVelocity = new Vec2(velocity.x, velocity.y);
+            this._rb.fixedRotation = true;
+            this._rb.allowSleep = false;
+            this._rb.angularVelocity = 0;
+            this._rb.linearVelocity = this._followVel;
         }
-        this._updateRollVisual(dt, velocity.length());
-        this._pollParkourLines();
+        if (this._collider) {
+            this._collider.sensor = true;
+        }
     }
 
     private _captureFollowOffset(): void {

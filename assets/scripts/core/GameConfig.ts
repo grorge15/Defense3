@@ -18,12 +18,19 @@ export class GameConfig {
 
     // --- 攻击 ---
     static readonly bossAttackDamage = 25;
+    /** Boss 对建筑/屏障/小兵一击拆毁伤害（≥ 各建筑 maxHp） */
+    static readonly bossBuildingDamage = 9999;
     static readonly playerAttackDamage = 15;
     static readonly minionAttackDamage = 10;
-    /** 玩家射箭冷却（秒） */
-    static readonly playerAttackInterval = 0.8;
+    /**
+     * 玩家射箭冷却（秒）。须 ≥ melee_attack 时长（0.7），
+     * 否则会出现「动画未结束又开下一轮」。
+     */
+    static readonly playerAttackInterval = 0.85;
     /** 玩家自动索敌范围（世界单位；玩法坐标为百级像素格） */
     static readonly playerAttackRange = 400;
+    /** 英雄远程索敌范围（世界单位；百级像素格） */
+    static readonly heroAttackRange = 360;
     /** 箭矢飞行速度（世界单位/秒） */
     static readonly arrowSpeed = 520;
     /** 箭矢命中半径（世界单位；位移驱动时物理接触常丢） */
@@ -47,6 +54,18 @@ export class GameConfig {
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
     static readonly playerParkourChargeSpeed = 2;
     static readonly heroFollowSpeed = 4;
+    /**
+     * 英雄相对玩家的期望跟随距离（世界单位）。
+     * 到达该距离后 idle；攻击中不跟随。
+     */
+    static readonly heroFollowDistance = 1.5;
+    /**
+     * 英雄相对玩家的软拴绳半径（世界单位）。
+     * ≤0 时用 heroFollowDistance * 3，防止脱节。
+     */
+    static readonly heroFollowLeash = 0;
+    /** Boss 重新索敌间隔（秒） */
+    static readonly bossRetargetInterval = 5;
     static readonly minionMoveSpeed = 2;
     static readonly bossMoveSpeed = 3;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */

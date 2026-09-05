@@ -1,5 +1,5 @@
 ---
-description: 多 Agent 路由与交接协议：规模路由、Plan-Build 流水线、状态机、冲突分类、入口命令
+description: 多 Agent 路由与交接协议：规模路由、Plan-Build、防碎片重委派、状态机、入口命令
 alwaysApply: true
 ---
 
@@ -8,17 +8,26 @@ alwaysApply: true
 ## 规模路由（收到任何一句话目标先执行）
 | 规模 | 判定 | 处理 |
 | --- | --- | --- |
-| 小任务 | ≤2 个文件改动、无破坏性/接口变更、可一次验证 | 委派 @goal-agent 直接执行 |
-| 中任务 | 多文件/跨模块/需先调研定方案/用户要求先出计划 | Plan-Build 流水线 |
+| **强制小任务** | 纯脚本/文档（≤2 文件）、只修一个引用/坐标文案、无新建 prefab、不改 `Main.scene` 结构 | **必须** `@goal-agent`；禁止为凑 AC 走 Plan-Build |
+| 小任务 | ≤2 个文件改动、无破坏性/接口变更、可一次验证（可含极小 MCP 补绑） | 委派 `@goal-agent` 直接执行 |
+| 中任务 | 多文件/跨模块/需先调研定方案/用户要求先出计划；或多个 prefab+scene 装配 | Plan-Build 流水线 |
 | 超大任务 | 系统级重构、从零搭完整业务系统 | 拒绝，要求拆分更小目标 |
+
+**MCP 合并**：同一主题的多个 prefab/挂点装配应放进**同一个** plan，任务末**一次**门禁；禁止拆成「一 prefab 一 slug」导致反复 open/save/gate。
 
 歧义影响方案走向时先简短确认，不脑补大规模业务。
 
 ## Plan-Build 流水线（中任务）
-1. 先执行 superpowers 前置门（插件检查 + brainstorming 澄清，见 superpowers-gate.mdc），完成后再委派 @plan-agent 调研并生成 `.cursor/plans/<slug>.md`（状态 draft）；主会话只显示摘要。
-2. 用户可在 Cursor 中直接编辑计划文件；确认后输入 `/build-plan <slug>`。
-3. 委派 @build-agent 执行：文件清单 → 步骤 → 校验点；报告写入 `.cursor/plans/reports/<slug>-report.md`（引用 AC 编号）。
-4. 主会话对照报告收尾：全部 AC 通过 → 状态置 done；有失败项 → `/replan <slug>`。
+1. Superpowers **不阻塞**（见 `superpowers-gate.mdc`）。有玩家可感知行为 → 先 OpenSpec change（`openspec.mdc`）；再委派 @plan-agent 生成 `.cursor/plans/<slug>.md`（draft，含禁做项；行为规格只引用 openspec）。纯 MCP 装配可跳过 OpenSpec。
+2. 用户可编辑计划；确认后 `/build-plan <slug>`。
+3. 委派 **一个** @build-agent 连续执行到机器 AC 结束（或硬阻塞）；报告含 MCP 指标。
+4. 机器 AC 通过 → done；失败 → `/replan <slug>`（只改失败步；有 OpenSpec 则同步改 delta）。
+
+## 防碎片重委派（强制 — 缩短累计墙钟）
+- **同一次 `/build-plan <slug>`**：主会话只委派 **一个** build-agent；agent 内续跑未完成 todos，禁止「失败就新开第二个 build-agent 从 Survey 重来」。
+- **打断后续跑**：若报告已存在且计划仍为 active/verifying，再次 `/build-plan` = **从第一个未完成 todo 续跑**，跳过已勾选项与已通过的机器 AC；禁止全量重扫场景。
+- **`/replan`**：版本 +1，**只改失败相关步骤/AC**；保留已达成 AC 与已完成产物说明；禁止整份重写计划导致重建已合格 prefab。
+- 用户澄清变更范围时：先改计划禁做/可做清单，再 build；禁止 build 中途擅自扩大范围（典型：计划未要求却新建无关 UI prefab）。
 
 ## 计划状态机
 draft（计划已落盘）→ active（用户确认/build 开始）→ verifying（校验中）→ done | replan（版本 +1 回到 draft）
@@ -30,6 +39,6 @@ draft（计划已落盘）→ active（用户确认/build 开始）→ verifying
 - 任务清单驱动：`AI_TASK_LIST.md` 中每个 P 任务对应一个 plan slug；执行前查「任务-管线映射表」，禁止绕过 gate 直接大范围改代码。
 
 ## 入口命令
-`/plan-task <目标>` Plan 前置门（superpowers 检查+安装+澄清→落盘计划） · `/new-feature` 新需求 · `/fix-bug` Bug 修复 · `/build-plan <slug>` 执行计划 · `/replan <slug>` 修订计划 · `/verify-plan <slug>` 只跑校验
+`/plan-task` · `/new-feature` · `/fix-bug` · `/build-plan` · `/replan` · `/verify-plan`（OpenSpec：`/opsx:propose` 等由 `openspec init` 注入，行为规格见 `openspec.mdc`）
 
 **Bug 记录**：`/fix-bug` 修完后写入根目录 `bugs.md`（无则新建）：**一点一条**（用户列 N 点 → N 条，禁止 ①②③ 合并）；现象 / 原因 / 解决；写入前检索同类主题，有则条目内 v2/v3 升版，勿另开同名。

@@ -173,7 +173,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+      "__uuid__": "237530fb-e2b7-4534-bacb-36e0daf23481@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -308,10 +308,7 @@
       "b": 255,
       "a": 255
     },
-    "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
+    "_spriteFrame": null,
     "_type": 3,
     "_fillType": 0,
     "_sizeMode": 0,
@@ -340,8 +337,6 @@
       "__id__": 0
     },
     "fileId": "6LYwqCd7pz6WOrJsbvcTFe",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -439,13 +434,13 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 220,
-      "g": 60,
-      "b": 60,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "24a704da-2867-446d-8d1a-5e920c75e09d@f9941",
+      "__uuid__": "6117653a-cfe7-44a4-b4d7-c6f1e79b34ae@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 3,
@@ -457,7 +452,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0.5,
+    "_fillRange": 1,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -503,8 +498,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 39.823,
+      "x": 3.935,
+      "y": 43.627,
       "z": 0
     },
     "_lrot": {
@@ -544,7 +539,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 141.69798278808594,
+      "width": 81.92120361328125,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -580,11 +575,11 @@
       "b": 255,
       "a": 255
     },
-    "_string": "100/100",
+    "_string": "100",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 39.2,
-    "_fontSize": 39.2,
+    "_actualFontSize": 49.1,
+    "_fontSize": 49.1,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
@@ -593,7 +588,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -693,6 +688,7 @@
     "hideWhenFull": false,
     "hideWhenDead": true,
     "followOffsetY": 40,
+    "showMaxInLabel": true,
     "_id": ""
   },
   {

@@ -1,5 +1,6 @@
 import {
     _decorator,
+    BoxCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -14,7 +15,9 @@ import { Building } from '../building/Building';
 import { Tower } from '../building/Tower';
 import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
-import { playAnim } from '../core/AnimUtil';
+import { Soldier } from '../character/Soldier';
+import { AirWallAabb } from '../core/AirWallAabb';
+import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -28,14 +31,19 @@ export type BossTargetKind = 'player' | 'hero' | 'building' | 'barrier' | 'log';
 export interface BossTargetRegisterPayload {
     node: Node;
     kind: BossTargetKind;
+    /** Structure 建造顺序（越小越先建成、越优先）；非 Structure 可省略 */
+    buildOrder?: number;
 }
 
-/** 索敌优先级：数值越大越优先（英雄/塔兵营 > 障碍 > 玩家） */
+/**
+ * 索敌优先级：Structure(building/barrier/log) > hero > player。
+ * Structure 内再按 buildOrder 升序（建造顺序）。
+ */
 const BOSS_TARGET_PRIORITY: Record<BossTargetKind, number> = {
-    hero: 40,
     building: 30,
-    barrier: 20,
-    log: 15,
+    barrier: 30,
+    log: 30,
+    hero: 20,
     player: 10,
 };
 
@@ -43,6 +51,7 @@ type BossTargetEntry = {
     node: Node;
     kind: BossTargetKind;
     priority: number;
+    buildOrder: number;
 };
 
 export interface BossTargetOptions {
@@ -71,15 +80,18 @@ export class EnemyBoss extends Component {
     private _rb: RigidBody2D | null = null;
     private _collider: Collider2D | null = null;
     private _hp = GameConfig.bossMaxHp;
-    /** 事件维护的索敌表：priority 高者优先，同级取最近 */
+    /** 事件维护的索敌表：priority 高者优先，同级按 buildOrder */
     private readonly _targetList: BossTargetEntry[] = [];
     private _playerNode: Node | null = null;
+    private _lockedTarget: Node | null = null;
+    private _retargetTimer = 0;
+    private _nextBuildOrder = 1;
     private readonly _velocity = new Vec2();
     private readonly _facingDir = new Vec2(0, 1);
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _toTarget = new Vec2();
-    private readonly _nextWorld = new Vec3();
+    private _airWalls: BoxCollider2D[] = [];
     private _attackTimer = 0;
     private _isDead = false;
     private _canMove = true;
@@ -104,14 +116,14 @@ export class EnemyBoss extends Component {
             this.attackWidth = 80;
         }
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
             this._rb.fixedRotation = true;
             this._rb.allowSleep = false;
             this._rb.linearVelocity = new Vec2(0, 0);
         }
         if (this._collider) {
-            this._collider.sensor = true;
+            this._collider.sensor = false;
         }
         EventManager.instance.onEvent(
             GameEvents.BOSS_TARGET_REGISTER,
@@ -214,10 +226,14 @@ export class EnemyBoss extends Component {
         if (!payload?.node?.isValid || !payload.kind) {
             return;
         }
-        this._upsertTarget(payload.node, payload.kind);
+        this._upsertTarget(payload.node, payload.kind, payload.buildOrder);
     };
 
-    private _upsertTarget(node: Node, kind: BossTargetKind): void {
+    private _isStructure(kind: BossTargetKind): boolean {
+        return kind === 'building' || kind === 'barrier' || kind === 'log';
+    }
+
+    private _upsertTarget(node: Node, kind: BossTargetKind, buildOrder?: number): void {
         if (!node?.isValid) {
             return;
         }
@@ -226,19 +242,32 @@ export class EnemyBoss extends Component {
         }
         const priority = BOSS_TARGET_PRIORITY[kind];
         const idx = this._targetList.findIndex((e) => e.node === node);
+        let order = buildOrder;
+        if (order === undefined) {
+            if (this._isStructure(kind)) {
+                order = this._nextBuildOrder++;
+            } else {
+                order = Number.MAX_SAFE_INTEGER;
+            }
+        } else if (this._isStructure(kind)) {
+            this._nextBuildOrder = Math.max(this._nextBuildOrder, order + 1);
+        }
         if (idx >= 0) {
-            if (priority > this._targetList[idx].priority) {
-                this._targetList[idx].kind = kind;
-                this._targetList[idx].priority = priority;
+            const cur = this._targetList[idx];
+            if (priority > cur.priority) {
+                cur.kind = kind;
+                cur.priority = priority;
+            }
+            if (this._isStructure(kind) && order < cur.buildOrder) {
+                cur.buildOrder = order;
             }
             return;
         }
-        this._targetList.push({ node, kind, priority });
+        this._targetList.push({ node, kind, priority, buildOrder: order });
     }
 
     /**
-     * 无索敌距离：表内最高优先级；同级取最近。
-     * 初期可只有玩家；塔/兵营/英雄注册后压过玩家。
+     * Structure > hero > player；同级 Structure 按建造顺序（buildOrder 小优先）。
      */
     pickTarget(): Node | null {
         this._pruneDeadTargets();
@@ -259,23 +288,40 @@ export class EnemyBoss extends Component {
             return null;
         }
 
-        let nearest: Node | null = null;
-        let nearestDistSq = Number.POSITIVE_INFINITY;
-        this.node.getWorldPosition(this._selfPos);
+        let best: BossTargetEntry | null = null;
         for (const e of this._targetList) {
             if (e.priority !== bestPriority || !this._isTargetAlive(e.node)) {
                 continue;
             }
-            e.node.getWorldPosition(this._targetPos);
-            const dx = this._targetPos.x - this._selfPos.x;
-            const dy = this._targetPos.y - this._selfPos.y;
-            const distSq = dx * dx + dy * dy;
-            if (distSq < nearestDistSq) {
-                nearestDistSq = distSq;
-                nearest = e.node;
+            if (
+                !best ||
+                e.buildOrder < best.buildOrder ||
+                (e.buildOrder === best.buildOrder && this._distSq(e.node) < this._distSq(best.node))
+            ) {
+                best = e;
             }
         }
-        return nearest;
+        return best?.node ?? null;
+    }
+
+    private _distSq(node: Node): number {
+        this.node.getWorldPosition(this._selfPos);
+        node.getWorldPosition(this._targetPos);
+        const dx = this._targetPos.x - this._selfPos.x;
+        const dy = this._targetPos.y - this._selfPos.y;
+        return dx * dx + dy * dy;
+    }
+
+    /** 每 bossRetargetInterval 重索敌；期间锁当前目标（死亡则立刻重选） */
+    private _resolveChaseTarget(dt: number): Node | null {
+        this._retargetTimer -= dt;
+        const lockedAlive =
+            !!this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget);
+        if (!lockedAlive || this._retargetTimer <= 0) {
+            this._lockedTarget = this.pickTarget();
+            this._retargetTimer = GameConfig.bossRetargetInterval;
+        }
+        return this._lockedTarget;
     }
 
     private _pruneDeadTargets(): void {
@@ -292,8 +338,11 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        // 无索敌距离：始终按优先级选目标；仅近战距离内出手
-        const target = this.pickTarget();
+        // 无索敌距离：追当前锁定目标；仅近战距离内出手
+        const target =
+            this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)
+                ? this._lockedTarget
+                : this.pickTarget();
         if (!target) {
             return;
         }
@@ -315,12 +364,23 @@ export class EnemyBoss extends Component {
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
         if (this.visualNode) {
-            playAnim(this.visualNode, 'attack');
+            // boss frame_007 → 0.7s
+            playAttackWithFrameHit(
+                this.visualNode,
+                'attack',
+                () => {
+                    if (!this._isDead) {
+                        this._applyLineAttack();
+                    }
+                },
+                0.75,
+            );
+        } else {
+            this._applyLineAttack();
         }
-        this._applyLineAttack();
         this.scheduleOnce(() => {
             this._isAttacking = false;
-        }, 0.15);
+        }, 1.2);
     }
 
     takeDamage(amount: number): void {
@@ -348,6 +408,9 @@ export class EnemyBoss extends Component {
         this._hp = GameConfig.bossMaxHp;
         this._targetList.length = 0;
         this._playerNode = null;
+        this._lockedTarget = null;
+        this._retargetTimer = 0;
+        this._nextBuildOrder = 1;
         this._attackTimer = 0;
         this._isDead = false;
         this._canMove = true;
@@ -382,8 +445,8 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        // 始终追索敌表最高优先级目标；不用 linearVelocity 驱动位移
-        const target = this.pickTarget();
+        // 每 5s 重索敌；Structure > hero > player（Structure 按建造序）
+        const target = this._resolveChaseTarget(dt);
         if (!target) {
             this._velocity.set(0, 0);
             if (this._rb) {
@@ -414,17 +477,19 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        const invDist = 1 / Math.max(dist, 0.001);
-        this._velocity.x = dx * invDist * GameConfig.bossMoveSpeed;
-        this._velocity.y = dy * invDist * GameConfig.bossMoveSpeed;
-        this._nextWorld.set(
-            this._selfPos.x + this._velocity.x * dt,
-            this._selfPos.y + this._velocity.y * dt,
-            this._selfPos.z,
+        const size = AirWallAabb.bodySize(this.node, 60, 60);
+        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+        AirWallAabb.steerDirection(
+            this._selfPos,
+            this._targetPos,
+            size.w,
+            size.h,
+            walls,
+            this._toTarget,
         );
-        this.node.setWorldPosition(this._nextWorld);
+        this._velocity.x = this._toTarget.x * GameConfig.bossMoveSpeed;
+        this._velocity.y = this._toTarget.y * GameConfig.bossMoveSpeed;
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
             this._rb.linearVelocity = this._velocity;
         }
         this._updateLocomotionAnim(true);
@@ -467,6 +532,14 @@ export class EnemyBoss extends Component {
                 out.push(e.node);
             }
         }
+        const scene = this.node.scene;
+        if (scene) {
+            for (const soldier of scene.getComponentsInChildren(Soldier)) {
+                if (soldier.node?.isValid && this._isTargetAlive(soldier.node)) {
+                    out.push(soldier.node);
+                }
+            }
+        }
         return out;
     }
 
@@ -502,6 +575,10 @@ export class EnemyBoss extends Component {
         if (hero) {
             return !hero.isDead;
         }
+        const soldier = node.getComponent(Soldier);
+        if (soldier) {
+            return !soldier.isDead;
+        }
         return true;
     }
 
@@ -513,12 +590,19 @@ export class EnemyBoss extends Component {
         }
         const barrier = node.getComponent(Barrier);
         if (barrier?.isAlive()) {
-            barrier.takeDamage(GameConfig.bossAttackDamage);
+            barrier.takeDamage(GameConfig.bossBuildingDamage);
             return;
         }
         const building = node.getComponent(Building);
         if (building?.isAlive()) {
-            building.takeDamage(GameConfig.bossAttackDamage);
+            building.takeDamage(GameConfig.bossBuildingDamage);
+            return;
+        }
+        const soldier = node.getComponent(Soldier);
+        if (soldier && !soldier.isDead) {
+            soldier.takeDamage(
+                Math.max(GameConfig.bossBuildingDamage, GameConfig.soldierMaxHp),
+            );
             return;
         }
         const hero = node.getComponent(Hero);

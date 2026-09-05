@@ -1,5 +1,6 @@
 import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
+import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
 import { BossSpawner } from '../enemy/BossSpawner';
@@ -430,10 +431,23 @@ export class BuildSystem extends Component {
 
     private _onHeroSpawned(heroNode: Node): void {
         const hero = heroNode.getComponent(Hero);
-        if (hero && this.playerNode) {
-            hero.setFollowTarget(this.playerNode);
+        if (hero) {
+            let player = this.playerNode;
+            if (!player?.isValid) {
+                const scene = this.node.scene ?? heroNode.scene;
+                player = scene?.getComponentInChildren(Player)?.node ?? null;
+                if (player) {
+                    this.playerNode = player;
+                }
+            }
+            if (player) {
+                hero.setFollowTarget(player);
+            }
+            // 兜底：Hero.start 若早于 UIManager 就绪，这里再确保玩家模板血条
+            hero.ensureHpBar();
         }
         this._registerBossTarget(heroNode, 'hero');
+        this._setPlotsActive(this.heroShrinePlots, false);
         this._revealPlots(this.expandPlots, 'expandArea');
     }
 
@@ -552,12 +566,20 @@ export class BuildSystem extends Component {
         }
     }
 
-    /** 建成/生成后插入 Boss 索敌表（英雄/塔兵营优先于玩家） */
+    /** 建成/生成后插入 Boss 索敌表（Structure 按建造顺序） */
+    private _structureBuildSeq = 0;
+
     private _registerBossTarget(node: Node, kind: BossTargetKind): void {
         if (!node?.isValid) {
             return;
         }
-        EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, { node, kind });
+        const isStructure = kind === 'building' || kind === 'barrier' || kind === 'log';
+        const buildOrder = isStructure ? ++this._structureBuildSeq : undefined;
+        EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, {
+            node,
+            kind,
+            buildOrder,
+        });
     }
 
     /**

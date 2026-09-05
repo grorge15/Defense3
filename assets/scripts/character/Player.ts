@@ -1,16 +1,12 @@
 import {
     _decorator,
-    BoxCollider2D,
     Collider2D,
     Component,
     director,
     ERigidBody2DType,
     Node,
-    Rect,
     RigidBody2D,
-    UITransform,
     Vec2,
-    Vec3,
 } from 'cc';
 import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
@@ -28,8 +24,7 @@ const { ccclass, property } = _decorator;
 export type PlayerMode = 'parkour' | 'defense';
 
 /**
- * 玩家移动：节点 setPosition 驱动；刚体 Kinematic + 同步 linearVelocity。
- * 固定后滚木用 AABB 挡路（双方均为传感器/位移驱动时物理挡不住）。
+ * 玩家移动：Dynamic + linearVelocity（零重力）；非 sensor，与 Static airWall / 固定滚木物理碰撞。
  */
 @ccclass('Player')
 export class Player extends Component {
@@ -45,22 +40,18 @@ export class Player extends Component {
     private _mode: PlayerMode = 'parkour';
     private readonly _moveDir = new Vec2();
     private readonly _velocity = new Vec2();
-    private readonly _tmpPos = new Vec3();
-    private readonly _worldPos = new Vec3();
-    private readonly _selfRect = new Rect();
-    private readonly _logRect = new Rect();
     private _hasBow = false;
     private _isDead = false;
     private _canMove = true;
+    private _isAttacking = false;
     private _currentLocomotionClip = '';
     private _boundLog: Log | null = null;
     private _parkourCharging = false;
-    private _fixedLog: Log | null = null;
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
             this._rb.fixedRotation = true;
             this._rb.allowSleep = false;
@@ -69,7 +60,7 @@ export class Player extends Component {
         }
         const col = this.getComponent(Collider2D);
         if (col) {
-            col.sensor = true;
+            col.sensor = false;
         }
 
         this._health = this.getComponent(HealthSystem) ?? this.addComponent(HealthSystem);
@@ -108,6 +99,18 @@ export class Player extends Component {
 
     get isDead(): boolean {
         return this._isDead;
+    }
+
+    get isAttacking(): boolean {
+        return this._isAttacking;
+    }
+
+    /** 攻击动画锁：播 melee_attack 期间禁止位移动画打断出箭帧 */
+    setAttacking(attacking: boolean): void {
+        this._isAttacking = attacking;
+        if (attacking) {
+            this._currentLocomotionClip = '';
+        }
     }
 
     setMoveDirection(dir: Vec2): void {
@@ -218,120 +221,10 @@ export class Player extends Component {
             }
         }
 
-        if (this._velocity.x !== 0 || this._velocity.y !== 0) {
-            this.node.getPosition(this._tmpPos);
-            this._tmpPos.x += this._velocity.x * dt;
-            this._tmpPos.y += this._velocity.y * dt;
-            this._resolveAgainstFixedLog(this._tmpPos);
-            this.node.setPosition(this._tmpPos);
-        } else {
-            this.node.getPosition(this._tmpPos);
-            this._resolveAgainstFixedLog(this._tmpPos);
-            this.node.setPosition(this._tmpPos);
-        }
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
         this._updateLocomotionAnim();
-    }
-
-    /** 固定滚木 AABB 挡玩家（传感器 + setPosition 时物理不会挡） */
-    private _resolveAgainstFixedLog(localPos: Vec3): void {
-        const log = this._resolveFixedLog();
-        if (!log) {
-            return;
-        }
-        // 先落到拟议本地坐标，再取世界坐标做 AABB
-        this.node.setPosition(localPos);
-        this.node.getWorldPosition(this._worldPos);
-
-        this._fillPlayerAabb(this._worldPos);
-        this._fillLogAabb(log);
-        if (!this._aabbOverlap(this._selfRect, this._logRect)) {
-            return;
-        }
-
-        const penL = this._selfRect.xMax - this._logRect.xMin;
-        const penR = this._logRect.xMax - this._selfRect.xMin;
-        const penB = this._selfRect.yMax - this._logRect.yMin;
-        const penT = this._logRect.yMax - this._selfRect.yMin;
-        if (penL <= 0 || penR <= 0 || penB <= 0 || penT <= 0) {
-            return;
-        }
-
-        const minPen = Math.min(penL, penR, penB, penT);
-        if (minPen === penL) {
-            this._worldPos.x -= penL;
-            this._velocity.x = Math.min(this._velocity.x, 0);
-        } else if (minPen === penR) {
-            this._worldPos.x += penR;
-            this._velocity.x = Math.max(this._velocity.x, 0);
-        } else if (minPen === penB) {
-            this._worldPos.y -= penB;
-            this._velocity.y = Math.min(this._velocity.y, 0);
-        } else {
-            this._worldPos.y += penT;
-            this._velocity.y = Math.max(this._velocity.y, 0);
-        }
-
-        const parent = this.node.parent;
-        if (parent) {
-            parent.inverseTransformPoint(localPos, this._worldPos);
-        } else {
-            localPos.set(this._worldPos);
-        }
-    }
-
-    private _resolveFixedLog(): Log | null {
-        if (this._fixedLog?.isValid && this._fixedLog.getPhase() === 'fixed') {
-            return this._fixedLog;
-        }
-        const scene = this.node.scene;
-        if (!scene) {
-            return null;
-        }
-        for (const log of scene.getComponentsInChildren(Log)) {
-            if (log.getPhase() === 'fixed' && log.node.activeInHierarchy) {
-                this._fixedLog = log;
-                return log;
-            }
-        }
-        this._fixedLog = null;
-        return null;
-    }
-
-    private _fillLogAabb(log: Log): void {
-        const box = log.getBoxCollider();
-        if (box) {
-            const a = box.worldAABB;
-            this._logRect.set(a.x, a.y, Math.abs(a.width), Math.abs(a.height));
-            return;
-        }
-        log.node.getWorldPosition(this._worldPos);
-        this._logRect.set(this._worldPos.x - 50, this._worldPos.y - 38, 100, 76);
-    }
-
-    private _fillPlayerAabb(worldCenter: Vec3): void {
-        const box = this.getComponent(BoxCollider2D);
-        if (box) {
-            // 用拟议中心近似：先写位置后 worldAABB 才准；此处用尺寸包围中心
-            const w = Math.abs(box.size.width);
-            const h = Math.abs(box.size.height);
-            this._selfRect.set(worldCenter.x - w * 0.5, worldCenter.y - h * 0.5, w, h);
-            return;
-        }
-        const ui = this.visualNode?.getComponent(UITransform);
-        if (ui) {
-            const w = Math.max(Math.abs(ui.contentSize.width * this.visualNode!.worldScale.x), 24);
-            const h = Math.max(Math.abs(ui.contentSize.height * this.visualNode!.worldScale.y), 24);
-            this._selfRect.set(worldCenter.x - w * 0.5, worldCenter.y - h * 0.5, w, h);
-            return;
-        }
-        this._selfRect.set(worldCenter.x - 24, worldCenter.y - 24, 48, 48);
-    }
-
-    private _aabbOverlap(a: Rect, b: Rect): boolean {
-        return !(a.xMax < b.xMin || a.xMin > b.xMax || a.yMax < b.yMin || a.yMin > b.yMax);
     }
 
     private _onPhaseChanged = (...args: unknown[]): void => {
@@ -362,14 +255,11 @@ export class Player extends Component {
     private _onLogFixed = (): void => {
         this._parkourCharging = false;
         this.setMode('defense');
-        this._fixedLog = null;
-        this._resolveFixedLog();
     };
 
     private _onLogFailed = (): void => {
         this._parkourCharging = false;
         this.setMode('defense');
-        this._fixedLog = null;
         this._velocity.set(0, 0);
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
@@ -394,7 +284,7 @@ export class Player extends Component {
     }
 
     private _updateLocomotionAnim(): void {
-        if (!this.visualNode || this._isDead) {
+        if (!this.visualNode || this._isDead || this._isAttacking) {
             return;
         }
 

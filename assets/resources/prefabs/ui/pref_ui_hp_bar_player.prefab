@@ -167,7 +167,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+      "__uuid__": "237530fb-e2b7-4534-bacb-36e0daf23481@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -297,13 +297,13 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 80,
-      "g": 200,
-      "b": 80,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "24a704da-2867-446d-8d1a-5e920c75e09d@f9941",
+      "__uuid__": "2ac4648e-8a7b-4e97-a2a7-061c98e746b8@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 3,
@@ -315,7 +315,7 @@
       "y": 0
     },
     "_fillStart": 0,
-    "_fillRange": 0.5,
+    "_fillRange": 1,
     "_isTrimmedMode": true,
     "_useGrayscale": false,
     "_atlas": null,
@@ -388,6 +388,7 @@
     "hideWhenFull": false,
     "hideWhenDead": true,
     "followOffsetY": 40,
+    "showMaxInLabel": true,
     "_id": ""
   },
   {

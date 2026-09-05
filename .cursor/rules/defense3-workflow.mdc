@@ -23,14 +23,16 @@ alwaysApply: true
 - **禁止**用运行时 `instantiate`/`resources.load` 在 `onLoad`/`start` 中生成**静态关卡布局**（玩家、滚木、陷阱、预置怪、UI 等须预先在场景或经 MCP 落盘）；`EnemySpawner` 等**运行时刷怪**除外。
 - **禁止**在无 MCP、或 MCP 未绑定 Defense3 时，手写/脚本生成整份 `Main.scene` JSON 落盘（简单场景亦同）；合法路径为 **MCP** 或用户在编辑器操作。
 - 禁止手写或修改 `.meta` 的 uuid；脚本重命名/移动须经编辑器。
-- **允许的最小 scene 补丁**（仅限 MCP 已创建节点后的 ID 修复）：仅替换非法 `"_id": "Node.<数字>"` 为合法 22 位压缩 UUID；不得重写 `__id__` 父子引用树。补丁后必须 `scene-close` → 同步 `library` → `assets-reimport-asset` → 再 `scene-open` 验证（见下节「MCP 交付门禁」）。
+- **允许的最小 scene 补丁**（仅限 MCP 已创建节点后的 ID 修复）：仅替换非法 `"_id": "Node.<数字>"` 为合法 22 位压缩 UUID；不得重写 `__id__` 父子引用树。任务末 `scene-save` 后：**先 MCP `scene-close`（若场景仍开）→ `powershell -File .cursor/scripts/post-scene-save.ps1`**（自动 patch + 同步 `library/<uuid前2位>/<uuid>.json`）；若输出 `Patched=1` 再 MCP `assets-reimport-asset` → `scene-open` → AC-GATE（及必要时 AC-S2）。
 
 ## 预制体创建（强制）
-- **只允许**在已打开 **Defense3** 工程的 Cocos Creator 上，经 **CLI / MCP**（如 `assets-create-asset-by-type` 等）创建与装配 `.prefab`。
+- **只允许**在已打开 **Defense3** 工程的 Cocos Creator 上，经 **CLI / MCP** 创建与装配 `.prefab`。
+- **创建路径（强制）**：`scene-open` → `scene-create-node-by-type` 搭树 → 调组件/尺寸 → **`create-prefab-from-node`** → 删除场景临时节点（可选）。  
+  **禁止**用 `assets-create-asset-by-type` **直接**创建 `Sprite` / `Label` / `Button`（易插入嵌套 Canvas/Camera，引发拆除重建）。Empty / 目录类资源除外。若历史步骤误用且已插入包装层：同一次 build 内 MCP 拆除，否则终止。
 - **禁止**手写整份 `.prefab` JSON；**禁止**用 Node/脚本生成完整 prefab 文件后落盘冒充创建；**禁止**从 Defense2 或其他工程拷贝 prefab 充当本仓库产物（除非用户明确授权且随后在 Defense3 编辑器内 refresh 并手测无打开）。
 - **禁止**在 CLI/MCP 不可用或绑定了非 Defense3 工程时「降级」为手写 prefab；应 **终止任务**，反馈障碍（打开 Defense3 + 接通 CLI），走 replan / 等用户就绪后再 `/build-plan`。
 - 允许的最小补丁：仅当 prefab **已由 CLI/MCP 合法创建**后，用局部编辑绑定 `@property` 引用（如 `visualNode`）；补丁不得重写节点/`__id__` 布局。若补丁导致编辑器报错 → 删除该 prefab 及 `.meta`，用 CLI 重建，禁止二次手写抢救。
-- 计划步骤若写「手写 prefab / 按金样复制 JSON」→ 视为违反本规则，build-agent **必须终止**。
+- 计划步骤若写「手写 prefab / 按金样复制 JSON / `assets-create-asset-by-type` 直接建 Sprite」→ 视为违反本规则，build-agent **必须终止**。
 
 ## 预制体结构（CLI 副作用禁令）
 - **禁止**在任意 `pref_*` 根下保留 **嵌套的 `Canvas` / `Camera` 子树**（含 CLI 创建 Sprite/Label 时自动插入的包装层）。交付前必须拆掉：UI/世界物体子节点应直接挂在 prefab 根（或约定的 `Visual`）下，不得套娃 Canvas。
@@ -38,53 +40,57 @@ alwaysApply: true
 - **世界/角色预制体**：遵循 §P0-A（Root → `Visual`）；`Visual` 不得包在 `Canvas` 里。不得在报告中写「Canvas 包装层功能不受影响」并据此通过。
 - CLI 若强制插入 Canvas：必须在同一次 build 内用 MCP **移除包装、提升子节点** 后再验收；无法去除 → **终止**，不得降级交付。
 
-## MCP 交付门禁（机器 AC，强制）
+## 脚本兜底引用（优先于 MCP 反复 set）
+- 可空、可运行时解析的 `@property`（如 UI 子节点 Label/Sprite）：优先在组件内 `_resolveRefs` / `getChildByName` / `getComponentInChildren` 兜底，**减少** MCP `scene-set-component-property` 次数。
+- **仍须 MCP/编辑器预摆**：静态挂点、prefab 实例、世界坐标、不可空的跨对象引用。
+- 计划步骤应区分「须 MCP 绑」与「脚本自解析」；禁止为每个可空字段各开一轮 MCP set。
 
-> **为何旧约束无效**：仅有「须编辑器验收」等原则、计划里 AC 标 optional、或 fix-bug 走 goal-agent 不跑校验 → agent 仍可标 done。以下命令 **必须在标 done / 写「全部 AC 通过」前执行**；任一失败即 **阻塞**，禁止用「待用户确认」绕过。
+## MCP 交付门禁（AC 唯一真相源）
 
-### 批次验收（机器 AC 每任务只跑一次 — 强制）
+> 本表为 AC **唯一清单**。`cocos-mcp.mdc` 只规定操作纪律，不重复罗列验收项。  
+> 纯脚本、未改 `.prefab` / `Main.scene` → **整表跳过**。  
+> 标 `done` / 写「机器 AC 全部通过」前：下表「默认必跑」须通过；失败即阻塞。禁止用「待用户确认」绕过**机器**门禁。
 
-同一任务内可能多次 MCP 写 / 多次 `scene-save`：完整机器 AC（AC-S1 / AC-S1b + `verify-mcp-gate.ps1`）**只在任务最后一次 `scene-save` 后执行一次**；中间轮次禁止反复跑完整门禁，也禁止为中间状态写「通过」。编辑器验收（步骤 5）同样只在任务收尾统一做一次。这样避免「每绑一条就验证/重开一轮」的时间损耗。
+### 批次验收（强制 — 缩短 build 的核心）
 
-### 前置门（任意 MCP 写操作前）
-1. `assets-query-path`（或等价）确认绑定 **Defense3** 的 `assets` 目录（非 Defense2 / 其他工程）。
+同一任务内：允许同一 `scene-open` 会话批量 create/update/bind 多个节点/prefab；**只在任务最后一次 save 后跑一次**完整机器门禁（含 AC-EDITOR-MCP）。  
+禁止：中间轮次反复 `verify-mcp-gate`、每绑一条就 save+gate、为中间状态写「通过」。  
+禁止把「每资源一轮五步」理解成必做——五步指**任务级**交付闭环，不是每个 prefab 各跑一遍。
+
+### 前置门（每个 MCP 会话一次即可）
+1. `assets-query-path`（或等价）确认绑定 **Defense3** 的 `assets`（非 Defense2 / 其他工程）。
 2. MCP 不可用或工程绑错 → **终止**，禁止手写 prefab/scene JSON 降级。
 
-### 场景后置门（`scene-save` 或改动 `Main.scene` 后）
+### 默认必跑（改过 scene 或 prefab 时，任务末一次）
 
-> 批次验收：仅任务最后一次 `scene-save` 后执行本组 AC（见上「批次验收」）。
+| AC | 何时 | 命令 / 动作 | 预期 |
+|---|---|---|---|
+| **AC-GATE** | 改过 scene 或任意 prefab | `powershell -File .cursor/scripts/verify-mcp-gate.ps1` | 退出码 **0**（内含 S1 / S1b / P1 / P2 / P-FAKE / P-EXTRA；**勿再单独手写 rg 重复 S1/P1/P2**） |
+| **AC-P3** | 本任务**新建或改过**的每个 prefab | MCP `assets-query-asset-info` | `invalid: false` |
+| **AC-EDITOR-MCP** | 本任务改过的 Main.scene 和/或目标 prefab | MCP `scene-open` 目标资源 → `system-query-logs`（或等价） | error 日志无因此资源产生的红错 / missing script |
 
-| AC | 命令 / 动作 | 预期 |
-|---|---|---|
-| **AC-S1** | `rg '"_id": "Node\.' assets/scenes/Main.scene` | **0 匹配**（MCP 常落盘非法占位 `_id`，是 Main.scene 节点报错的已知根因） |
-| **AC-S1b** | `verify-mcp-gate.ps1` 或 `rg '"_children": \[\s*null\|"_components": \[\s*null' Main.scene` | **0 匹配**（prefab 实例含 `null` 子引用 → 运行时 `expandNestedPrefabInstanceNode` 崩溃） |
-| **AC-S2** | MCP `scene-open` 后查根/相关子节点 `nodeId` | **不得**匹配 `Node.<数字>` |
-| **AC-S3** | 若 AC-S1 已 patch 但 AC-S2 仍失败 | `scene-close` → 将已 patch 的 `Main.scene` 同步到 `library/<uuid 前2位>/<uuid>.json` → `assets-reimport-asset` → 再 `scene-open` 复验 |
-| **AC-S4** | 编辑器打开 `Main.scene` | 无 missing script、无节点/组件红错 |
+报告须粘贴 `verify-mcp-gate.ps1` 输出。操作步骤见 `cocos-mcp.mdc`。
 
-### 预制体后置门（MCP 创建/改 prefab 后）
-| AC | 命令 / 动作 | 预期 |
-|---|---|---|
-| **AC-P1** | 角色/建筑 prefab：`rg '"_name": "Canvas"' assets/resources/prefabs/character assets/resources/prefabs/building` | **0 匹配**（CLI 副作用 Canvas 须已拆除） |
-| **AC-P2** | UI prefab：`rg '"_name": "Canvas"\|"_name": "Camera"' assets/resources/prefabs/ui`；`verify-mcp-gate.ps1` AC-P2-* | **0 匹配** Canvas/Camera；无 1×1 `UITransform` 占位 |
-| **AC-P3** | MCP `assets-query-asset-info`（目标 prefab 路径/uuid） | `invalid: false` |
-| **AC-P3b** | MCP `scene-open` prefab 后 `scene-query-component` 查关键 `@property`（如 `visualNode`、`background`、`knob`） | 引用非 null、非 Missing |
-| **AC-P4** | 编辑器打开该 prefab | 无 missing script、无组件红错（**必选**，禁止 optional） |
+### 条件触发（勿默认写进每个 plan）
 
-> 预制体 MCP 五步与串行纪律见 `.cursor/rules/cocos-mcp.mdc`。
+| AC | 何时才跑 | 命令 / 动作 | 预期 |
+|---|---|---|---|
+| **AC-P3b** | 本任务**新建** prefab，或改过关键 `@property` 绑定 | `scene-open` 该 prefab → `scene-query-component` | 关键引用非 null、非 Missing；「仅核对已有」可跳过或抽查 1 个 |
+| **AC-S2** | 本任务改过 scene，**且**做过 `_id` patch / `reimport` 之后 | MCP `scene-open` 后抽查根或相关节点 `nodeId` | 不得匹配 `Node.<数字>`；AC-GATE 已过且未 patch 时**不必**全量巡检 |
+| **补丁恢复链**（原 AC-S3） | AC-GATE 因 `Node.*` 失败，或 `post-scene-save.ps1` 输出 `Patched=1` | 已 close 则跑 `post-scene-save.ps1`（patch+library 同步）→ MCP `assets-reimport-asset` → `scene-open` → 再 AC-GATE / 必要时 AC-S2 | 优先用脚本一键 patch+sync；**不是**计划校验点条目 |
 
-### 禁止的「抢救」手段（fix-bug / build 均适用）
-- **禁止**用 `.cursor/_fix_prefabs.mjs`、`.cursor/_gen_prefabs.mjs` 或任意 Node 脚本 **整文件生成/重建** `.prefab` 或 `Main.scene` 冒充 MCP 交付。
-- **禁止**从 Defense2 拷贝 prefab/scene 到 Defense3 后仅改 uuid。
-- **禁止**仅跑「文件存在 / rg 字面量 / MCP query 有节点名」而无 AC-S* / AC-P* 就标 done。
+### 不阻塞 `done`（可写计划手测清单）
 
-**一键校验（机器 AC）**：`powershell -File .cursor/scripts/verify-mcp-gate.ps1` — 退出码 0 才允许进入编辑器验收（步骤 5）；报告须粘贴输出。完整五步见 `.cursor/rules/cocos-mcp.mdc`。
+| 项 | 说明 |
+|---|---|
+| **AC-PLAY** / G* | 玩法手测；报告可标「待用户」，**不阻塞**机器 AC 通过与计划 `done` |
+| 真人肉眼 Inspector | 可选补充；机器侧以 **AC-EDITOR-MCP** 为准 |
 
-## 编辑器验收（强制，不可标可选）
-- 凡新建/改动 `.prefab` 或 `Main.scene`：任务 **不得** 标 `done`、报告不得写「全部 AC 通过」，除非 **MCP 交付门禁**（上节 AC-S* / AC-P*）已跑且通过，并在 **Defense3 编辑器**中打开该资源确认：**无 missing script、无反序列化/组件报错、Console 无因此资源产生的红错**。
-- 「编辑器打开确认」为 **必选 AC**，禁止写成 optional / 待用户 / 跳过。
-- **禁止**用 `__editorExtras__`、注释或无关字符串塞入 `default_sprite` 等字面量来骗过 `rg` AC；资源引用必须是真实 SpriteFrame/组件绑定。
-- 机器 AC（`tsc` / 文件存在 / `rg`）全部通过但编辑器仍报错 → 计为 **失败**，须修到编辑器干净或终止并说明障碍。
+### 禁止的「抢救」与假通过
+- **禁止**用 `.cursor/_fix_prefabs.mjs`、`.cursor/_gen_prefabs.mjs` 或任意 Node 脚本 **整文件生成/重建** `.prefab` / `Main.scene`。
+- **禁止**从 Defense2 拷贝 prefab/scene 后仅改 uuid。
+- **禁止**仅凭「文件存在 / 节点名能 query 到」标 done。
+- **禁止**在 `__editorExtras__`、注释等处塞 `default_sprite` 等字面量骗过 gate。
 
 ## 脚本唯一性（禁止职责分裂）
 - **一个游戏对象 = 一个主脚本**，禁止为同一对象再建 `*Controller.ts`。

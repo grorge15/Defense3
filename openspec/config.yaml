@@ -1,0 +1,30 @@
+schema: defense3-lite
+
+context: |
+  Language: zh for prose; keep OpenSpec structural headings and SHALL/MUST in English.
+  Project: Defense3 — Cocos Creator 3.8.8 top-down defense + parkour.
+  Authority: defense3.md + .cursor/rules/defense3-workflow.mdc + cocos-mcp.mdc.
+  Prefabs: only via MCP create-prefab-from-node; never hand-write .prefab / Main.scene JSON.
+  MCP delivery: one open → batch bind → one save → post-scene-save.ps1 → one AC-GATE per task.
+  Execution: behavior lives in openspec/; file lists + MCP todos + machine AC live in .cursor/plans/<slug>.md.
+  Do NOT put WHEN/THEN scenarios into plan files — reference openspec/changes/<slug>/ instead.
+  Pure MCP placement (nodes, coords, instantiate prefabs) usually needs NO OpenSpec change (skip_specs / skip OpenSpec entirely).
+
+rules:
+  proposal:
+    - State why, scope, and non-goals (禁做项).
+    - If implementation is MCP-heavy, say "装配与 AC 见 .cursor/plans/<slug>.md".
+    - Do not invent OpenSpec for pure scene/prefab wiring with no player-visible behavior.
+  specs:
+    - Behavior-only: observable WHEN/THEN; no class names, no MCP step lists, no coordinates tables.
+    - Use ADDED/MODIFIED/REMOVED deltas for brownfield.
+    - Prefer Lite: few scenarios that AC-PLAY or manual play can check.
+
+operations:
+  apply:
+    guidance:
+      - For Defense3, prefer /build-plan <slug> after plan exists; do not re-implement MCP assembly via generic apply if plan already owns todos.
+      - Respect batch MCP gate: no per-todo verify-mcp-gate.
+  archive:
+    guidance:
+      - Merge delta specs only; keep .cursor/plans report as execution history.

@@ -1,6 +1,6 @@
-﻿# MCP delivery gate — see defense3-workflow.mdc + cocos-mcp.mdc
+# MCP delivery gate — see defense3-workflow.mdc + cocos-mcp.mdc
 # Usage: powershell -File .cursor/scripts/verify-mcp-gate.ps1
-# Exit 0 = machine AC pass (editor step 5 still required)
+# Exit 0 = machine AC-GATE pass (still run AC-P3 + AC-EDITOR-MCP per defense3-workflow.mdc)
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -141,7 +141,7 @@ if ($extraHits.Count -gt 0) {
 
 Write-Host ""
 if ($fail -eq 0) {
-    Write-Host "MCP gate (machine): ALL PASS — still run AC-P3/P3b/P4 via MCP + editor (cocos-mcp.mdc step 5)" -ForegroundColor Green
+    Write-Host "MCP gate (machine): ALL PASS — still run AC-P3 + AC-EDITOR-MCP for changed assets (defense3-workflow.mdc)" -ForegroundColor Green
 } else {
     Write-Host "MCP gate: $fail failure(s) — do not mark done" -ForegroundColor Red
 }

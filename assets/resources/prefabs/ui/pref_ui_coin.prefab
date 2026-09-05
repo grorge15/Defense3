@@ -170,7 +170,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+      "__uuid__": "3a5eb832-9349-4f19-8765-366aa26abbb1@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -200,7 +200,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "B0EPktb9Vn85JNgIVTTuvb"
+    "fileId": "B0EPktb9Vn85JNgIVTTuvb",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -333,7 +336,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "4iWIsTXySsVwC1BSNdTTj5"
+    "fileId": "4iWIsTXySsVwC1BSNdTTj5",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.Node",
@@ -358,8 +364,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 40,
-      "y": 0,
+      "x": -12.84,
+      "y": 2.328,
       "z": 0
     },
     "_lrot": {
@@ -399,8 +405,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 120,
-      "height": 40
+      "width": 62.2890625,
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -435,10 +441,10 @@
       "b": 255,
       "a": 255
     },
-    "_string": "0",
+    "_string": "1000",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
+    "_actualFontSize": 28,
     "_fontSize": 28,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -489,7 +495,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "6AEsw4XJeDL+bdCJ5hQ3TT"
+    "fileId": "6AEsw4XJeDL+bdCJ5hQ3TT",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "cc.UITransform",
@@ -540,6 +549,8 @@
     "background": {
       "__id__": 2
     },
+    "displayLerpSpeed": 14,
+    "flyCooldown": 0.08,
     "_id": ""
   },
   {
@@ -554,6 +565,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "8XZWfWjXBeenhF0nNDIdV+"
+    "fileId": "8XZWfWjXBeenhF0nNDIdV+",
+    "instance": null,
+    "targetOverrides": null
   }
 ]

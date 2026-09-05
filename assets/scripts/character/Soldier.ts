@@ -56,7 +56,6 @@ export class Soldier extends Component {
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
-    private readonly _nextWorld = new Vec3();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -65,14 +64,14 @@ export class Soldier extends Component {
             this.visualNode = this.node.getChildByName('Visual');
         }
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
             this._rb.fixedRotation = true;
             this._rb.allowSleep = false;
             this._rb.linearVelocity = new Vec2(0, 0);
         }
         if (this._collider) {
-            this._collider.sensor = true;
+            this._collider.sensor = false;
         }
         if (/melee/i.test(this.node.name)) {
             this._deployment = 'barracks';
@@ -155,6 +154,10 @@ export class Soldier extends Component {
         }, 0.1);
     }
 
+    get isDead(): boolean {
+        return this._isDead;
+    }
+
     takeDamage(amount: number): void {
         if (this._isDead) {
             return;
@@ -183,9 +186,14 @@ export class Soldier extends Component {
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
+            this._collider.sensor = false;
         }
         this._velocity.set(0, 0);
         if (this._rb) {
+            this._rb.type = ERigidBody2DType.Dynamic;
+            this._rb.gravityScale = 0;
+            this._rb.fixedRotation = true;
+            this._rb.allowSleep = false;
             this._rb.linearVelocity = this._velocity;
         }
         if (this.visualNode) {
@@ -244,14 +252,7 @@ export class Soldier extends Component {
         const speed = GameConfig.soldierMoveSpeed;
         this._velocity.x = dx * invDist * speed;
         this._velocity.y = dy * invDist * speed;
-        this._nextWorld.set(
-            this._selfPos.x + this._velocity.x * dt,
-            this._selfPos.y + this._velocity.y * dt,
-            this._selfPos.z,
-        );
-        this.node.setWorldPosition(this._nextWorld);
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
             this._rb.linearVelocity = this._velocity;
         }
         this._updateLocomotionAnim(true);

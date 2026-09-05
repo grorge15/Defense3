@@ -1,0 +1,15 @@
+name: defense3-lite
+version: 1
+description: "Defense3 lite: proposal+specs only; MCP tasks stay in .cursor/plans"
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: High-level description of the change, its motivation, and scope
+    template: proposal.md
+    requires: []
+  - id: specs
+    generates: specs/**/*.md
+    description: Detailed specifications with requirements and scenarios
+    template: specs/spec.md
+    requires:
+      - proposal

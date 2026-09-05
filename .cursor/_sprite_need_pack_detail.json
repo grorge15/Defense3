@@ -1,0 +1,762 @@
+[
+  {
+    "uuid": "9594c832-5943-426c-8e6a-a3e74b745cf7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\default_sprite.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "09d57988-934d-48c9-a399-95b5f02336d3@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\H-9011-SFK塔防模拟经营地图\\tex_grass1.jpg.meta",
+    "packable": true
+  },
+  {
+    "uuid": "e68bf035-ba28-45b9-9e65-04c8db6e8dd0@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\H-9011-SFK塔防模拟经营地图\\tex_grass2.jpg.meta",
+    "packable": true
+  },
+  {
+    "uuid": "85d67663-26c2-4fea-afec-e1267cf5107e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\H-9011-SFK塔防模拟经营地图\\tex_grass3.jpg.meta",
+    "packable": true
+  },
+  {
+    "uuid": "08e147c2-7e8f-4ba5-aa1e-d970a6e1dcd0@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_032.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "f53a3c44-39f7-44e6-9260-1643dd215c28@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_033.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "53920f47-ac3f-4f92-83c7-48af1b1b6cde@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_034.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "cf41092c-7eeb-450c-b7b2-b68ffd4b198e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_035.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8c0c7db2-5c22-4337-8ece-08ad62cfb628@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_036.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3ae0878d-d6dd-4edc-b5e8-572e4ac448a7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_037.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "46a9ebfe-f0c4-467c-ba64-37b7c905274b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_038.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "edd7e139-d507-43ce-89b6-b58701840308@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_039.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "dc0c45a2-4372-4df5-a198-48232272d2d8@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_040.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3ca7970e-6f5b-4599-b9a1-98aa622a6b5b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_041.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "6ee8dfce-ec9b-47a8-a31c-d8a21cbd15d4@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_042.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "75d2c532-8c17-484e-9372-ce22c980b1f9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shoot\\frame_043.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "d075588c-ad81-4a1b-8922-e60afd3b065b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_048.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "bab6472e-d752-4202-8c74-6bab59a9267c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_049.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c39259c3-63cb-4fe1-9547-4f59fbf2a915@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_050.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c7cfdf4e-ba6e-46f3-a988-d993235d3f0f@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_051.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "357bcabe-68d4-4556-8025-706bbbf37ba1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_052.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "f6c909d0-b662-43e2-ac75-9ac8e2c94bed@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_053.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c1d03e9e-8869-470d-8233-f80ecd36338b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_054.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3aa8c5b5-94c5-4c95-bf82-6de86c478f9a@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\shootIdle\\frame_055.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2ac4648e-8a7b-4e97-a2a7-061c98e746b8@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\地贴-底.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "09cdbb8e-d74d-4b07-949d-7a81bd19db94@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\地贴-建造盾兵营.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "280ebba3-f8f7-452a-99ab-0c19e4609e89@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\地贴-建造箭塔.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "db70f7d8-c1db-418b-a191-6ce58c9a4043@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\地贴-建造英雄塔.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a584e9be-0025-4a52-91fb-0223f4e717a6@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\地贴-扩张.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "56e8c49f-6c9b-4981-987a-85369553275b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\失败弹窗.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "dcea1015-5f9f-4152-b443-6ee24361116d@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\手.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a1058ec5-9ce2-46cf-a20c-de3288454219@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\操纵-底.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "32f761ca-9b65-4390-9d5d-081139dcf3e3@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\操纵-杆.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "d10bdd07-bac2-4c95-afca-8348420b1e97@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\操纵杆.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "1634e0a4-6d69-4300-b48d-f45b6c438e01@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\操纵杆底边.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "50aa8a46-4982-4980-8ee9-62fb3696064f@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\框.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "60c2e3b4-fc62-459b-9acb-6e07cb463c18@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\框内阴影.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "361cce86-bbd1-4379-b61f-4b9a5c29f059@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\胜利弹窗.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "6117653a-cfe7-44a4-b4d7-c6f1e79b34ae@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\血条-半血.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "94716c41-aee5-4655-acca-c81178df4f13@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\血条-满血.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "237530fb-e2b7-4534-bacb-36e0daf23481@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\血条底.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3a5eb832-9349-4f19-8765-366aa26abbb1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\UI\\金币框底.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2b6c05c2-1b6a-4343-a41d-816ac2c42be6@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_000.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "b3ca49a6-8023-4cf0-8359-00c9f9804609@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_001.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8a847de1-71dd-445b-951f-615cc5a56737@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_002.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8108920e-e7c6-4301-8656-b8264672d35f@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_003.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "6f9df658-3c67-442b-8b5a-2d4f46878153@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_004.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "850d1af7-e568-41cf-9c9c-fcc8a6f5f546@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_005.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c0817035-57e4-4fbd-81ae-a55721af9f01@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_006.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "4d6db56c-a627-4bd7-b9f1-452cf072cdb6@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_007.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "abb4109c-291f-4d25-a2d5-8e7d86c198d9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_008.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "7453e656-2c8d-4359-a082-5ba2357699a7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\动画-木杆\\frame_009.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "7315f034-41cf-4122-90e2-543e4ae0ee27@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\tex_ground1.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "0911bfad-5e07-4bd5-8f8a-e503e7169a3f@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_rock01.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fd6e100f-624a-4954-a8a8-f0a3b029ef83@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_rock02.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "71de08b2-dbad-4685-b4db-b7aad504613a@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_rock03.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "daeea2a5-c476-4970-889e-b4cc2e2805e9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_tree01.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "e9cee5cd-71be-418f-a6cd-618ca0789ec1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_tree02.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3c5ee7ae-a52c-4d77-bd00-a116cd46c248@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\地形贴图和装饰\\zs_tree03.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "db0a1fef-e84f-4133-adda-c080a4dcb432@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\建筑\\dj_bingying1.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "345535c7-2253-409d-8aed-468dd10519c8@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\建筑\\dj_machi1a.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "4b1c1265-f234-4fd3-86f7-13871fff1a11@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\建筑\\dj_machi1b.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "0e0f7f24-ecc6-4cd5-b471-1ef2c293accd@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\建筑\\dj_tower1.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "cd460870-4d69-4261-9142-ef34dab22928@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\建筑\\dj_yingxiongta1.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c7ba7c1f-350a-4663-a989-7d2a28d47adf@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\模组\\mozu-taizi1.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "4c07950d-fdb3-445e-a1a4-66f2c59020ce@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\模组\\mozu-taizi2.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8dd622e3-3ea4-4735-8036-c7e73ebcd646@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\模组\\mozu-taizi3.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "31aa9abd-3c14-4303-b127-e0b9d16f8761@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\场景\\模组\\mozu-taizi4.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2f01eee7-5ddc-4630-9748-77a428e47676@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\敌人\\frame_000.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "b3f5a3ea-4753-4833-af4c-358e0a404ae7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\待机\\frame_000.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "ae33de1a-f661-4486-92fd-a7d7113b6d9e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\待机\\frame_001.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fdfaa568-b0ef-4bc7-a0e8-5923510a275d@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\待机\\frame_002.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "da89fe1a-4572-4632-8e72-2bfcb96607bd@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\待机\\frame_003.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "06b8885f-e12a-4b11-bdfb-9d94e333e9ba@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_004.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "480050a6-5c69-4955-b71b-68759f356b35@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_005.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2752bb7f-beb1-45c8-9f42-43aa0f25f668@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_006.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3c29bf94-5be2-4ba0-9920-9429ee2b5758@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_007.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "712af1a0-60c9-489a-8b69-3fe6e0501a0e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_008.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a55dfd96-bc79-4513-877a-61b1ef52d1e0@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_009.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c6762d57-16ea-49fe-9a63-3af81b2f634e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_010.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3f489186-7351-404e-b9fb-c242b1a1b8c6@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\攻击1\\frame_011.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a118db45-f2be-4e75-a64c-f7bf7366cabe@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_019.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c4366731-064c-4284-99fc-835e4b83b9d1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_020.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8ea5d213-5f7d-4d12-ba92-b897fd8e87d7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_021.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "202127cd-9491-4ac0-b60d-bd2b3dfdee30@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_022.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "9bb3c2d5-935a-49e8-92dd-ccd5e719c17b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_023.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "23707056-ee04-4b39-90a3-2dcd4a5cafa4@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_024.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "ca0c1c4c-0e7e-437c-aab9-184919049e42@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_025.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "78556c3d-1b5d-4207-9633-2722195e58e2@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_026.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "672b388a-47c3-419a-aa66-8ff040e340ea@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\死亡\\frame_027.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "1ed7daac-7948-43dc-9628-4aa1b748eacf@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\移动\\frame_014.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a00becf6-2998-4fc1-b45d-c3d2ca769746@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\移动\\frame_015.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "78850827-874d-4bcc-af79-ce9d349638d7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\移动\\frame_016.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "849273e5-7f80-4a27-973d-f6c9e685196a@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\移动\\frame_017.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "309a28b7-2ee1-4470-9339-6cae80a51237@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\主角\\移动\\frame_018.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "35617baf-8415-4d57-bf17-a4d5a6f5ec03@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\待机\\frame_000.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "a0988ece-9345-476e-a3eb-46148f8500e5@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\待机\\frame_001.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "5ba9f860-e0bf-456a-aead-f9ae09e4c3eb@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\待机\\frame_002.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "02066476-821d-4b95-8945-c7b7fab44f51@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\待机\\frame_003.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fe0132ff-0cad-4d4e-a623-26dc292f56ef@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\待机\\frame_004.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "16475818-9d83-4858-917e-9e6eecd36c3b@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_005.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2cb52d97-f4c7-495e-8fac-02db049e6cef@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_006.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "63dc791f-8565-400f-b513-96765ddb4fb4@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_007.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8b2b65f4-10a4-41c7-ab33-7440b769e966@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_008.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2689188d-1f8d-40eb-b35b-47699a999452@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_009.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "ea4a3a62-78a1-4e25-93d4-efebfd097482@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_010.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "4d8adc2d-a601-41ec-920f-a3f834c8c64c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\攻击1\\frame_011.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "1f0086e2-5b35-4c78-a1bd-7c0611f141b5@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_022.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "475d7f83-41fe-4e96-9a63-748b4378cbb4@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_023.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "5b6f971a-be03-448f-8217-57937e56765c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_024.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "70869553-4762-4d28-8539-1fa3ecdaba53@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_025.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "dacece56-83b1-4ad0-806c-5d0a941a4980@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_026.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "94f76d50-85cb-4e36-b0a2-1c2cdcf017c9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\死亡\\frame_027.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "7f832af1-5c2f-4c56-9e64-5af88f8cb947@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\移动\\frame_014.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "f3a7c82c-dd1b-4548-ade4-ea67723ebd68@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\移动\\frame_015.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "85998840-9bad-4ef7-a50d-ea633d747926@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\移动\\frame_016.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "897f3840-d3eb-4969-b58f-90166bb092e9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\移动\\frame_017.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "1e1840f3-113c-447d-83e5-e6f7abc362ac@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄1\\移动\\frame_018.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "5cea63fe-fbf7-4649-96e9-698ab243e61e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_000.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "b301ac72-5678-43ba-86ed-7f2eda759a75@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_001.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "85759c74-11c3-406f-96e4-276610b076b1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_002.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "2c144f9b-5a20-4812-b247-8c2c37e82180@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_003.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "896d7ae9-6210-4209-a978-e469cb50a657@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_004.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3184172a-9bd9-4e0f-a50e-f511a72401d1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\待机\\frame_005.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "df1c8c6d-d664-4147-a4c4-a33cde20a97e@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_006.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "eb89346f-176c-4d02-8ad0-147c7ee060c0@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_007.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "619d0986-c991-4ef5-831c-f442a70cf5bd@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_008.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "d01071e5-7849-4a0b-b9f0-229f82852dc1@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_009.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c8af4626-bdd3-4044-89f7-cbbf48bcd29a@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_010.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "db599ef9-72e2-4ca8-b6db-93997e403786@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\攻击1\\frame_011.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "4998c268-f24f-4355-80bc-afa43cbf8dcb@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_019.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "59f2fbd3-3a33-4324-b4da-91770ff8bea2@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_020.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "ecb80909-1f9b-4b41-9e2a-de0c0ca5bd75@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_021.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3fe162e9-e2d0-4b95-b9e4-02ad31a2ddd8@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_022.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "14bb3e28-453f-4ca2-83d9-86fc683d974c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_023.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "7f4d3b3a-46bd-4d7a-9fb2-4fe19ea5cbc2@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_024.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3088443b-1972-4544-9115-4fae9dd69302@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_025.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "1ce475a9-c693-43fb-87c8-af0735917d5c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_026.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "3779700b-5cf2-4640-a021-33adb6353165@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\死亡\\frame_027.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "e5337e2b-e509-4400-9900-16f205bf08c9@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\移动\\frame_014.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "8955ba6f-3ce5-4c3c-8f2d-aee812a4b241@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\移动\\frame_015.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "9ab776b2-dd85-4627-879c-f90b433bdb94@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\移动\\frame_016.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fa18c5cb-1287-4bd3-8fd5-e17aac7d8f43@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\移动\\frame_017.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fe94f25f-9ba4-414c-9596-7a3e66866452@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\英雄2\\移动\\frame_018.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "bcc75945-aeb2-4f7e-a830-e9baef762cb5@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_016.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "89bdaac0-d667-4717-b9c6-dffbdf4826db@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_017.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "5cdede16-b14c-47b3-af0e-e8a4006a7351@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_018.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "fdb67187-d4d5-46ef-9159-773ba3df6cd2@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_019.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "02006a93-94be-4c59-ba23-32c19424fd2c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_020.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "37a5a6f5-7584-4e43-bf00-03ed966d599c@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_021.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "e92270f5-9411-4e7f-8003-ee401855bb70@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_022.png.meta",
+    "packable": true
+  },
+  {
+    "uuid": "c0035b60-a0df-4af9-b8cd-6fd2fb9535b7@f9941",
+    "path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\sprite\\角色\\骷髅BOSS\\待机\\frame_023.png.meta",
+    "packable": true
+  }
+]

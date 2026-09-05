@@ -11,7 +11,8 @@ import {
     Vec2,
     Vec3,
 } from 'cc';
-import { playAnim } from '../core/AnimUtil';
+import { AirWallAabb } from '../core/AirWallAabb';
+import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -27,8 +28,8 @@ const PEER_SEPARATION = 36;
 const PLAYER_SEPARATION = 48;
 
 /**
- * 小怪：Kinematic + setPosition / setWorldPosition 位移；
- * 挡滚木按最小穿透轴；与玩家/同伴保持分离。
+ * 小怪：Dynamic + linearVelocity；非 sensor，与 Static airWall / 固定滚木物理碰撞。
+ * 同伴/玩家分离以速度微调；跑酷中滚木仍为 sensor 时用速度挡穿。
  */
 @ccclass('EnemyMinion')
 export class EnemyMinion extends Component {
@@ -51,10 +52,10 @@ export class EnemyMinion extends Component {
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _tmpPos = new Vec3();
-    private readonly _nextWorld = new Vec3();
     private readonly _peerPos = new Vec3();
     private readonly _selfRect = new Rect();
     private readonly _logRect = new Rect();
+    private _airWalls: BoxCollider2D[] = [];
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
@@ -66,7 +67,7 @@ export class EnemyMinion extends Component {
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
             this._rb.fixedRotation = true;
             this._rb.allowSleep = false;
@@ -74,7 +75,7 @@ export class EnemyMinion extends Component {
         }
         this._collider = this.getComponent(Collider2D);
         if (this._collider) {
-            this._collider.sensor = true;
+            this._collider.sensor = false;
         }
         this._ai = this.getComponent(EnemyAI) ?? this.addComponent(EnemyAI);
         this._ai.attackCooldown = this.attackCooldown;
@@ -95,21 +96,37 @@ export class EnemyMinion extends Component {
     }
 
     tryAttack(): void {
-        if (this._isDead || !this._ai) {
+        if (this._isDead || !this._ai || this._isAttacking) {
             return;
         }
         // 与 update 中 meleeRange 一致，避免分离半径大于 attackRange 时出手失败
         const range = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
-        if (!this._ai.tryAttack(range)) {
+        if (!this._ai.beginAttack(range)) {
             return;
         }
         this._isAttacking = true;
         if (this.visualNode) {
-            playAnim(this.visualNode, 'attack');
+            // minion frame_012 → 0.4s
+            playAttackWithFrameHit(
+                this.visualNode,
+                'attack',
+                () => {
+                    if (!this._isDead) {
+                        this._ai?.applyAttackDamage(range);
+                    }
+                },
+                0.45,
+            );
+        } else {
+            this._ai.applyAttackDamage(range);
         }
         this.scheduleOnce(() => {
             this._isAttacking = false;
-        }, 0.1);
+        }, 0.8);
+    }
+
+    get isDead(): boolean {
+        return this._isDead;
     }
 
     takeDamage(amount: number): void {
@@ -142,11 +159,14 @@ export class EnemyMinion extends Component {
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
-            this._collider.sensor = true;
+            this._collider.sensor = false;
         }
         this._velocity.set(0, 0);
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.type = ERigidBody2DType.Dynamic;
+            this._rb.gravityScale = 0;
+            this._rb.fixedRotation = true;
+            this._rb.allowSleep = false;
             this._rb.linearVelocity = new Vec2(0, 0);
         }
         if (this.visualNode) {
@@ -154,8 +174,8 @@ export class EnemyMinion extends Component {
         }
     }
 
-    update(dt: number): void {
-        if (!this._canMove || this._isDead || dt <= 0) {
+    update(_dt: number): void {
+        if (!this._canMove || this._isDead) {
             return;
         }
 
@@ -180,26 +200,26 @@ export class EnemyMinion extends Component {
         // 分离半径 48 曾大于 attackRange 40 → 永远摸不到攻击距；出手距至少覆盖分离
         const meleeRange = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
         if (dist <= meleeRange) {
-            this._pushAwayFromPlayer(PLAYER_SEPARATION);
             this._halt(true);
             return;
         }
 
-        const invDist = 1 / dist;
-        this._velocity.x = dx * invDist * GameConfig.minionMoveSpeed;
-        this._velocity.y = dy * invDist * GameConfig.minionMoveSpeed;
-
-        this._nextWorld.set(
-            this._selfPos.x + this._velocity.x * dt,
-            this._selfPos.y + this._velocity.y * dt,
-            this._selfPos.z,
+        const size = AirWallAabb.bodySize(this.node);
+        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+        AirWallAabb.steerDirection(
+            this._selfPos,
+            this._targetPos,
+            size.w,
+            size.h,
+            walls,
+            this._velocity,
         );
+        this._velocity.x *= GameConfig.minionMoveSpeed;
+        this._velocity.y *= GameConfig.minionMoveSpeed;
 
-        this._resolveAgainstLog(this._nextWorld, dt);
-        this._resolveAgainstPlayer(this._nextWorld);
-        this._resolveAgainstPeers(this._nextWorld);
-
-        this.node.setWorldPosition(this._nextWorld);
+        this._biasVelocityAwayFromPeers();
+        this._biasVelocityAwayFromPlayer();
+        this._adjustVelocityAgainstLog();
 
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
@@ -207,17 +227,15 @@ export class EnemyMinion extends Component {
         this._updateLocomotionAnim(true);
     }
 
-    /**
-     * 必须 AABB 真重叠。侧向 → 只推 X；上方压入 → 推到 yMax，跑酷中可跟玩家 Y 速。
-     */
-    private _resolveAgainstLog(next: Vec3, dt: number): void {
+    /** 跑酷中滚木仍为 sensor：重叠时只改速度挡穿，不写位置 */
+    private _adjustVelocityAgainstLog(): void {
         const log = this._resolveLog();
         if (!log || log.getPhase() === 'failed') {
             return;
         }
 
         this._fillLogAabb(log, this._logRect);
-        this._fillVisualAabb(this.node, this._selfRect, next);
+        this._fillVisualAabb(this.node, this._selfRect, this._selfPos);
         if (!this._aabbOverlap(this._selfRect, this._logRect)) {
             return;
         }
@@ -233,98 +251,71 @@ export class EnemyMinion extends Component {
         const minPen = Math.min(penL, penR, penB, penT);
         const phase = log.getPhase();
         if (minPen === penL) {
-            next.x -= penL;
             this._velocity.x = Math.min(this._velocity.x, 0);
         } else if (minPen === penR) {
-            next.x += penR;
             this._velocity.x = Math.max(this._velocity.x, 0);
         } else if (minPen === penB) {
-            next.y -= penB;
             this._velocity.y = Math.min(this._velocity.y, 0);
+        } else if (phase === 'rolling' || phase === 'charging') {
+            const rideY = this._readRideSpeedY();
+            this._velocity.y = rideY > 0 ? rideY : Math.max(this._velocity.y, 0);
         } else {
-            next.y += penT;
-            if (phase === 'rolling' || phase === 'charging') {
-                const rideY = this._readRideSpeedY();
-                if (rideY > 0) {
-                    next.y += rideY * dt;
-                    this._velocity.y = rideY;
-                } else {
-                    this._velocity.y = Math.max(this._velocity.y, 0);
-                }
-            } else {
-                this._velocity.y = Math.max(this._velocity.y, 0);
-            }
+            this._velocity.y = Math.max(this._velocity.y, 0);
         }
     }
 
-    private _resolveAgainstPlayer(next: Vec3): void {
+    /** 近距离取消朝向玩家的速度分量（不写 setWorldPosition） */
+    private _biasVelocityAwayFromPlayer(): void {
         if (!this._target) {
             return;
         }
         this._target.getWorldPosition(this._targetPos);
-        const dx = next.x - this._targetPos.x;
-        const dy = next.y - this._targetPos.y;
+        const dx = this._selfPos.x - this._targetPos.x;
+        const dy = this._selfPos.y - this._targetPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist >= PLAYER_SEPARATION) {
             return;
         }
         if (dist < 0.001) {
-            next.x = this._targetPos.x + PLAYER_SEPARATION;
+            this._velocity.set(0, 0);
             return;
         }
-        const s = PLAYER_SEPARATION / dist;
-        next.x = this._targetPos.x + dx * s;
-        next.y = this._targetPos.y + dy * s;
+        const inv = 1 / dist;
+        const nx = dx * inv;
+        const ny = dy * inv;
+        const approach = -(this._velocity.x * nx + this._velocity.y * ny);
+        if (approach > 0) {
+            this._velocity.x += nx * approach;
+            this._velocity.y += ny * approach;
+        }
     }
 
-    private _pushAwayFromPlayer(minDist: number): void {
-        if (!this._target) {
-            return;
-        }
-        this.node.getWorldPosition(this._selfPos);
-        this._target.getWorldPosition(this._targetPos);
-        const dx = this._selfPos.x - this._targetPos.x;
-        const dy = this._selfPos.y - this._targetPos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist >= minDist) {
-            return;
-        }
-        if (dist < 0.001) {
-            this._selfPos.x = this._targetPos.x;
-            this._selfPos.y = this._targetPos.y + minDist;
-        } else {
-            const s = minDist / dist;
-            this._selfPos.x = this._targetPos.x + dx * s;
-            this._selfPos.y = this._targetPos.y + dy * s;
-        }
-        this.node.setWorldPosition(this._selfPos);
-    }
-
-    private _resolveAgainstPeers(next: Vec3): void {
+    private _biasVelocityAwayFromPeers(): void {
         const scene = this.node.scene;
         if (!scene) {
             return;
         }
         const peers = scene.getComponentsInChildren(EnemyMinion);
+        const speed = GameConfig.minionMoveSpeed;
         for (const peer of peers) {
             if (peer === this || !peer.isValid || peer._isDead || !peer.node.activeInHierarchy) {
                 continue;
             }
             peer.node.getWorldPosition(this._peerPos);
-            const dx = next.x - this._peerPos.x;
-            const dy = next.y - this._peerPos.y;
+            const dx = this._selfPos.x - this._peerPos.x;
+            const dy = this._selfPos.y - this._peerPos.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist >= PEER_SEPARATION) {
                 continue;
             }
             if (dist < 0.0001) {
-                next.x += PEER_SEPARATION * 0.5;
+                this._velocity.x += speed * 0.5;
                 continue;
             }
-            const push = (PEER_SEPARATION - dist) * 0.5;
+            const push = ((PEER_SEPARATION - dist) / PEER_SEPARATION) * speed;
             const inv = 1 / dist;
-            next.x += dx * inv * push;
-            next.y += dy * inv * push;
+            this._velocity.x += dx * inv * push;
+            this._velocity.y += dy * inv * push;
         }
     }
 

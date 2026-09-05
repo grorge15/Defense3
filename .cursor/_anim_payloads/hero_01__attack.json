@@ -1,0 +1,115 @@
+[
+    {
+        "enableTrsBlending":  false,
+        "_exoticAnimation":  null,
+        "__type__":  "cc.AnimationClip",
+        "_additiveSettings":  {
+                                  "__id__":  6
+                              },
+        "_tracks":  [
+                        {
+                            "__id__":  1
+                        }
+                    ],
+        "wrapMode":  1,
+        "speed":  1,
+        "_auxiliaryCurveEntries":  [
+
+                                   ],
+        "_objFlags":  0,
+        "_embeddedPlayers":  [
+
+                             ],
+        "_duration":  0.7,
+        "_name":  "attack",
+        "_native":  "",
+        "sample":  10,
+        "__editorExtras__":  {
+                                 "embeddedPlayerGroups":  [
+
+                                                          ]
+                             },
+        "_hash":  0,
+        "_events":  [
+
+                    ]
+    },
+    {
+        "__type__":  "cc.animation.ObjectTrack",
+        "_binding":  {
+                         "__type__":  "cc.animation.TrackBinding",
+                         "path":  {
+                                      "__id__":  2
+                                  }
+                     },
+        "_channel":  {
+                         "__id__":  4
+                     }
+    },
+    {
+        "__type__":  "cc.animation.TrackPath",
+        "_paths":  [
+                       {
+                           "__id__":  3
+                       },
+                       "spriteFrame"
+                   ]
+    },
+    {
+        "__type__":  "cc.animation.ComponentPath",
+        "component":  "cc.Sprite"
+    },
+    {
+        "_curve":  {
+                       "__id__":  5
+                   },
+        "__type__":  "cc.animation.Channel"
+    },
+    {
+        "__type__":  "cc.ObjectCurve",
+        "_times":  [
+                       0,
+                       0.1,
+                       0.2,
+                       0.3,
+                       0.4,
+                       0.5,
+                       0.6
+                   ],
+        "_values":  [
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "16475818-9d83-4858-917e-9e6eecd36c3b@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "2cb52d97-f4c7-495e-8fac-02db049e6cef@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "63dc791f-8565-400f-b513-96765ddb4fb4@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "8b2b65f4-10a4-41c7-ab33-7440b769e966@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "2689188d-1f8d-40eb-b35b-47699a999452@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "ea4a3a62-78a1-4e25-93d4-efebfd097482@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "4d8adc2d-a601-41ec-920f-a3f834c8c64c@f9941"
+                        }
+                    ]
+    },
+    {
+        "__type__":  "cc.AnimationClipAdditiveSettings",
+        "refClip":  null,
+        "enabled":  false
+    }
+]

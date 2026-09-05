@@ -1,5 +1,6 @@
-import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
+import { _decorator, Animation, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Player } from '../character/Player';
+import { playAttackWithFrameHit } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
@@ -7,8 +8,16 @@ import { Arrow } from '../projectile/Arrow';
 
 const { ccclass, property } = _decorator;
 
+/** 与 assets/resources/animations/player/melee_attack.anim `_duration` 对齐 */
+const PLAYER_MELEE_ATTACK_DURATION = 0.7;
+/** 命中帧约 0.4；兜底略晚于帧事件、早于 clip 结束 */
+const PLAYER_ATTACK_HIT_FALLBACK = 0.45;
+
 /**
- * 玩家射箭入口：有弓后自动索敌；范围内 Boss 优先于小怪。
+ * 玩家远程射箭：
+ * - 索敌范围仅用于选目标（不走进近战）
+ * - 播 melee_attack → 命中帧生成 Arrow → 射向目标
+ * - 攻击锁持续整段 clip；冷却 ≥ clip 时长，避免动画未结束又开下一轮
  */
 @ccclass('CombatSystem')
 export class CombatSystem extends Component {
@@ -29,11 +38,11 @@ export class CombatSystem extends Component {
 
     private _cooldown = 0;
     private _loadingArrow = false;
+    private _pendingTarget: Node | null = null;
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
 
     onLoad(): void {
-        // 场景里若仍绑着旧默认值 10，按当前世界尺度纠正（不改 Main.scene）
         if (this.attackRange <= 20) {
             this.attackRange = GameConfig.playerAttackRange;
         }
@@ -78,10 +87,13 @@ export class CombatSystem extends Component {
         this.tryAttack();
     }
 
-    /** 供 Player.tryAttack 或自动射击调用 */
+    /**
+     * 自动射击：范围内有敌 → 播攻击动画 → 帧事件出箭射向该敌。
+     * 不贴近敌人近战；伤害只来自 Arrow。
+     */
     tryAttack(): void {
         const player = this._resolvePlayer();
-        if (!player || !player.hasBow || player.isDead) {
+        if (!player || !player.hasBow || player.isDead || player.isAttacking) {
             return;
         }
         if (this._cooldown > 0) {
@@ -97,12 +109,58 @@ export class CombatSystem extends Component {
             return;
         }
 
-        this._cooldown = GameConfig.playerAttackInterval;
-        player.playAttackAnim();
-        this._spawnArrow(target);
+        const animDuration = this._resolveMeleeDuration(player);
+        this._cooldown = Math.max(GameConfig.playerAttackInterval, animDuration + 0.05);
+        this._pendingTarget = target;
+        player.setAttacking(true);
+
+        const visual = player.visualNode;
+        if (!visual) {
+            this._spawnArrow(target);
+            this._pendingTarget = null;
+            player.setAttacking(false);
+            return;
+        }
+
+        playAttackWithFrameHit(
+            visual,
+            'meleeAttack',
+            () => {
+                const t = this._pendingTarget;
+                this._pendingTarget = null;
+                if (t?.isValid && !player.isDead) {
+                    this._spawnArrow(t);
+                }
+            },
+            Math.min(PLAYER_ATTACK_HIT_FALLBACK, animDuration * 0.65),
+            () => {
+                player.setAttacking(false);
+            },
+        );
+
+        // FINISHED 丢失时按 clip 时长解锁（略长于 duration）
+        this.unschedule(this._unlockAttacking);
+        this.scheduleOnce(this._unlockAttacking, animDuration + 0.12);
     }
 
-    /** 范围内优先 Boss，其次最近小怪 */
+    private _unlockAttacking = (): void => {
+        const player = this._resolvePlayer();
+        if (player?.isAttacking) {
+            player.setAttacking(false);
+        }
+    };
+
+    private _resolveMeleeDuration(player: Player): number {
+        const visual = player.visualNode;
+        const anim = visual?.getComponent(Animation);
+        const clip = anim?.clips?.find((c) => c?.name === 'melee_attack');
+        if (clip && clip.duration > 0.05) {
+            return clip.duration;
+        }
+        return PLAYER_MELEE_ATTACK_DURATION;
+    }
+
+    /** 范围内优先 Boss，其次最近小怪（仅选目标，不走进其近战圈） */
     private _findAttackTarget(): Node | null {
         const player = this._resolvePlayer();
         if (!player) {
@@ -135,7 +193,7 @@ export class CombatSystem extends Component {
         let nearest: Node | null = null;
         let nearestDist = range;
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.activeInHierarchy) {
+            if (!minion.node.activeInHierarchy || minion.isDead) {
                 continue;
             }
             const dist = this._distTo(minion.node);

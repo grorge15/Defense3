@@ -17,6 +17,22 @@
 | **原因** | ① `Log` 只对齐 X，Y 用 `velocity*dt` 独立积分，与玩家实际位移不同步；② `Player` 强制 Kinematic 且同时 `setPosition`+写速度，与 Dynamic 预制冲突；③ 黄蓝线过远且仅靠物理 `BEGIN_CONTACT`，位移跟随时接触不可靠；④ `EnemyMinion` 用 `setPosition` 追玩家，不把 Log 当障碍。 |
 | **解决** | 玩家 Dynamic 仅写 `linearVelocity`；滚木绑定瞬间缓存世界 `_followOffset`，每帧 `player+offset` 跟随；黄/蓝线改合理 Y + 越过世界 Y 一次性触发；小怪移动前与 Log AABB 相交则本帧不穿入。计划：`.cursor/plans/fix-log-follow-contact.md`。 |
 
+### v2（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家改物理移动后，Hierarchy 里滚木根节点坐标每帧跳动（人木碰撞矩阵已忽略仍抖）。 |
+| **原因** | `Log.update` 用 `(desired-self)/dt` 追玩家点 + airWall 软推期望点，与 Dynamic 玩家物理步进不同步，形成误差反馈抖动。 |
+| **解决** | `lateUpdate` 直接 `setWorldPosition(player+offset)`，`linearVelocity` 同步玩家速度；去掉误差/dt 与跟木路径上的 airWall 软推；滚动视觉仍用玩家速度。 |
+
+### v3（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | v2 后根节点不抖，但滚木可穿过 `airWall*` 高台。 |
+| **原因** | 跟木为 sensor + 死贴 offset，且去掉了 airWall AABB；引擎固体不挡。 |
+| **解决** | 仍 `lateUpdate` 贴 `player+offset`（禁止误差/dt）；贴前对期望点 `AirWallAabb.resolveWorldPos` 并用推出后坐标 `setWorldPosition`，速度同步时钳制穿墙轴。 |
+
 ---
 
 ## fix-log-fixed-bow-saw — 固定后滚木转 / 拾弓不射 / 电锯不砍木
@@ -253,6 +269,14 @@
 | **原因** | `bossBuildingDamage=9999`，远超 `towerMaxHp`/`barracksMaxHp`。 |
 | **解决** | 建筑/屏障改吃 `bossAttackDamage`（与打人一致，需多下）。 |
 
+### v2（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 按最新设计，Boss 应对建筑/屏障/`pref_soldier_melee` 一击秒杀；v1 多下拆建筑不符合当前需求。 |
+| **原因** | v1 去掉了 `bossBuildingDamage`，建筑/屏障改吃 `bossAttackDamage`；小兵未进 Boss 线攻候选与 `_dealDamageToNode`。 |
+| **解决** | 恢复 `GameConfig.bossBuildingDamage=9999`，Barrier/Building 用其伤害；线攻候选扫 `Soldier`，`takeDamage(max(bossBuildingDamage, soldierMaxHp))`；Player/Hero 仍用 `bossAttackDamage`。 |
+
 ---
 
 ## fix-player-arrow-boss-priority — 玩家箭优先打 Boss
@@ -326,6 +350,14 @@
 | **原因** | `takeDamage` 未调用 `HitFlash`。 |
 | **解决** | `Player.takeDamage` 时对 `visualNode` 调用 `HitFlash.flash`。 |
 
+### v2（2026-09-05）— 受击闪红卡红 + 英雄未闪
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 受击后 Sprite 长期保持红色；英雄受击不闪红。 |
+| **原因** | `HitFlash.flash` 在已染红时把当前色当「原色」缓存；`tween().stop()` 清不干净；`Hero.takeDamage` 未调 `HitFlash`。 |
+| **解决** | WeakMap 缓存首次非闪红基底色；`Tween.stopAllByTarget(sprite)` 后再闪；复原到缓存基底；`Hero.takeDamage` 对 `visualNode` 调 `HitFlash.flash`。 |
+
 ---
 
 ## fix-heroselect-no-hero-spawn — 选英雄后不生成
@@ -337,4 +369,177 @@
 | **现象** | HeroSelect 选完后场上没有英雄。 |
 | **原因** | 生成放在 UI fade 回调末尾，易丢；prefab 空时静默失败；父节点可能不当。 |
 | **解决** | 点选后立刻 `onHeroSelected`；缺 prefab 时 `resources.load`；生成挂到 `GameRoot/World`。 |
+
+---
+
+## fix-highplatform-airwall-no-collision — HighPlatform airWall 不挡玩家/滚木
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | HighPlatform1–4 的 `airWall*` 节点无法挡住 Player 与滚木（Log）。 |
+| **原因** | airWall 虽为 Static 固体 BoxCollider2D，但 Player/Log 用 `setPosition`/`setWorldPosition` 且运行时 `sensor=true`，Box2D 不会阻挡；Player 仅对固定滚木做 AABB 推出，未对 airWall 做同类解析。 |
+| **解决** | `Player` / `Log` 在位移后用最小穿透轴 AABB 解析场景中 `airWall*` 的 `worldAABB`（轻量缓存碰撞体列表），不改 sensor、不改 prefab/scene。 |
+
+---
+
+## fix-airwall-minion-boss-hero — airWall 不挡小怪/Boss/英雄
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `airWall*` 能挡 Player/Log，但 Minion、Boss、Hero 仍可穿过高台空气墙。 |
+| **原因** | 三者同样用 `setWorldPosition`/位移驱动且多为 sensor，未做 airWall AABB 推出。 |
+| **解决** | 抽出 `AirWallAabb`（`collectAirWalls` + `resolveWorldPos`）；Minion/Boss/Hero 在写入世界坐标前解析；Player/Log 改用同一 helper。 |
+
+### v2（2026-09-05）— Boss/小怪贴墙滑停、不绕行
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss / Minion 追目标时在 HighPlatform `airWall` 上卡住或贴墙滑动，不会绕行。 |
+| **原因** | 直线朝目标积分后再 `resolveWorldPos` 只做穿透推出，无绕障转向。 |
+| **解决** | `AirWallAabb.steerDirection`：沿期望方向探测 AABB，撞墙则试 ±30/60/90/120°，优先 `dot>0` 畅通方向；`EnemyBoss`/`EnemyMinion` 在积分与 resolve 前改用转向；resolve 仍作安全网。 |
+
+---
+
+## fix-hero-follow-ranged — 英雄不跟随且远程打不到怪
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄不跟着玩家走，远程也打不到小怪。 |
+| **原因** | `fixedUpdate` + `linearVelocity` 对 Kinematic 不可靠；`attackRange=6` 相对百级像素世界过小；`playerNode` 空时未兜底绑跟随目标。 |
+| **解决** | 改 `update` + `setWorldPosition` 追 `followOffset`（读 `heroFollowSpeed`）；`GameConfig.heroAttackRange=360` 覆盖过小默认；场景兜底解析 Player；`BuildSystem._onHeroSpawned` 在 `playerNode` 空时从场景找玩家再 `setFollowTarget`。 |
+
+### v2（2026-09-05）— 拴绳 + 朝向 + 打 Boss
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄只挂在 `followOffset`；只打 Minion；不朝向敌人；易脱离玩家攻击圈。 |
+| **原因** | 无玩家 `playerAttackRange` 软拴绳；`_findNearestEnemy` 仅扫 Minion；无面向翻转；无战斗时朝敌 strafing。 |
+| **解决** | 期望点先 followOffset，有目标则朝敌，再钳到玩家拴绳圆（`heroFollowLeash` 或回退 `playerAttackRange`）；索敌含存活 Minion+Boss；`visualNode` scale.x 朝敌；范围内 `tryAttack` 可伤 Boss。 |
+
+---
+
+## fix-physics-movement — 单位改回物理速度移动
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 小怪/盾兵/英雄/滚木等用 `setWorldPosition`（或 Kinematic+sensor）位移，与 Player/Boss 的 Dynamic+`linearVelocity` 不一致，固体墙/固定滚木碰撞不可靠。 |
+| **原因** | 历史为绕过 Kinematic 速度不可靠与像素尺度，改成写世界坐标；Minion `reset` 还会把刚体改回 Kinematic+sensor。 |
+| **解决** | Minion/Soldier/Hero：Dynamic、`sensor=false`、仅写 `linearVelocity`；Minion 同伴/玩家/跑酷滚木改为速度偏置；Log 跑酷用速度追 `player+offset`（期望点可软 airWall），固定仍 Static+非 sensor。Player/Boss 未改。 |
+
+---
+
+## fix-hero-hp-bar — 英雄缺少玩家血条
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄召唤后头顶没有 `pref_ui_hp_bar_player` 血条。 |
+| **原因** | `Hero` 从未调用 `UIManager.spawnHpBar`；且无 `HealthSystem`，血条绑定时不会自动同步满血。 |
+| **解决** | `Hero.start` 调度 `spawnHpBar('player', …)`（不覆盖玩家条），并 `emit HP_CHANGED` 初始满血。 |
+
+### v2（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 仍偶发无血条或满血不同步。 |
+| **原因** | 仅 `scheduleOnce` 依赖 `UIManager.instance` 时机；`HpBarUI` 对无 `HealthSystem` 宿主不主动 `applyHp`。 |
+| **解决** | `Hero.ensureHpBar` + `applyHp`；`BuildSystem._onHeroSpawned` 再兜底一次；`HpBarUI.applyHp` 公开推送。 |
+
+---
+
+## fix-hero-shrine-visual-linger — 召唤后召唤碑 Visual 不消失
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄选出后，召唤碑（或地块上碑身/地贴）仍可见。 |
+| **原因** | 仅 `this.node.active=false`；`visualNode` 未显式关；同地块其它子节点（建造垫等）仍显示，易被当成碑 Visual。 |
+| **解决** | `_hideShrineVisual`：关 `Visual`、关碑根，并关掉同 `plotRoot` 下其它子节点。 |
+
+### v2（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 关碑根后地块/地贴仍像召唤碑 Visual。 |
+| **原因** | `Plot_HeroShrine` 整块未关；`_onHeroSpawned` 未强制关掉 `heroShrinePlots`。 |
+| **解决** | `_hideShrineVisual` 关全部子节点并 `plotRoot.active=false`；`BuildSystem` 召唤后 `_setPlotsActive(heroShrinePlots, false)`。 |
+
+---
+
+## fix-attack-frame-events — 攻击改用动画帧事件出手
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 攻击在动画一开始就结算伤害/出弹，与指定序列帧不同步。 |
+| **原因** | 各单位 `tryAttack` 播放 clip 后立刻 `_applyLineAttack` / `takeDamage` / `_spawnArrow`；attack `.anim` 的 `_events` 为空。 |
+| **解决** | 在 clip 写入 `onAttackFrameHit`：hero1=`frame_008`(0.3s)、hero2=`frame_010`(0.4)、player=`frame_011`(0.7)、boss=`frame_007`(0.7)、minion=`frame_012`(0.4)；`AttackFrameRelay`+`playAttackWithFrameHit`；出手改到帧回调（带超时兜底）。 |
+
+---
+
+## fix-hero-projectile-missing — 英雄远程看不到弹道
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄远程攻击看不到 `pref_projectile_hero_01/02`。 |
+| **原因** | 出手瞬间直接 `takeDamage`；弹道用 0.2s `setWorldPosition` 插值且无命中逻辑，几乎不可见；缺 prefab 时静默 return。 |
+| **解决** | 帧事件再生成弹道；`HeroProjectile` 按 `arrowSpeed` 飞行并 AABB 命中；`resources.load` 兜底加载弹道 prefab。 |
+
+---
+
+## fix-player-ranged-arrow-frame — 玩家应帧事件出箭射敌
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家攻击应是帧事件生成 Arrow 射向敌人，而不是走进近战圈。 |
+| **原因** | 虽有帧事件出箭，但攻击中位移动画可打断；攻击锁缺失导致出手不稳定。 |
+| **解决** | `CombatSystem`：范围内仅选目标；`melee_attack`+`frame_011` 生成 Arrow 射向目标；`Player.setAttacking` 期间禁 locomotion。 |
+
+### v2（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | attack 动画没播完就射出第二根箭；有时看不到 attack 动画也会出箭。 |
+| **原因** | 命中帧写在 clip 结束时刻 0.7s，与 `FINISHED` 竞态 → 先解锁 `isAttacking` 后 locomotion 打断攻击；冷却 0.8 仅比时长多 0.1；兜底出箭 0.75 可能发生在动画已被切走之后。 |
+| **解决** | 命中帧改到 0.4s；冷却 `max(interval, duration+0.05)` 且 interval≥0.85；`AttackFrameRelay.attackToken` 作废旧回调；兜底出箭 &lt; clip 结束；攻击锁坚持到 FINISHED。 |
+
+---
+
+## fix-hero-follow-hold-on-attack — 英雄跟距 idle / 攻击中停步
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄应保持与玩家距离并 idle；攻击时玩家移动英雄仍应原地播完 attack 再跟随。 |
+| **原因** | 有敌时朝敌位移追击；攻击锁结束后立即跟随，未等完整动画。 |
+| **解决** | 默认只跟 `followOffset`/`heroFollowDistance`，到位停；攻击清速度并锁至 clip `FINISHED` 后再跟随；射程内原地远程出手。 |
+
+---
+
+## fix-boss-retarget-structure-order — Boss 5s 索敌 Structure>Hero>Player
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 应每 5s 重索敌；优先级 Structure>hero>player；Structure 按建造顺序。 |
+| **原因** | 旧优先级 hero>building；同级取最近；每帧重选无锁定。 |
+| **解决** | `building/barrier/log` 同为 Structure 档；`buildOrder` 升序；`bossRetargetInterval=5` 锁定目标；`BuildSystem` 注册时递增建造序号。 |
+
 

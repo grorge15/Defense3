@@ -1,0 +1,125 @@
+[
+    {
+        "enableTrsBlending":  false,
+        "_exoticAnimation":  null,
+        "__type__":  "cc.AnimationClip",
+        "_additiveSettings":  {
+                                  "__id__":  6
+                              },
+        "_tracks":  [
+                        {
+                            "__id__":  1
+                        }
+                    ],
+        "wrapMode":  1,
+        "speed":  1,
+        "_auxiliaryCurveEntries":  [
+
+                                   ],
+        "_objFlags":  0,
+        "_embeddedPlayers":  [
+
+                             ],
+        "_duration":  0.9,
+        "_name":  "die",
+        "_native":  "",
+        "sample":  10,
+        "__editorExtras__":  {
+                                 "embeddedPlayerGroups":  [
+
+                                                          ]
+                             },
+        "_hash":  0,
+        "_events":  [
+
+                    ]
+    },
+    {
+        "__type__":  "cc.animation.ObjectTrack",
+        "_binding":  {
+                         "__type__":  "cc.animation.TrackBinding",
+                         "path":  {
+                                      "__id__":  2
+                                  }
+                     },
+        "_channel":  {
+                         "__id__":  4
+                     }
+    },
+    {
+        "__type__":  "cc.animation.TrackPath",
+        "_paths":  [
+                       {
+                           "__id__":  3
+                       },
+                       "spriteFrame"
+                   ]
+    },
+    {
+        "__type__":  "cc.animation.ComponentPath",
+        "component":  "cc.Sprite"
+    },
+    {
+        "_curve":  {
+                       "__id__":  5
+                   },
+        "__type__":  "cc.animation.Channel"
+    },
+    {
+        "__type__":  "cc.ObjectCurve",
+        "_times":  [
+                       0,
+                       0.1,
+                       0.2,
+                       0.3,
+                       0.4,
+                       0.5,
+                       0.6,
+                       0.7,
+                       0.8
+                   ],
+        "_values":  [
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "a118db45-f2be-4e75-a64c-f7bf7366cabe@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "c4366731-064c-4284-99fc-835e4b83b9d1@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "8ea5d213-5f7d-4d12-ba92-b897fd8e87d7@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "202127cd-9491-4ac0-b60d-bd2b3dfdee30@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "9bb3c2d5-935a-49e8-92dd-ccd5e719c17b@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "23707056-ee04-4b39-90a3-2dcd4a5cafa4@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "ca0c1c4c-0e7e-437c-aab9-184919049e42@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "78556c3d-1b5d-4207-9633-2722195e58e2@f9941"
+                        },
+                        {
+                            "__expectedType__":  "cc.SpriteFrame",
+                            "__uuid__":  "672b388a-47c3-419a-aa66-8ff040e340ea@f9941"
+                        }
+                    ]
+    },
+    {
+        "__type__":  "cc.AnimationClipAdditiveSettings",
+        "refClip":  null,
+        "enabled":  false
+    }
+]

@@ -58,37 +58,84 @@ export class EnemyAI extends Component {
     }
 
     /**
-     * 近距优先 Barrier.takeDamage，否则攻击玩家。
-     * @returns 是否成功造成伤害
+     * 开冷却并允许播攻击动画（伤害改由帧事件 applyAttackDamage）。
+     * @returns 是否成功进入攻击
      */
-    tryAttack(range: number): boolean {
+    beginAttack(range: number): boolean {
         if (this._attackTimer > 0) {
             return false;
         }
+        if (!this._hasAttackTarget(range)) {
+            return false;
+        }
+        this._attackTimer = this.attackCooldown;
+        return true;
+    }
 
+    /** 帧事件出手：近距优先 Barrier，否则打玩家 */
+    applyAttackDamage(range: number): boolean {
         const barrier = this.findNearestBarrier(range);
         if (barrier) {
             barrier.takeDamage(GameConfig.minionAttackDamage);
-            this._attackTimer = this.attackCooldown;
             return true;
         }
+        return this._damagePlayer(range);
+    }
 
-        return this.tryAttackPlayer(range);
+    /**
+     * @deprecated 使用 beginAttack + applyAttackDamage（帧事件）
+     */
+    tryAttack(range: number): boolean {
+        if (!this.beginAttack(range)) {
+            return false;
+        }
+        return this.applyAttackDamage(range);
     }
 
     /**
      * 尝试攻击当前目标玩家（须在 range 内）。
+     * @deprecated 帧事件路径请用 applyAttackDamage
      */
     tryAttackPlayer(range = Number.POSITIVE_INFINITY): boolean {
-        if (!this._target || !this._target.activeInHierarchy || this._attackTimer > 0) {
+        if (this._attackTimer > 0) {
             return false;
         }
+        if (!this._damagePlayer(range)) {
+            return false;
+        }
+        this._attackTimer = this.attackCooldown;
+        return true;
+    }
 
+    private _hasAttackTarget(range: number): boolean {
+        if (this.findNearestBarrier(range)) {
+            return true;
+        }
+        if (!this._target || !this._target.activeInHierarchy) {
+            return false;
+        }
         const player = this._target.getComponent(Player);
         if (!player || player.isDead) {
             return false;
         }
+        if (!Number.isFinite(range) || range <= 0) {
+            return true;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        this._target.getWorldPosition(this._barrierPos);
+        const dx = this._barrierPos.x - this._selfPos.x;
+        const dy = this._barrierPos.y - this._selfPos.y;
+        return dx * dx + dy * dy <= range * range;
+    }
 
+    private _damagePlayer(range: number): boolean {
+        if (!this._target || !this._target.activeInHierarchy) {
+            return false;
+        }
+        const player = this._target.getComponent(Player);
+        if (!player || player.isDead) {
+            return false;
+        }
         if (Number.isFinite(range) && range > 0) {
             this.node.getWorldPosition(this._selfPos);
             this._target.getWorldPosition(this._barrierPos);
@@ -98,9 +145,7 @@ export class EnemyAI extends Component {
                 return false;
             }
         }
-
         player.takeDamage(GameConfig.minionAttackDamage);
-        this._attackTimer = this.attackCooldown;
         return true;
     }
 

@@ -1,5 +1,5 @@
 ---
-description: 计划文件规范：命名、元数据、文件清单分类、步骤与 AC 校验点、回滚策略
+description: 计划文件规范：禁做项、OpenSpec 引用、MCP AC、续跑
 globs:
   - .cursor/plans/*.md
 ---
@@ -7,21 +7,16 @@ globs:
 # 计划文件协议
 
 ## 命名与元数据
-- 路径：`.cursor/plans/<task-slug>.md`；slug 全小写，仅允许下划线、横杠。
-- 头部 YAML 元数据：slug、版本（replan 时 +1）、状态（draft/active/verifying/done/replan）、创建时间。
+- 路径：`.cursor/plans/<task-slug>.md`；slug 全小写，下划线/横杠。
+- YAML：slug、版本、状态（draft/active/verifying/done/replan）、创建时间。
 
 ## 内容结构（严格按 _TEMPLATE.md）
-1. 业务目标：1–3 句话。
-2. 风险等级：低/中/高；说明是否涉及删除文件、数据库变更、接口破坏性改动。
-3. 变更文件清单（真实文件，不写猜测性文件）：
-   - 【可写】允许编辑
-   - 【可新建】允许创建（测试、报告等）
-   - 【仅只读参考】只读
-   - 未列出 = 默认只读
-4. 实施步骤：编号 S1..Sn，每步含操作说明与关联文件。
-5. 校验点：`- [AC-n] <命令>: <预期退出码/输出匹配>`，可机器执行。
-6. 回滚策略：基线记录方式与失败恢复方式。
-7. 修订记录：`- vN（<YYYY-MM-DD>）：<改/增/删了哪些步骤与校验点>`；replan 时版本 +1 并追加一条。
+1. 业务目标。
+2. **OpenSpec 引用**（有行为时）或整节删除（纯 MCP）。
+3. 风险等级；**禁做项**。
+4. 变更文件清单。
+5. To-dos / 步骤；校验点（GATE/P3/EDITOR-MCP）；AC-PLAY 不阻塞。
+6. 回滚；修订记录（replan 只改失败步，并同步 OpenSpec delta）。
 
-## 禁止内容
-冗余科普、完整实现代码片段、bash 大段命令输出、无边界源码遍历结论、猜测性文件路径。
+## 禁止
+冗余科普、完整实现代码、双份 WHEN/THEN（行为只在 openspec/）、猜测性路径。

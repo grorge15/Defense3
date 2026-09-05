@@ -10,44 +10,60 @@ slug: <task-slug>
 ## 业务目标
 1–3 句话精简目标总结。
 
+## OpenSpec 引用（有玩家可感知行为时必填；纯 MCP 装配整节删除）
+- Change：`openspec/changes/<slug>/`
+- 勿在此复述 WHEN/THEN；行为以该目录 `specs/**` 为准。
+- 无行为语义（仅挂点/prefab/坐标）→ **删除本节**，且不要创建 OpenSpec change。
+
 ## 风险等级
-低 / 中 / 高（说明是否涉及删除文件、数据库变更、接口破坏性改动）。
+低 / 中 / 高。
+
+## 禁做项（必填）
+- 本次不要新建/改动的 prefab 或步骤。
 
 ## 变更文件清单
 - 【可写】`<path>` — 说明
 - 【可新建】`<path>` — 说明
 - 【仅只读参考】`<path>` — 说明
 
-## To-dos（必填，按任务级编号）
-- [ ] `<任务号.a>`：操作说明，关联文件（例：`1.4.a` 新建 `SawTrap.ts`）
-- [ ] `<任务号.b>`：操作说明，关联文件（例：`1.4.b` MCP 创建 `pref_trap_saw`）
+## To-dos（必填）
+- [ ] `<任务号.a>`：…
+- [ ] `<任务号.b>`：…
 
-> 规则：每个 todo 必须映射 `AI_TASK_LIST.md` 的「任务 X.Y」，命名建议 `X.Y.a / X.Y.b / X.Y.c`。一个 plan 建议只覆盖 1~3 个任务，避免整 Phase 打包。
+> 同主题 MCP 合并本 plan；纯脚本 ≤2 文件走 goal-agent。
 
 ## 实施步骤（可选）
-1. S1: 汇总执行链路（可引用 To-dos：`1.4.a -> 1.4.b -> 1.4.c`）
-2. S2: 补充注意事项（并发限制、MCP 串行纪律等）
+1. S1: …
+2. S2: 须 MCP 绑 vs `_resolveRefs`；prefab 用 `create-prefab-from-node`
 
-> 若步骤含新建 `.prefab` 或改 `Main.scene`：必须写「Defense3 工程 + Cocos CLI/MCP」；禁止「手写整份 prefab JSON / CLI 不可用则手写」。须含拆除嵌套 Canvas/Camera（若 CLI 插入）；须含 **MCP 交付门禁**（见 `defense3-workflow.mdc`）与必选 AC「编辑器打开无 missing / 无红错」。
-
-## 校验点（必填，逐条对应 To-dos）
-- [AC-1] <命令>: <预期退出码 / 输出匹配>
-- [AC-2] <命令>: <预期退出码 / 输出匹配>
-
-### MCP 资源任务必填（复制自 defense3-workflow.mdc，按需删减）
-- [AC-S1] `rg '"_id": "Node\.' assets/scenes/Main.scene` — 0 匹配（改 scene 时）
-- [AC-S2] MCP `scene-open` 后 nodeId 均非 `Node.<数字>`（改 scene 时）
-- [AC-P1] 角色/建筑 prefab 无 `"_name": "Canvas"`（新建 character/building prefab 时）
-- [AC-P2] UI：`verify-mcp-gate.ps1` AC-P2-*（无 Canvas/Camera/1×1 UITransform）
-- [AC-P3] MCP `assets-query-asset-info` — `invalid: false`（改 prefab 时）
-- [AC-P3b] MCP `scene-query-component` — 关键 `@property` 非 Missing（改 prefab 时）
-- [AC-P-FAKE] `verify-mcp-gate.ps1` — 无 `default_sprite` / `__editorExtras__` 作弊
-- [AC-EDITOR] 编辑器打开资源无 missing script / 无红错 — **必选，禁止 optional**
+## 校验点
+- [AC-1] …
+### MCP（改过 prefab/scene 时，任务末一次）
+- [AC-GATE] `verify-mcp-gate.ps1` exit 0
+- [AC-P3] 本任务 prefab `invalid: false`
+- [AC-EDITOR-MCP] open + error 日志空
+### 条件 / 不阻塞
+- [AC-P3b] / [AC-S2] 按需
+- [AC-PLAY] 对照 OpenSpec scenarios（若有）— 不阻塞 done
 
 ## 回滚策略
-- 基线：<git commit / 文件清单记录方式>
-- 失败恢复：<如何还原>
+- 基线 / 失败恢复
 
 ## 修订记录
-- v1（<YYYY-MM-DD>）：初始计划
-- v2（<YYYY-MM-DD>）：<改/增/删了哪些步骤与校验点>
+- v1（<YYYY-MM-DD>）：初始
+
+---
+
+## 执行报告须含（build-agent）
+
+### MCP 指标
+| 指标 | 次数/值 |
+|---|---|
+| scene-open | |
+| scene-save | |
+| verify-mcp-gate | |
+| post-scene-save Patched | 0/1 |
+| assets-reimport-asset | |
+| 本任务新建 prefab 数 | |
+| 是否续跑 | yes/no |
+| OpenSpec change（若有） | path / none |

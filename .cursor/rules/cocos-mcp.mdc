@@ -1,112 +1,105 @@
 ---
-description: Cocos MCP 核心纪律：五步交付、串行约束、prefab/scene 合法路径与禁止项
+description: Cocos MCP 操作纪律：任务级交付闭环、串行约束、场景快路径；验收项见 defense3-workflow
 alwaysApply: true
 ---
 
 # Cocos MCP 操作纪律
 
-> 与 `defense3-workflow.mdc`「MCP 交付门禁」配合：本文件规定 **怎么操作**；workflow 规定 **怎么验收**（AC-S* / AC-P*）。
+> **分工**：本文件只规定 **怎么操作**。验收项（AC-GATE / P3 / EDITOR-MCP 等）以 `defense3-workflow.mdc`「MCP 交付门禁」为 **唯一真相源**，此处不重复抄表。
 
-## 五步交付流程（串行，禁止跳步）
+## 任务级交付闭环（串行，禁止跳步）
+
+整任务（不是每个 prefab）走一遍：
 
 | 步 | 动作 | 失败处理 |
 |---|---|---|
-| **1 前置门** | `assets-query-path`（或等价）确认 MCP 绑定 **Defense3** 的 `assets` 目录 | 终止；禁止手写 prefab/scene 降级 |
-| **2 MCP 写入** | 经 MCP 创建/改 scene 或 prefab（本步内遵守「串行纪律」） | 终止或回滚误建节点后重跑 |
-| **3 保存** | `scene-save` / prefab 落盘 / `create-prefab-from-node` | 未 save 不得进入步骤 4 |
-| **4 机器 AC** | `powershell -File .cursor/scripts/verify-mcp-gate.ps1` + workflow AC-S* / AC-P* | 退出码非 0 → **阻塞**，不得标 done |
-| **5 编辑器验收** | Defense3 编辑器打开目标资源，无 missing script、无组件/节点红错 | **必选**；禁止 optional / 待用户 |
+| **1 前置门** | 本会话一次 `assets-query-path`，确认绑定 **Defense3** | 终止；禁止手写 prefab/scene 降级 |
+| **2 MCP 写入** | 同一 `scene-open` 内批量 query + create/update/bind（遵守快路径） | 终止或回滚误建后重跑 |
+| **3 保存** | **任务末**一次 `scene-save` / prefab 落盘 | 未 save 不得进入步骤 4 |
+| **4 机器 AC** | 按 workflow：**AC-GATE** + 本任务 **AC-P3** + **AC-EDITOR-MCP**；条件项按需 | 退出码/查询失败 → **阻塞**，不得标 done |
+| **5 手测（不阻塞 done）** | AC-PLAY / 真人 Inspector 可选 | 报告可标待用户 |
 
-**禁止跳步**：不得在未完成步骤 4 的情况下写「全部 AC 通过」；不得用步骤 4 的 `rg` 通过替代步骤 5。
+**禁止**：未完成步骤 4 写「机器 AC 全部通过」；用 AC-GATE 的 `rg` 结果冒充 AC-EDITOR-MCP；把五步理解成「每资源各跑一轮」。
 
 ## 串行纪律（强制）
 
-1. **禁止并行** `assets-refresh` 与 `assets-reimport-asset`（同一轮交付内二选一、顺序执行；并行易导致 library 与磁盘不一致）。
-2. **scene `_id` 补丁链**（仅允许替换 `Node.*` 非法 `_id`）：`scene-close` → `node .cursor/scripts/patch-scene-node-ids.mjs`（或等价最小 patch）→ **单独** `assets-reimport-asset` → `scene-open` 复验 AC-S2。
-3. **单资源单写链**：对同一 `.prefab` / `Main.scene`，完成「MCP 写 → save → 步骤 4 校验」后再开始下一轮 MCP 写，禁止交叉并行两条写链。
-4. MCP 工具调用失败：最多重试 2 次；仍失败 → 终止并报告，禁止改用手写 JSON「抢救」。
+1. **禁止并行** `assets-refresh` 与 `assets-reimport-asset`（同一轮交付内二选一、顺序执行）。
+2. **scene `_id` 补丁链**（仅替换 `Node.*`）：任务末 `scene-save` → MCP `scene-close` → `powershell -File .cursor/scripts/post-scene-save.ps1`（patch + library 同步）→ 若 `Patched=1`：MCP `assets-reimport-asset` → `scene-open` → AC-GATE；若仍脏再走 workflow 补丁恢复链 / AC-S2。**禁止**手工逐 token 替换或跳过 library 同步声称已修。
+3. **禁止交叉并行写链**：同一时刻不要对两个无关资源各开一套 open/save；**允许**同一 open 内改多个节点/prefab，**任务末一次 save + 一次步骤 4**（与 workflow「批次验收」一致）。**禁止**「每 save 一次就强制跑完整 gate」。
+4. MCP 工具失败：最多重试 2 次；仍失败 → 终止并报告，禁止手写 JSON「抢救」。
 
-## 场景装配快路径（强制 — 解决「比 Defense2 慢一个数量级」）
+## 场景装配快路径（强制）
 
-> Defense2 快在「一次会话内串行做对」；Defense3 慢在「非幂等重试 + 跨崩溃复用 Comp.* + 置 null 崩 CLI（已打 null 容错补丁）+ 反复 save/reimport」。下列为硬约束，违反即视为装配失败。
+> Defense2 快在「一次会话串行做对」；慢因是非幂等重试、跨崩溃复用 `Comp.*`、反复 save/reimport/中途 gate。
 
 ### A. 幂等：查 → 有则改 → 无则建（一次）
 
 | 动作 | 正确 | 禁止 |
 |---|---|---|
-| 节点 | 先 `scene-query-node` 按**稳定路径**查；已存在 → 只 `update` / 绑属性 | 不查就 `create` → `UIManager_001/_002` |
-| 组件 | 先 `scene-query-component`：`节点路径/组件名`（如 `GameRoot/UI/UIManager/UIManager`） | 同一节点反复 `scene-add-component` 同脚本 |
-| Prefab 实例 | 路径已有实例 → 只绑引用 | 同挂点再 `scene-create-node-by-asset` 出第二份 |
+| 节点 | 先 `scene-query-node` 按**稳定路径**；已存在 → update/bind | 不查就 create → `*_001/_002` |
+| 组件 | 先 `scene-query-component`：`节点路径/组件名` | 同节点反复 `scene-add-component` |
+| Prefab 实例 | 路径已有 → 只绑引用 | 同挂点再实例化第二份 |
 
-### B. `Comp.*` / 临时 uuid = **会话级**（崩溃即作废）
+### B. `Comp.*` / 临时 uuid = 会话级
 
-- `scene-set-component-property` 的 `componentPath` **优先**用稳定路径：`GameRoot/UI/UIManager/UIManager`，**不要**跨工具调用缓存 `Comp.872` 当长期句柄。
-- 若不得不使用返回的 `Comp.*` / `uuid`：仅在**同一次** `scene-open` 且中间无 crash / `scene-close` / `reimport` / 编辑器重启时有效。
-- **任意** MCP 失败、CLI 崩溃、`scene-close`、进程重启后：必须重新 `scene-query-*` 取新 id，**禁止**拿报告/日志里的旧 `Comp.N` 继续 set → 典型症状：`No component found` / `scene is not opened`。
+- `componentPath` **优先**稳定路径（如 `GameRoot/UI/UIManager/UIManager`）。
+- `Comp.*` 仅当前 `scene-open` 且无 crash/close/reimport 时有效；之后必须重新 query。
 
-### C. 置 null / 删引用（cocos-cli 已打 null 容错补丁）
+### C. 置 null / 删引用
 
-- cocos-cli `ComponentDump.decode` 已支持 null 值（`component-dump.ts/js`）：允许把组件/Node 引用 `set` 为 `null`，允许删除仍被 `@property` 引用的节点后继续 dump/set，不再触发 `TypeError`。
-- 仍要求：与其余绑定在同一 `scene-open` 会话内完成，结束后 `scene-save` 一次并跑任务级 AC（见 D）。
-- 若运行环境仍是未打补丁的旧 cocos-cli：按旧规避执行（先改绑、再删、不置 null），升级补丁后放开。
+- cocos-cli 已支持 null；与其余绑定同一次 open 内完成，任务末 save 一次再跑门禁。
+- 未打补丁的旧 CLI：先改绑、再删、不置 null。
 
-### D. Save 节流（一次 open 内批量写）
+### D. Save 节流
 
 ```
-scene-open（确认已开则跳过）
-→ 本任务全部 query + create/update/bind（内存中完成）
+scene-open（已开则跳过）
+→ 本任务全部 query + create/update/bind（可脚本兜底的引用不要 MCP set）
 → 仅 scene-save 一次
-→ 立刻 AC-S1；若有 Node.* → close → patch-scene-node-ids → reimport → open（最多一轮）
+→ scene-close → post-scene-save.ps1（若 Patched=1 → reimport → open）
+→ 步骤 4：AC-GATE + AC-P3 + AC-EDITOR-MCP（条件项按需；整任务一次）
 ```
 
-- **禁止**「绑一个 save 一次」「崩了再 save」「边删边 save」。
-- **禁止**为修一个引用而整轮重跑 create；只做幂等补绑。
+- **禁止**绑一条 save 一次、崩了再 save、边删边 save、中途反复完整 gate。
+- **禁止**为修一个引用整轮重跑 create；只做幂等补绑。
 
-### E. 能脚本兜底则少动场景
+### E. 能脚本兜底则少动场景（强制优先）
 
-- 允许 `UIManager._resolveRefs` / `getComponentInChildren` 等运行时补引用，减少 MCP 对可空字段的反复 set。
-- 静态布局（挂点、prefab 实例、坐标）仍须 MCP/编辑器预摆，不走 `onLoad` instantiate。
+- **优先**：`_resolveRefs` / `getChildByName` / `getComponentInChildren` 解析可空 UI/子节点引用。
+- **才用 MCP set**：不可空跨对象引用、静态布局坐标、prefab 实例挂点。
+- 静态布局仍须 MCP/编辑器预摆，不走 `onLoad` instantiate 生成关卡。
 
-## 允许
+## 允许 / 禁止（操作面）
 
-- MCP **合法创建** prefab / scene 节点之后的 **局部 JSON 补丁**，且 **仅限**：
-  - 脚本组件上的 `@property` 引用字段（如 `visualNode`、`background`、`knob`）
-  - 资源引用字段中的 `__uuid__`（SpriteFrame、AnimationClip、Prefab 等）
-- scene 非法 `_id` 的最小替换（见 `defense3-workflow.mdc`「允许的最小 scene 补丁」）
+**允许** MCP 合法创建之后的 **局部 JSON 补丁**：`@property` 引用、资源 `__uuid__`；scene 仅替换非法 `Node.*` `_id`（不得重写 `__id__` 树）。
 
-**局部补丁禁止**：重排或批量改写 `__id__` 节点树、增删节点、改 `_parent`/`_children` 结构、整文件 `Write` 覆盖。
-
-## 禁止
+**禁止**
 
 | 禁止项 | 说明 |
 |---|---|
-| 整文件手写 | 整份 `.prefab` / `Main.scene` JSON 落盘（含 `Write`、生成脚本一次性写出） |
-| 脚本整文件重建 | `.cursor/_fix_prefabs.mjs`、`.cursor/_gen_prefabs.mjs` 或同类工具 **整文件生成/重建** |
-| 骗过机器 AC | 在 `__editorExtras__`、注释或无关字段塞 `default_sprite` 等 **字面量** 以通过 `rg` |
-| 并行 refresh+reimport | 见「串行纪律」 |
-| Defense2 拷贝 | 从他工程拷贝 prefab/scene 仅改 uuid 充当本仓库产物 |
-| 无 MCP 降级 | MCP 不可用或绑错工程时手写冒充交付 |
+| 整文件手写 | 整份 `.prefab` / `Main.scene`（Write / 生成脚本） |
+| 脚本整文件重建 | `_fix_prefabs.mjs` / `_gen_prefabs.mjs` 等 |
+| 骗过机器 AC | `__editorExtras__` 等塞 `default_sprite` 字面量 |
+| 并行 refresh+reimport | 见串行纪律 |
+| Defense2 拷贝 | 仅改 uuid 冒充本仓库产物 |
+| 无 MCP 降级 | 绑错/不可用时手写冒充交付 |
 
-## Prefab 推荐路径（避免 CLI 副作用）
-
-**推荐**（UI / 世界物体均适用）：
+## Prefab 创建路径（强制）
 
 ```
-scene-open → scene-create-node-by-type（Empty 等）搭好节点树
-→ 组件/尺寸在场景里调好 → create-prefab-from-node → 删除场景临时节点（可选）
+scene-open → scene-create-node-by-type（Empty 等）搭树
+→ 组件/尺寸调好 → create-prefab-from-node → 删除场景临时节点（可选）
 ```
 
-**避免**：`assets-create-asset-by-type` **直接**创建 `Sprite` / `Label` / `Button` 等——CLI 常自动插入 **Canvas / Camera** 包装层，后续须额外拆除，易漏检。
+**禁止** `assets-create-asset-by-type` **直接**创建 `Sprite` / `Label` / `Button`（易插 Canvas/Camera）。Empty/文件夹除外。误用导致包装层 → 同一次 build 内拆除，否则终止（AC-GATE 内 P1/P2）。
 
-**若必须用 `assets-create-asset-by-type`**：同一次 build 内 MCP 拆除嵌套 Canvas/Camera 并跑 AC-P1 / AC-P2，否则 **终止**。
-
-## 关键 MCP 工具索引
+## 常用 MCP 工具
 
 | 用途 | 工具 |
 |---|---|
 | 工程绑定 | `assets-query-path` |
-| 场景节点 | `scene-open` / `scene-create-node-by-type` / `scene-update-node` / `scene-save` / `scene-close` |
+| 场景 | `scene-open` / `scene-create-node-by-type` / `scene-update-node` / `scene-save` / `scene-close` |
 | 从场景生成 prefab | `create-prefab-from-node` |
-| 资源校验 | `assets-query-asset-info`（`invalid: false`） |
-| 组件绑定 | `scene-query-component`（prefab 打开后查关键 `@property`） |
+| 资源校验 | `assets-query-asset-info` |
+| 组件绑定 | `scene-query-component` |
 | 单资源刷新 | `assets-reimport-asset`（勿与 `assets-refresh` 并行） |

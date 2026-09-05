@@ -50,10 +50,16 @@
     "_components": [
       {
         "__id__": 28
+      },
+      {
+        "__id__": 30
+      },
+      {
+        "__id__": 32
       }
     ],
     "_prefab": {
-      "__id__": 30
+      "__id__": 34
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -113,7 +119,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": 2.121,
       "y": 0,
       "z": 0
     },
@@ -154,8 +160,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 250,
+      "height": 250
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -191,7 +197,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "9594c832-5943-426c-8e6a-a3e74b745cf7@f9941",
+      "__uuid__": "db0a1fef-e84f-4133-adda-c080a4dcb432@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -675,7 +681,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 69.019,
-      "y": 111.636,
+      "y": 45.18,
       "z": 0
     },
     "_lrot": {
@@ -726,6 +732,7 @@
     "__prefab": {
       "__id__": 29
     },
+    "maxHp": 0,
     "visualNode": {
       "__id__": 2
     },
@@ -764,6 +771,74 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "sc_barracks"
+  },
+  {
+    "__type__": "cc.RigidBody2D",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 31
+    },
+    "enabledContactListener": false,
+    "bullet": false,
+    "awakeOnLoad": true,
+    "_group": 16,
+    "_type": 0,
+    "_allowSleep": true,
+    "_gravityScale": 1,
+    "_linearDamping": 0,
+    "_angularDamping": 0,
+    "_linearVelocity": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_angularVelocity": 0,
+    "_fixedRotation": false,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "46aOaAC6BIWprjUXzLahEC"
+  },
+  {
+    "__type__": "cc.BoxCollider2D",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 33
+    },
+    "tag": 0,
+    "_group": 16,
+    "_density": 1,
+    "_sensor": false,
+    "_friction": 0.2,
+    "_restitution": 0,
+    "_offset": {
+      "__type__": "cc.Vec2",
+      "x": -5.8,
+      "y": 62.5
+    },
+    "_size": {
+      "__type__": "cc.Size",
+      "width": 202.4,
+      "height": 90.3
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "9cHwQU2zxEWK+tw1iKV+o8"
   },
   {
     "__type__": "cc.PrefabInfo",
