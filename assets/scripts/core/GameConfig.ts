@@ -61,11 +61,13 @@ export class GameConfig {
     static readonly heroFollowDistance = 1.5;
     /**
      * 英雄相对玩家的软拴绳半径（世界单位）。
-     * ≤0 时用 heroFollowDistance * 3，防止脱节。
+     * ≤0 时用 max(heroFollowDistance * 8, 12)，防止脱节。
      */
     static readonly heroFollowLeash = 0;
     /** Boss 重新索敌间隔（秒） */
     static readonly bossRetargetInterval = 5;
+    /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
+    static readonly minionAggroRange = 420;
     static readonly minionMoveSpeed = 2;
     static readonly bossMoveSpeed = 3;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */

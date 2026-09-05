@@ -1,5 +1,6 @@
 import {
     _decorator,
+    BoxCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -13,6 +14,7 @@ import {
 } from 'cc';
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
+import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
@@ -72,6 +74,7 @@ export class Hero extends Component {
     private _currentLocomotionClip = '';
     private _pendingTarget: Node | null = null;
     private _loadingProjectile = false;
+    private _airWalls: BoxCollider2D[] = [];
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _playerPos = new Vec3();
@@ -270,9 +273,18 @@ export class Hero extends Component {
         const isMoving = dist > stopDist;
 
         if (isMoving) {
-            const invDist = 1 / dist;
-            this._velocity.x = dx * invDist * GameConfig.heroFollowSpeed;
-            this._velocity.y = dy * invDist * GameConfig.heroFollowSpeed;
+            const size = AirWallAabb.bodySize(this.node);
+            const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+            AirWallAabb.steerDirection(
+                this._selfPos,
+                this._desiredPos,
+                size.w,
+                size.h,
+                walls,
+                this._velocity,
+            );
+            this._velocity.x *= GameConfig.heroFollowSpeed;
+            this._velocity.y *= GameConfig.heroFollowSpeed;
         } else {
             this._velocity.set(0, 0);
         }
@@ -294,7 +306,7 @@ export class Hero extends Component {
         if (configured > 0) {
             return configured;
         }
-        return Math.max(GameConfig.heroFollowDistance * 3, 4);
+        return Math.max(GameConfig.heroFollowDistance * 8, 12);
     }
 
     private _clampToLeash(pos: Vec3, playerPos: Vec3, leash: number): void {

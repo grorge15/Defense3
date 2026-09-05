@@ -500,6 +500,54 @@
 
 ---
 
+## fix-player-attack-frame-011 — 主角出箭帧改到 frame_011
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 主角攻击帧事件应对齐 `frame_011`，实际出箭偏早。 |
+| **原因** | `CombatSystem` 兜底 `PLAYER_ATTACK_HIT_FALLBACK=0.45`，早于 `.anim` 事件 0.7，且 `fired` 后忽略真正的 frame_011。 |
+| **解决** | 兜底改为 0.72（晚于 frame_011@0.7）；clip `_events` 保持 `frame: 0.7`。 |
+
+---
+
+## fix-boss-path-steer — 优化 Boss 绕障寻路
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 贴墙易卡住、绕障不稳。 |
+| **原因** | `steerDirection` 探测偏短、缺大偏角；卡住无脱困。 |
+| **解决** | 双距探测 + 150/180°；卡住加大 probe 并侧向滑行。 |
+
+---
+
+## fix-hero-cannot-reach-follow — 英雄有时跟不到位
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄跟随玩家时偶发走不到目标点。 |
+| **原因** | Dynamic 非 sensor 撞 airWall 无绕行；拴绳过紧（`distance*3`）。 |
+| **解决** | 跟随用 `AirWallAabb.steerDirection`；拴绳改为 `distance*8`（至少 12）。 |
+
+---
+
+## fix-preenemy-swarm-player — 远端预置怪运行时挤到玩家旁
+
+### v1（2026-09-05）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 场景里放得很远的 enemy，运行时全出现在玩家周围。 |
+| **原因** | ① 预置怪开局即 `setTarget` 且无索敌半径，全图追击；② `EnemySpawner._farActive` 开局就刷。 |
+| **解决** | `minionAggroRange=420`，范围外 idle；远端刷怪改 LOG_FIXED 后再启用。 |
+
+---
+
 ## fix-player-ranged-arrow-frame — 玩家应帧事件出箭射敌
 
 ### v1（2026-09-05）

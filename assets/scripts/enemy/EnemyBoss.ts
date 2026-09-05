@@ -86,6 +86,8 @@ export class EnemyBoss extends Component {
     private _lockedTarget: Node | null = null;
     private _retargetTimer = 0;
     private _nextBuildOrder = 1;
+    private _stuckFrames = 0;
+    private readonly _lastPos = new Vec3();
     private readonly _velocity = new Vec2();
     private readonly _facingDir = new Vec2(0, 1);
     private readonly _selfPos = new Vec3();
@@ -411,6 +413,7 @@ export class EnemyBoss extends Component {
         this._lockedTarget = null;
         this._retargetTimer = 0;
         this._nextBuildOrder = 1;
+        this._stuckFrames = 0;
         this._attackTimer = 0;
         this._isDead = false;
         this._canMove = true;
@@ -479,6 +482,9 @@ export class EnemyBoss extends Component {
 
         const size = AirWallAabb.bodySize(this.node, 60, 60);
         const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+        // 卡住时加大探测距离，逼出侧向绕行
+        const stuck = this._stuckFrames > 12;
+        const probe = stuck ? Math.max(size.w, size.h) * 2.2 : undefined;
         AirWallAabb.steerDirection(
             this._selfPos,
             this._targetPos,
@@ -486,13 +492,35 @@ export class EnemyBoss extends Component {
             size.h,
             walls,
             this._toTarget,
+            probe,
         );
+        // 贴墙全堵：沿朝向的法线滑行一帧
+        if (
+            stuck &&
+            this._toTarget.x === this._facingDir.x &&
+            this._toTarget.y === this._facingDir.y
+        ) {
+            this._toTarget.set(-this._facingDir.y, this._facingDir.x);
+        }
         this._velocity.x = this._toTarget.x * GameConfig.bossMoveSpeed;
         this._velocity.y = this._toTarget.y * GameConfig.bossMoveSpeed;
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        this._updateStuck(dist);
         this._updateLocomotionAnim(true);
+    }
+
+    private _updateStuck(targetDist: number): void {
+        const moved =
+            Math.abs(this._selfPos.x - this._lastPos.x) +
+            Math.abs(this._selfPos.y - this._lastPos.y);
+        this._lastPos.set(this._selfPos);
+        if (targetDist > this.attackTriggerRange && moved < 0.08) {
+            this._stuckFrames += 1;
+        } else {
+            this._stuckFrames = 0;
+        }
     }
 
     private _applyLineAttack(): void {

@@ -28,7 +28,8 @@ export class EnemySpawner extends Component {
 
     private _timer = 0;
     private _alive = 0;
-    private _farActive = true;
+    /** 远端刷怪默认关；LOG_FIXED 后再开，避免开局怪堆在玩家附近 */
+    private _farActive = false;
     private _leftStopped = false;
     private _rightStopped = false;
     private _leftSpawnRoot: Node | null = null;
@@ -159,6 +160,8 @@ export class EnemySpawner extends Component {
     };
 
     private _onLogFixed = (): void => {
+        this._farActive = true;
+        this._timer = 0;
         if (this.leftSpawnRoot) {
             this.leftSpawnRoot.active = true;
             this._startSideSpawning(this.leftSpawnRoot, 'left');

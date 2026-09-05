@@ -3,8 +3,8 @@ import { BoxCollider2D, Rect, Scene, Vec2, Vec3 } from 'cc';
 const _wallRect = new Rect();
 const _selfRect = new Rect();
 const _probePos = new Vec3();
-/** 绕障试探角（度）：先正后负，由小到大 */
-const STEER_ANGLES_DEG = [0, 30, -30, 60, -60, 90, -90, 120, -120];
+/** 绕障试探角（度）：先正后负；含 150/180 便于脱困墙角 */
+const STEER_ANGLES_DEG = [0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180];
 
 /**
  * 高台 airWall* AABB 阻挡（位移驱动 + sensor 时物理不会挡）。
@@ -172,7 +172,7 @@ export class AirWallAabb {
             return;
         }
 
-        const step = probeDist ?? Math.max(width, height, 24) * 0.65;
+        const step = probeDist ?? Math.max(width, height, 40) * 1.15;
         let bestDot = Number.NEGATIVE_INFINITY;
         let found = false;
         let bestX = desiredX;
@@ -184,26 +184,24 @@ export class AirWallAabb {
             const sin = Math.sin(rad);
             const dirX = desiredX * cos - desiredY * sin;
             const dirY = desiredX * sin + desiredY * cos;
+            _probePos.set(from.x + dirX * step * 0.5, from.y + dirY * step * 0.5, from.z);
+            if (AirWallAabb.overlapsAny(_probePos, width, height, walls)) {
+                continue;
+            }
             _probePos.set(from.x + dirX * step, from.y + dirY * step, from.z);
             if (AirWallAabb.overlapsAny(_probePos, width, height, walls)) {
                 continue;
             }
             const dot = dirX * desiredX + dirY * desiredY;
-            if (!found) {
+            if (!found || dot > bestDot + 1e-4) {
                 found = true;
                 bestDot = dot;
                 bestX = dirX;
                 bestY = dirY;
+                // 直线畅通则直接用
                 if (deg === 0) {
                     break;
                 }
-                continue;
-            }
-            // 已有候选：优先更大的朝向进度；同进度取更小偏角（数组已按 |角| 排序，先到先得）
-            if (dot > bestDot + 1e-4) {
-                bestDot = dot;
-                bestX = dirX;
-                bestY = dirY;
             }
         }
 

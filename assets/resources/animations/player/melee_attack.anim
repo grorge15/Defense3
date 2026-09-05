@@ -12,7 +12,7 @@
     "wrapMode": 1,
     "enableTrsBlending": false,
     "_duration": 0.7,
-    "_hash": 0,
+    "_hash": 500763545,
     "_tracks": [
       {
         "__id__": 1
@@ -21,7 +21,7 @@
     "_exoticAnimation": null,
     "_events": [
       {
-        "frame": 0.4,
+        "frame": 0.7,
         "func": "onAttackFrameHit",
         "params": []
       }

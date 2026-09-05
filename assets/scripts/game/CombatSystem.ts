@@ -8,10 +8,10 @@ import { Arrow } from '../projectile/Arrow';
 
 const { ccclass, property } = _decorator;
 
-/** 与 assets/resources/animations/player/melee_attack.anim `_duration` 对齐 */
+/** 与 assets/resources/animations/player/melee_attack.anim 对齐 */
 const PLAYER_MELEE_ATTACK_DURATION = 0.7;
-/** 命中帧约 0.4；兜底略晚于帧事件、早于 clip 结束 */
-const PLAYER_ATTACK_HIT_FALLBACK = 0.45;
+/** frame_011 @ sample=10 → 0.7s；兜底须略晚，禁止提前出箭 */
+const PLAYER_ATTACK_HIT_FALLBACK = 0.72;
 
 /**
  * 玩家远程射箭：
@@ -132,7 +132,7 @@ export class CombatSystem extends Component {
                     this._spawnArrow(t);
                 }
             },
-            Math.min(PLAYER_ATTACK_HIT_FALLBACK, animDuration * 0.65),
+            PLAYER_ATTACK_HIT_FALLBACK,
             () => {
                 player.setAttacking(false);
             },

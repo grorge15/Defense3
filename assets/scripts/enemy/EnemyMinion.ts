@@ -199,6 +199,10 @@ export class EnemyMinion extends Component {
 
         // 分离半径 48 曾大于 attackRange 40 → 永远摸不到攻击距；出手距至少覆盖分离
         const meleeRange = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
+        if (dist > GameConfig.minionAggroRange) {
+            this._halt(false);
+            return;
+        }
         if (dist <= meleeRange) {
             this._halt(true);
             return;
