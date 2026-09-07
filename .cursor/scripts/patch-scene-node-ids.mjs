@@ -42,7 +42,7 @@ for (const [from, to] of Object.entries(map)) {
 }
 fs.writeFileSync(abs, s);
 
-const remain = (s.match(/"_id": "Node\./g) || []).length;
+const remain = (s.match(/Node\.\d+/g) || []).length;
 const reportDir = '.cursor/plans/reports';
 fs.mkdirSync(reportDir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -53,6 +53,6 @@ fs.writeFileSync(
     .map(([a, b]) => `${a} -> ${b}`)
     .join('\n') + '\n',
 );
-console.log(`patched ${tokens.length} tokens → ${scenePath}; remaining _id Node.*=${remain}`);
+console.log(`patched ${tokens.length} tokens → ${scenePath}; remaining Node.*=${remain}`);
 console.log(`map: ${reportPath}`);
 if (remain !== 0) process.exit(2);

@@ -11,6 +11,7 @@ import {
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
+import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
 import { Log } from '../item/Log';
 
@@ -19,14 +20,15 @@ const { ccclass, property } = _decorator;
 /**
  * 跑酷电锯陷阱：Trigger 碰玩家造成伤害，碰滚木砍短。
  * 玩家/滚木用 setPosition + 传感器时物理接触常丢，故加 AABB/距离轮询。
+ * 视觉以序列帧 spin 为主；程序 euler 默认关闭（spinSpeed=0）。
  */
 @ccclass('SawTrap')
 export class SawTrap extends Component {
     @property({ type: Node, tooltip: 'Visual 子节点（Sprite + Billboard + SortingOrder2D）' })
     visualNode: Node | null = null;
 
-    @property({ tooltip: '旋转速度（度/秒），程序动画' })
-    spinSpeed = 360;
+    @property({ tooltip: '旋转速度（度/秒）；有序列帧时应为 0，避免双重旋转' })
+    spinSpeed = 0;
 
     @property({ tooltip: '无碰撞体时的兜底命中半径（世界单位）' })
     hitRadius = 60;
@@ -55,6 +57,9 @@ export class SawTrap extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        if (this.visualNode) {
+            playAnim(this.visualNode, 'spin');
+        }
     }
 
     onDestroy(): void {
@@ -64,7 +69,7 @@ export class SawTrap extends Component {
     }
 
     update(dt: number): void {
-        if (this.visualNode) {
+        if (this.spinSpeed !== 0 && this.visualNode) {
             const euler = this.visualNode.eulerAngles;
             this.visualNode.setRotationFromEuler(euler.x, euler.y, euler.z + this.spinSpeed * dt);
         }

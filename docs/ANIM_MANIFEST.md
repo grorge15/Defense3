@@ -41,6 +41,18 @@
 | `角色/英雄2/死亡` | 9 | hero_02 / die | Normal |
 | `动画-木杆` | 10 | log / roll（可选） | — |
 
+### v2 道具 / 陷阱 / 箭矢 / 升级特效映射
+
+| 磁盘路径 | PNG 数（磁盘） | clip / 用途 | wrapMode |
+|---|---|---|---|
+| `sprite/frames/动画-圆锯` | 4 | `animations/saw/spin` → `pref_trap_saw` 循环 | Loop |
+| `sprite/特效/主角远程攻击特效` | 4 | `animations/vfx/arrow_trail` → `pref_projectile_arrow` 飞行中循环 | Loop |
+| `sprite/特效/蓝色升级特效序列帧` | 9 | `animations/vfx/upgrade_blue` → `pref_vfx_upgrade_blue` | Normal |
+| `sprite/特效/黄色升级特效序列帧` | 9 | `animations/vfx/upgrade_yellow` → `pref_vfx_upgrade_yellow` | Normal |
+| （无帧，程序） | — | `pref_item_bow` / `pref_item_log_extend` Visual **Y 轴循环浮动**（`TweenUtil.floatLocalY`） | — |
+
+> bow / log_extend **不为序列帧**；拾取 hop 前与销毁须 `TweenUtil.stopTweensOn(visual)`。电锯以序列帧为主，程序 euler `spinSpeed=0`。
+
 > **实际帧数以磁盘为准**；勿裁到下方「历史英文区间表」假想范围。
 
 ### 缺帧 → 必须留空（禁止凑帧）
@@ -56,8 +68,8 @@
 
 | 类型 | clips | wrapMode |
 |---|---|---|
-| 循环 | idle, walk | Loop |
-| 不循环 | attack, die, melee_attack | Normal（播完停） |
+| 循环 | idle, walk, spin, arrow_trail | Loop |
+| 不循环 | attack, die, melee_attack, upgrade_blue, upgrade_yellow | Normal（播完停） |
 
 > 脚本调用 clip 名用 camelCase：`meleeAttack` / `remoteAttack`；磁盘 action 用 snake_case：`melee_attack` / `remote_attack`；`AnimUtil` 负责映射。
 

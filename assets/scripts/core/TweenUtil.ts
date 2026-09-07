@@ -1,4 +1,4 @@
-import { Node, Vec3, tween, UIOpacity } from 'cc';
+import { Node, Tween, Vec3, tween, UIOpacity } from 'cc';
 
 const _tmpA = new Vec3();
 const _tmpB = new Vec3();
@@ -76,11 +76,37 @@ export class TweenUtil {
         TweenUtil.moveWorldParabola(node, _tmpA, targetWorld, duration, arcHeight, onComplete);
     }
 
-    static stopTweensOn(node: Node): void {
-        tween(node).stop();
+    /**
+     * Visual 本地 Y 轴往返浮动（道具 idle）。
+     * 幅度为世界单位；调用前若需重启请先 stopTweensOn。
+     */
+    static floatLocalY(node: Node, amplitude = 6, halfPeriod = 0.55): void {
+        if (!node?.isValid) {
+            return;
+        }
+        TweenUtil.stopTweensOn(node);
+        const base = node.position.clone();
+        const up = new Vec3(base.x, base.y + amplitude, base.z);
+        const down = new Vec3(base.x, base.y - amplitude, base.z);
+        const t = Math.max(0.05, halfPeriod);
+        tween(node)
+            .to(t, { position: up }, { easing: 'sineInOut' })
+            .to(t * 2, { position: down }, { easing: 'sineInOut' })
+            .to(t, { position: base }, { easing: 'sineInOut' })
+            .union()
+            .repeatForever()
+            .start();
+    }
+
+    static stopTweensOn(node: Node | null | undefined): void {
+        // 销毁过程中子节点可能已 invalid，getComponent 会读 null._components.length
+        if (!node || !node.isValid) {
+            return;
+        }
+        Tween.stopAllByTarget(node);
         const opacity = node.getComponent(UIOpacity);
-        if (opacity) {
-            tween(opacity).stop();
+        if (opacity?.isValid) {
+            Tween.stopAllByTarget(opacity);
         }
     }
 }

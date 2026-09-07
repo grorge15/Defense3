@@ -590,4 +590,54 @@
 | **原因** | 旧优先级 hero>building；同级取最近；每帧重选无锁定。 |
 | **解决** | `building/barrier/log` 同为 Structure 档；`buildOrder` 升序；`bossRetargetInterval=5` 锁定目标；`BuildSystem` 注册时递增建造序号。 |
 
+---
+
+## fix-scene-prefab-null-expand — 预览加载 `__prefab` null
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 预览运行 `Main.scene` 报 `TypeError: Cannot read properties of null (reading '__prefab')`，栈在 `generateTargetMap` → `expandNestedPrefabInstanceNode` → `Scene._load`。 |
+| **原因** | 场景里 42 个 prefab 实例的 `_children`/`_components` 被序列化成 `[null,…]` 占位；运行时展开嵌套 prefab 时遍历到 null 组件崩溃。编辑器打开/保存常会再次写入这类占位。 |
+| **解决** | 最小补丁去掉实例上的 null（保留真实挂载组件如 player 上的 SortingOrder2D）；`patch-scene-prefab-nulls.mjs` 并入 `post-scene-save.ps1`；同步 library 后 reimport。门禁 AC-S1b 已覆盖。 |
+
+### v2（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `assets/scenes/Main.scene` 已无 prefab null，预览仍报 `__prefab` null（同栈）。 |
+| **原因** | 运行时读的是 `library/27/2786ab12-….json`，该缓存仍含大量 `_children`/`_components` null；assets 干净时 `post-scene-save` 因 `RemovedNulls=0` 跳过 library 同步。 |
+| **解决** | 强制把干净 scene 同步进 library 并 `assets-reimport-asset`；`post-scene-save.ps1` 在 assets 干净时仍检查 library null 计数，脏则强制 Sync。 |
+
+### v3（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 编辑器预览 `Cannot read properties of null (reading 'length')` + 大量 `Command 'draw' must be recorded inside a render pass`；角色/序列帧动画全部不可见。紧随 6.1 执行后出现。 |
+| **原因** | ① 6.1 场景保存后 `PrefabInfo.fileId` 残留 `Node.*`（门禁只查 `_id` 漏检），嵌套 prefab 展开目标表错乱；② 6.1 误触后把 `player/parkour|skill` 与士兵空 clip **回滚成旧版** `curveDatas/_keys` 占位，与 3.8 `ObjectTrack` clip 混挂在同一 `Animation` 上，初始化/播片时读 null.length，Sprite 绘制链失败。 |
+| **解决** | 全量替换场景任意 `Node.*`（含 fileId）并同步 library；AC-S1/`post-scene-save` 改为匹配任意 `Node.\d+`；8 个旧格式空 clip 改为 3.8 空 `_tracks` 结构并 reimport。 |
+
+### v4（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 预览仍报 `Can not find class 'cc.Sorting2D'`，随后 `generateTargetMap` → `null.__prefab`，场景无法加载。 |
+| **原因** | `pref_build_plot` 上原自定义 `SortingOrder2D` 被改成引擎 `cc.Sorting2D`，但项目未开启「2D Rendering Sorting」特性，浏览器/预览无此类；缺类组件在展开嵌套 prefab 时变成 null。 |
+| **解决** | 恢复 `pref_build_plot` 为 `SortingOrder2D`（及误改的 UI 尺寸/`instance` 字段），并同步 library。 |
+
+---
+
+## fix-log-extend-autodestroy-tween — 开局无操作连环 destroy / length null
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 场景可见后无操作即反复 `Cannot read properties of null (reading 'length')`（`TweenUtil.stopTweensOn` → `getComponent`）与 `destroy a object twice`；栈在 `LogExtendItem.onDestroy`。 |
+| **原因** | `update` 对静止滚木做距离拾取，开局道具贴着滚木瞬间全 `_consume`→`destroy`；销毁中子节点已 invalid 仍 `getComponent`；`tween(node).stop()` 停不掉 `floatLocalY` 的 forever tween。 |
+| **解决** | 距离拾取只对玩家，滚木仍靠接触；`Tween.stopAllByTarget` + `isValid` 守卫；hop 回调防二次 destroy。`BowItem` 同步加固。 |
+
+---
+
 

@@ -1,0 +1,4 @@
+saw/spin.anim	frames=4	wrap=2
+vfx/arrow_trail.anim	frames=4	wrap=2
+vfx/upgrade_blue.anim	frames=9	wrap=1
+vfx/upgrade_yellow.anim	frames=9	wrap=1

@@ -30,14 +30,14 @@ function Test-UiPrefabOneByOne($filePath) {
     return $hits
 }
 
-# --- AC-S1: Main.scene Node.* _id ---
+# --- AC-S1: Main.scene Node.* (any field: _id / PrefabInfo.fileId / etc.) ---
 $scene = Join-Path $root "assets/scenes/Main.scene"
 if (Test-Path $scene) {
-    $m = Select-String -Path $scene -Pattern '"_id": "Node\.'
+    $m = Select-String -Path $scene -Pattern 'Node\.\d+'
     if ($m) {
-        Fail "AC-S1" "Main.scene has Node.* _id ($($m.Count) hit(s))"
+        Fail "AC-S1" "Main.scene has Node.* token(s) ($($m.Count) hit(s); includes fileId)"
     } else {
-        Pass "AC-S1" "Main.scene has no Node.* _id"
+        Pass "AC-S1" "Main.scene has no Node.* tokens"
     }
     $nullPrefab = Select-String -Path $scene -Pattern '"_children": \[\s*null|"_components": \[\s*null'
     if ($nullPrefab) {

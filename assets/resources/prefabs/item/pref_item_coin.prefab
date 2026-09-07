@@ -167,7 +167,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "9594c832-5943-426c-8e6a-a3e74b745cf7@f9941",
+      "__uuid__": "64fc7eff-0032-4a47-8612-11f2745ffbca@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -237,7 +237,10 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.4504"
+    "fileId": "Node.4504",
+    "instance": null,
+    "targetOverrides": null,
+    "nestedPrefabInstanceRoots": null
   },
   {
     "__type__": "3ca35y4+RtK7apBrykNCM2S",
@@ -268,6 +271,8 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "Node.4113"
+    "fileId": "Node.4113",
+    "instance": null,
+    "targetOverrides": null
   }
 ]
