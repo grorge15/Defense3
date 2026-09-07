@@ -4,7 +4,7 @@ import { EnemyBoss } from './EnemyBoss';
 const { ccclass, property } = _decorator;
 
 /**
- * Boss 首次生成：挂 BossSpawn_First；LOG_FIXED / CombatGuide 后 spawn 一次。
+ * Boss 首次生成：挂 BossSpawn_First；CombatGuide 后按建造流程 spawn 一次。
  */
 @ccclass('BossSpawner')
 export class BossSpawner extends Component {

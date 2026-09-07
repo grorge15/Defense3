@@ -19,7 +19,7 @@ import { GameEvents } from '../core/GameEvents';
 import { CoinSystem } from '../game/CoinSystem';
 import { Log } from '../item/Log';
 import { Player } from '../character/Player';
-import { UIManager } from '../ui/UIManager';
+import { HpBarUI } from '../ui/HpBarUI';
 import { EnemyAI } from './EnemyAI';
 
 const { ccclass, property } = _decorator;
@@ -86,7 +86,7 @@ export class EnemyMinion extends Component {
 
     start(): void {
         this.scheduleOnce(() => {
-            UIManager.instance?.spawnHpBar('enemy', this.node, this.visualNode ?? this.node);
+            this._bindEmbeddedHpBar();
         }, 0);
     }
 
@@ -172,6 +172,7 @@ export class EnemyMinion extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'idle');
         }
+        this._bindEmbeddedHpBar();
     }
 
     update(_dt: number): void {
@@ -429,5 +430,14 @@ export class EnemyMinion extends Component {
         }
         this._currentLocomotionClip = clip;
         playAnim(this.visualNode, clip);
+    }
+
+    private _bindEmbeddedHpBar(): void {
+        const bar = this.node.getComponentInChildren(HpBarUI);
+        if (!bar) {
+            return;
+        }
+        bar.bindTarget(this.node);
+        bar.applyHp(this._hp, GameConfig.minionMaxHp, true);
     }
 }

@@ -1,8 +1,8 @@
 /** 全局游戏事件名常量 */
 export const GameEvents = {
     PHASE_CHANGED: 'phase_changed',
-    /** 滚木在蓝线固定：跑酷段结束；隐藏电锯/加长道具；玩家切防守移动 */
-    LOG_FIXED: 'log_fixed',
+    /** 滚木到达蓝线：跑酷段结束；不代表滚木固定成功 */
+    PARKOUR_FINISHED: 'parkour_finished',
     /** 蓝线长度不足：滚木淡出失败；不进入 CombatGuide/建造 */
     LOG_FAILED: 'log_failed',
     /** 左右墙均建完：隐藏预置怪/黄蓝线；滚木保留（ParkourContent 子树外） */

@@ -1,7 +1,10 @@
 import { _decorator, Component, instantiate, Node, Prefab } from 'cc';
+import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { GameManager } from '../game/GameManager';
+import { GamePhase } from '../game/GamePhase';
 import { EnemyMinion } from './EnemyMinion';
 
 const { ccclass, property } = _decorator;
@@ -20,15 +23,15 @@ export class EnemySpawner extends Component {
     @property({ type: Node, tooltip: '生成后朝向的目标（玩家）' })
     target: Node | null = null;
 
-    @property({ type: Node, tooltip: 'LOG_FIXED 后激活的左侧刷怪点' })
+    @property({ type: Node, tooltip: 'PARKOUR_FINISHED 后激活的左侧刷怪点' })
     leftSpawnRoot: Node | null = null;
 
-    @property({ type: Node, tooltip: 'LOG_FIXED 后激活的右侧刷怪点' })
+    @property({ type: Node, tooltip: 'PARKOUR_FINISHED 后激活的右侧刷怪点' })
     rightSpawnRoot: Node | null = null;
 
     private _timer = 0;
     private _alive = 0;
-    /** 远端刷怪默认关；LOG_FIXED 后再开，避免开局怪堆在玩家附近 */
+    /** 远端刷怪默认关；PARKOUR_FINISHED 后再开，避免开局怪堆在玩家附近 */
     private _farActive = false;
     private _leftStopped = false;
     private _rightStopped = false;
@@ -36,6 +39,8 @@ export class EnemySpawner extends Component {
     private _rightSpawnRoot: Node | null = null;
     private readonly _pool: EnemyMinion[] = [];
     private readonly _spawnOrigin = new Map<EnemyMinion, Node>();
+    private readonly _spawnCursor = new Map<string, number>();
+    private readonly _spawnPoints: Node[] = [];
 
     private readonly _leftSpawnTick = (): void => {
         if (this._leftStopped || !this._leftSpawnRoot) {
@@ -61,12 +66,20 @@ export class EnemySpawner extends Component {
         if (this.rightSpawnRoot) {
             this.rightSpawnRoot.active = false;
         }
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
     }
 
+    start(): void {
+        this._resolveTarget();
+        const phase = GameManager.instance?.getPhase();
+        if (phase && phase !== GamePhase.RunParkour) {
+            this._activateFarSpawning();
+        }
+    }
+
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         this.unscheduleAllCallbacks();
     }
@@ -76,6 +89,7 @@ export class EnemySpawner extends Component {
     }
 
     update(dt: number): void {
+        this._resolveTarget();
         if (!this._farActive || !this.enemyPrefab || !this.spawnPoint) {
             return;
         }
@@ -95,7 +109,7 @@ export class EnemySpawner extends Component {
         if (this._alive >= GameConfig.poolMaxEnemies) {
             return;
         }
-        if (!this._spawnAt(point)) {
+        if (!this._spawnAt(this._nextSpawnPoint(point))) {
             return;
         }
     }
@@ -159,7 +173,15 @@ export class EnemySpawner extends Component {
         }, GameConfig.enemyRespawnDelay);
     };
 
-    private _onLogFixed = (): void => {
+    private _onParkourFinished = (): void => {
+        this._activateFarSpawning();
+    };
+
+    private _activateFarSpawning(): void {
+        if (this._farActive) {
+            return;
+        }
+        this._resolveTarget();
         this._farActive = true;
         this._timer = 0;
         if (this.leftSpawnRoot) {
@@ -170,7 +192,38 @@ export class EnemySpawner extends Component {
             this.rightSpawnRoot.active = true;
             this._startSideSpawning(this.rightSpawnRoot, 'right');
         }
-    };
+        if (this.spawnPoint) {
+            this._trySpawnAt(this.spawnPoint);
+        }
+    }
+
+    private _nextSpawnPoint(root: Node): Node {
+        const points = this._collectSpawnPoints(root);
+        const key = root.uuid;
+        const next = this._spawnCursor.get(key) ?? 0;
+        const point = points[next % points.length] ?? root;
+        this._spawnCursor.set(key, (next + 1) % Math.max(1, points.length));
+        return point;
+    }
+
+    private _collectSpawnPoints(root: Node): Node[] {
+        this._spawnPoints.length = 0;
+        if (root.activeInHierarchy) {
+            this._spawnPoints.push(root);
+        }
+        for (const child of root.children) {
+            if (!child.activeInHierarchy) {
+                continue;
+            }
+            if (child.name.startsWith('SpawnPoint_')) {
+                this._spawnPoints.push(child);
+            }
+        }
+        if (this._spawnPoints.length === 0) {
+            this._spawnPoints.push(root);
+        }
+        return this._spawnPoints;
+    }
 
     private _startSideSpawning(root: Node, side: 'left' | 'right'): void {
         if (side === 'left') {
@@ -198,4 +251,11 @@ export class EnemySpawner extends Component {
             this.stopSide(side);
         }
     };
+
+    private _resolveTarget(): void {
+        if (this.target?.isValid) {
+            return;
+        }
+        this.target = this.node.scene?.getComponentInChildren(Player)?.node ?? null;
+    }
 }

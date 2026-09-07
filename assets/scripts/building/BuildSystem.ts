@@ -31,7 +31,7 @@ type BuildCompletePayload = {
 };
 
 /**
- * 建造编排：LOG_FIXED 解锁墙地块 → 建墙 → 两墙 BOTH_WALLS_COMPLETE
+ * 建造编排：PARKOUR_FINISHED 解锁墙地块 → 建墙 → 两墙 BOTH_WALLS_COMPLETE
  * → 塔/兵营 → 兵营后 Plot_HeroShrine → 建碑 activate → 选英雄后 Plot_Expand
  * → expandArea 完成激活 Barrier / ExpandSideWalls / 高级塔地块。
  */
@@ -124,7 +124,7 @@ export class BuildSystem extends Component {
     onLoad(): void {
         this._ensureInitialHidden();
         this._wirePlots();
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         EventManager.instance.onEvent(GameEvents.COIN_CHANGED, this._onCoinChanged, this);
         // 预留：外部若已 emit BOTH_ADVANCED_TOWERS_COMPLETE，仍切 Ultimate
@@ -136,7 +136,7 @@ export class BuildSystem extends Component {
     }
 
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         EventManager.instance.offEvent(GameEvents.COIN_CHANGED, this._onCoinChanged, this);
         EventManager.instance.offEvent(
@@ -146,7 +146,7 @@ export class BuildSystem extends Component {
         );
     }
 
-    private _onLogFixed = (): void => {
+    private _onParkourFinished = (): void => {
         this._revealPlots(this.wallPlots, 'wall');
     };
 

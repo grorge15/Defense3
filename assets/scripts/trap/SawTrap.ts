@@ -4,6 +4,8 @@ import {
     Collider2D,
     Component,
     Contact2DType,
+    Animation,
+    AnimationClip,
     ERigidBody2DType,
     IPhysics2DContact,
     Node,
@@ -58,8 +60,12 @@ export class SawTrap extends Component {
             this.visualNode = this.node.getChildByName('Visual');
         }
         if (this.visualNode) {
-            playAnim(this.visualNode, 'spin');
+            this._playSpinLoop();
         }
+    }
+
+    onEnable(): void {
+        this.scheduleOnce(() => this._playSpinLoop(), 0);
     }
 
     onDestroy(): void {
@@ -68,11 +74,7 @@ export class SawTrap extends Component {
         }
     }
 
-    update(dt: number): void {
-        if (this.spinSpeed !== 0 && this.visualNode) {
-            const euler = this.visualNode.eulerAngles;
-            this.visualNode.setRotationFromEuler(euler.x, euler.y, euler.z + this.spinSpeed * dt);
-        }
+    update(_dt: number): void {
         this._pollHits();
     }
 
@@ -176,5 +178,18 @@ export class SawTrap extends Component {
         this.scheduleOnce(() => {
             this._hitCooldown.delete(key);
         }, 0.4);
+    }
+
+    private _playSpinLoop(): void {
+        if (!this.visualNode) {
+            return;
+        }
+        const anim = this.visualNode.getComponent(Animation);
+        const state = anim?.getState('spin') ?? null;
+        if (state) {
+            state.wrapMode = AnimationClip.WrapMode.Loop;
+            state.repeatCount = Infinity;
+        }
+        playAnim(this.visualNode, 'spin');
     }
 }

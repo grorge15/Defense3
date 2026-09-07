@@ -18,6 +18,7 @@ import { GameEvents } from '../core/GameEvents';
 import { GameManager } from '../game/GameManager';
 import { GamePhase } from '../game/GamePhase';
 import { Log } from '../item/Log';
+import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
@@ -73,8 +74,7 @@ export class Player extends Component {
         }
 
         EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
-        EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
     }
 
     start(): void {
@@ -85,12 +85,12 @@ export class Player extends Component {
         if (!phase || phase === GamePhase.RunParkour) {
             this.setMode('parkour');
         }
+        this._bindEmbeddedHpBar();
     }
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
-        EventManager.instance.offEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
     }
 
     get hasBow(): boolean {
@@ -252,18 +252,9 @@ export class Player extends Component {
         return null;
     }
 
-    private _onLogFixed = (): void => {
+    private _onParkourFinished = (): void => {
         this._parkourCharging = false;
         this.setMode('defense');
-    };
-
-    private _onLogFailed = (): void => {
-        this._parkourCharging = false;
-        this.setMode('defense');
-        this._velocity.set(0, 0);
-        if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
-        }
     };
 
     private _die(): void {
@@ -279,7 +270,7 @@ export class Player extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');
         }
-        GameManager.instance?.setGameOver();
+        GameManager.instance?.setGameOver('lose');
         director.pause();
     }
 
@@ -300,5 +291,10 @@ export class Player extends Component {
         }
         this._currentLocomotionClip = clip;
         playAnim(this.visualNode, clip);
+    }
+
+    private _bindEmbeddedHpBar(): void {
+        const bar = this.node.getComponentInChildren(HpBarUI);
+        bar?.bindTarget(this.node);
     }
 }

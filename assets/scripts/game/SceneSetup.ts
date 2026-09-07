@@ -23,7 +23,7 @@ const { ccclass, property } = _decorator;
 
 /**
  * 开局接线：读场景已有节点，不 instantiate 静态关卡布局。
- * 绑玩家/滚木/摇杆；setPhase(RunParkour)；LOG_FIXED → CombatGuide。
+ * 绑玩家/滚木/摇杆；setPhase(RunParkour)；PARKOUR_FINISHED → CombatGuide。
  */
 @ccclass('SceneSetup')
 export class SceneSetup extends Component {
@@ -68,8 +68,7 @@ export class SceneSetup extends Component {
             this.addComponent(Physics2DSetup);
         }
 
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
-        EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         this._wireGameplay();
         this._ensureCombatGuide();
         this._ensureUltimateSystem();
@@ -86,8 +85,7 @@ export class SceneSetup extends Component {
     }
 
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
-        EventManager.instance.offEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
     }
 
     /** 解析引用并绑定摇杆/滚木/刷怪/预置怪；可重复调用 */
@@ -234,7 +232,7 @@ export class SceneSetup extends Component {
         }
     }
 
-    private _onLogFixed = (): void => {
+    private _onParkourFinished = (): void => {
         // 唯一阶段出口：setPhase → PHASE_CHANGED(GamePhase.CombatGuide)；监听方映射为 defense 移动
         this.player?.setMode('defense');
         this.joystick?.setMode('defense');
@@ -246,9 +244,4 @@ export class SceneSetup extends Component {
         // Boss 改在首座初级塔/兵营建成后由 BuildSystem 生成
     };
 
-    /** 蓝线失败：全向移动，但不进 CombatGuide/建造 */
-    private _onLogFailed = (): void => {
-        this.player?.setMode('defense');
-        this.joystick?.setMode('defense');
-    };
 }

@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "e5204d3a-5b7f-4dfc-a7f2-730271d9d62f",
+  "uuid": "1c8612d3-9a18-444e-a45a-7f3047b9e1e3",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "pref_ui_joystick_hint"
+    "syncNodeName": "pref_joystickHint"
   }
 }

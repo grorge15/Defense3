@@ -176,7 +176,7 @@
       "a": 102
     },
     "_spriteFrame": {
-      "__uuid__": "3a5eb832-9349-4f19-8765-366aa26abbb1@f9941",
+      "__uuid__": "65c94f46-f6e0-4f48-a442-2dcf79e0d5f1@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -247,8 +247,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -150.437,
-      "y": 0,
+      "x": -159.568,
+      "y": -33.458,
       "z": 0
     },
     "_lrot": {
@@ -297,7 +297,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -2.859,
+      "x": -5.566,
       "y": -6.073,
       "z": 0
     },
@@ -733,8 +733,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 220,
-      "height": 320
+      "width": 250,
+      "height": 350
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -770,7 +770,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "105a54db-09ca-49d2-916f-692f2391f3f7@f9941",
+      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -841,8 +841,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 160.605,
-      "y": 0,
+      "x": 169.568,
+      "y": -33.653,
       "z": 0
     },
     "_lrot": {
@@ -891,7 +891,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 9.175,
+      "x": 3.025,
       "y": -3.272,
       "z": 0
     },
@@ -1327,8 +1327,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 220,
-      "height": 320
+      "width": 250,
+      "height": 350
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1364,7 +1364,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "e6a34f86-7cf4-4827-b434-07c12cafccfb@f9941",
+      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -1576,11 +1576,11 @@
       "__id__": 69
     },
     "cardStyle0": {
-      "__uuid__": "105a54db-09ca-49d2-916f-692f2391f3f7@f9941",
+      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "cardStyle1": {
-      "__uuid__": "2458b95a-3abb-4151-9279-433cf24c7f7d@f9941",
+      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "heroIcon0": {

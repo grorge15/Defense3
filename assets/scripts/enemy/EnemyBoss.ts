@@ -22,7 +22,7 @@ import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { Log } from '../item/Log';
-import { UIManager } from '../ui/UIManager';
+import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
@@ -137,15 +137,7 @@ export class EnemyBoss extends Component {
     start(): void {
         this._bootstrapExistingTargets();
         this.scheduleOnce(() => {
-            const bar = UIManager.instance?.spawnHpBar(
-                'boss',
-                this.node,
-                this.visualNode ?? this.node,
-            );
-            if (bar) {
-                bar.hideWhenFull = false;
-                bar.showMaxInLabel = false;
-            }
+            this._bindEmbeddedHpBar();
             EventManager.instance.emitEvent(
                 GameEvents.HP_CHANGED,
                 this.node,
@@ -437,6 +429,7 @@ export class EnemyBoss extends Component {
             this._hp,
             GameConfig.bossMaxHp,
         );
+        this._bindEmbeddedHpBar();
     }
 
     update(dt: number): void {
@@ -659,6 +652,18 @@ export class EnemyBoss extends Component {
         this.scheduleOnce(() => {
             this.node.active = false;
         }, 0.8);
+    }
+
+    private _bindEmbeddedHpBar(): HpBarUI | null {
+        const bar = this.node.getComponentInChildren(HpBarUI);
+        if (!bar) {
+            return null;
+        }
+        bar.bindTarget(this.node);
+        bar.hideWhenFull = false;
+        bar.showMaxInLabel = false;
+        bar.applyHp(this._hp, GameConfig.bossMaxHp, true);
+        return bar;
     }
 
     private _updateLocomotionAnim(isMoving: boolean): void {

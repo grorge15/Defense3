@@ -14,7 +14,7 @@ const PRE_ENEMY_NAMES = [
 
 /**
  * 跑酷物件分阶段隐藏。
- * LOG_FIXED：电锯 + 滚木加长道具；BOTH_WALLS_COMPLETE：隐藏整棵 ParkourContent（滚木须在子树外）。
+ * PARKOUR_FINISHED：电锯 + 滚木加长道具；BOTH_WALLS_COMPLETE：隐藏整棵 ParkourContent（滚木须在子树外）。
  * 阶段切换走 GameManager.setPhase，不裸发 PHASE_CHANGED 字符串。
  */
 @ccclass('PhaseTransition')
@@ -29,16 +29,16 @@ export class PhaseTransition extends Component {
     logNode: Node | null = null;
 
     onLoad(): void {
-        EventManager.instance.onEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.onEvent(GameEvents.BOTH_WALLS_COMPLETE, this._onBothWallsComplete, this);
     }
 
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.LOG_FIXED, this._onLogFixed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.offEvent(GameEvents.BOTH_WALLS_COMPLETE, this._onBothWallsComplete, this);
     }
 
-    private _onLogFixed = (): void => {
+    private _onParkourFinished = (): void => {
         this._setChildrenActive(SAW_TRAP_NAMES, false);
         this._setChildActive('LogExtendItemRoot', false);
     };

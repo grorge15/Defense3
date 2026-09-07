@@ -146,7 +146,7 @@ export class UltimateSystem extends Component {
 
         const delay = dur + GameConfig.ultimateGameOverDelay;
         this.scheduleOnce(() => {
-            GameManager.instance?.setGameOver();
+            GameManager.instance?.setGameOver('win');
             this.player?.setCanMove(false);
             console.log('[UltimateSystem] setGameOver');
         }, delay);

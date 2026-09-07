@@ -5,6 +5,8 @@ import { GamePhase } from './GamePhase';
 
 const { ccclass } = _decorator;
 
+export type GameOverResult = 'win' | 'lose';
+
 /**
  * 全局阶段状态管理（单例 Component）。
  * 仅负责 currentPhase 与 PHASE_CHANGED 事件；场景显隐由 PhaseTransition 等系统处理。
@@ -37,17 +39,17 @@ export class GameManager extends Component {
         return this._currentPhase;
     }
 
-    public setPhase(phase: GamePhase): void {
+    public setPhase(phase: GamePhase, ...args: unknown[]): void {
         if (this._currentPhase === phase) {
             return;
         }
         this._currentPhase = phase;
         console.log(`[GameManager] phase_changed: ${phase}`);
-        EventManager.instance.emitEvent(GameEvents.PHASE_CHANGED, phase);
+        EventManager.instance.emitEvent(GameEvents.PHASE_CHANGED, phase, ...args);
     }
 
     /** 预留：§4.H 游戏结束时调用 setPhase(GamePhase.GameOver) */
-    public setGameOver(): void {
-        this.setPhase(GamePhase.GameOver);
+    public setGameOver(result: GameOverResult = 'lose'): void {
+        this.setPhase(GamePhase.GameOver, result);
     }
 }

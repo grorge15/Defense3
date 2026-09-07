@@ -15,6 +15,7 @@ import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
@@ -84,6 +85,7 @@ export class Soldier extends Component {
         if (this.attackRange < 40) {
             this.attackRange = 280;
         }
+        this._bindEmbeddedHpBar();
     }
 
     setDeployment(deployment: SoldierDeployment): void {
@@ -113,6 +115,7 @@ export class Soldier extends Component {
         if (this.visualNode) {
             playAnim(this.visualNode, 'idle');
         }
+        this._bindEmbeddedHpBar();
     }
 
     deactivate(): void {
@@ -355,5 +358,14 @@ export class Soldier extends Component {
         }
         this._currentLocomotionClip = 'idle';
         playAnim(this.visualNode, 'idle');
+    }
+
+    private _bindEmbeddedHpBar(): void {
+        const bar = this.node.getComponentInChildren(HpBarUI);
+        if (!bar) {
+            return;
+        }
+        bar.bindTarget(this.node);
+        bar.applyHp(this._hp, GameConfig.soldierMaxHp, true);
     }
 }

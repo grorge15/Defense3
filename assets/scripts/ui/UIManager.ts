@@ -16,7 +16,7 @@ const { ccclass, property } = _decorator;
 export type HpBarKind = 'player' | 'enemy' | 'boss';
 
 /**
- * UI 统一入口：阶段显隐 + 血条动态生成。
+ * UI 统一入口：阶段显隐。
  * 场景挂于 GameRoot/UI；静态关卡 UI 由 MCP 实例化，不在此 generate 布局。
  */
 @ccclass('UIManager')
@@ -78,7 +78,6 @@ export class UIManager extends Component {
     start(): void {
         this._resolveRefs();
         this._ensureGameOver();
-        this._ensurePlayerHpBar();
         this._bindPlayerHp();
         this._ensureHeroSelectReady();
         this._applyPhase(this._currentPhaseFallback());
@@ -220,7 +219,7 @@ export class UIManager extends Component {
         if (!this.player) {
             this.player = scene.getComponentInChildren(Player);
         }
-        // playerHpBar 不自动抓取任意 HpBarUI（避免误绑小怪条）；由 _ensurePlayerHpBar / 场景引用负责
+        // playerHpBar 不自动抓取任意 HpBarUI（避免误绑小怪条）；优先由角色 prefab 内置血条负责
     }
 
     /** 开局 inactive 的 HeroSelect 不会跑 onLoad；提前挂上 HERO_SELECT_REQUESTED */
@@ -237,9 +236,6 @@ export class UIManager extends Component {
         }
         if (!this.player && this.node.scene) {
             this.player = this.node.scene.getComponentInChildren(Player);
-        }
-        if (this.playerHpBarPrefab && this.player) {
-            this.spawnHpBar('player', this.player.node, this.player.visualNode ?? this.player.node);
         }
     }
 

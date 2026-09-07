@@ -640,4 +640,158 @@
 
 ---
 
+## fix-saw-spin-loop — 电锯动画不保证循环
 
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 电锯 `spin` 动画需要循环播放，运行时只依赖一次 `playAnim` 调用。 |
+| **原因** | `SawTrap` 未在脚本侧强制 `spin` 状态循环，若动画状态被导入/实例状态覆盖为非循环，会播放一次后停止。 |
+| **解决** | `SawTrap` 播放 `spin` 前解析 `AnimationState`，设置 `wrapMode=Loop` 与 `repeatCount=Infinity`，保留原 `spinSpeed=0` 序列帧方案。 |
+
+### v2（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 仍没有看到 `pref_trap_saw` 明显转动。 |
+| **原因** | `spin` 序列帧播放依赖 Animation 初始化时机；同时 `Billboard` 每帧把 Visual 的 Z 旋转清零，程序旋转兜底也被覆盖。 |
+| **解决** | `SawTrap.onEnable` 下一帧再次确保播放 `spin`，并把 prefab `spinSpeed` 设为 360 作为可见旋转兜底；`Billboard` 保留 Visual 原有 Z 角度，只更新朝向相机的 Y 角。 |
+
+### v3（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_trap_saw` 的 `Visual` 不应自转，visual 的 rotation 需要保持静止。 |
+| **原因** | v2 的可见旋转兜底把 `spinSpeed` 设为 360，并让 `Billboard` 保留 Z 角，导致 `Visual` 发生程序自转。 |
+| **解决** | `SawTrap` 移除 update 中的 Visual 欧拉角累加，prefab `spinSpeed` 恢复 0，`Billboard` 恢复只设置 `(0, angleY, 0)`；仍在 onLoad/onEnable 保证 `spin` 序列帧循环播放。 |
+
+---
+
+## fix-gameover-win-lose-sprite — GameOver 胜负图无法区分
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_ui_game_over` 的 `WinLose` Sprite 没有 win/lose 两张图的脚本属性，主角死亡和胜利收尾显示无法区分。 |
+| **原因** | `GameManager.setGameOver` 只广播 `GameOver` 阶段，不携带胜负结果；`GameOverUI` 也未解析 `WinLose` Sprite 或设置结果图。 |
+| **解决** | `setGameOver(result)` 增加可选 `win/lose` 结果并随 `PHASE_CHANGED` 发出；主角死亡传 `lose`，大招收尾传 `win`；`GameOverUI` 暴露 `winSprite`/`loseSprite` 并运行时设置 `WinLose` SpriteFrame。 |
+
+---
+
+## fix-joystick-hint-parkour-knob — 跑酷摇杆提示运动方式不对
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 新版 `pref_joystickHint` 跑酷提示应为 `Knob` 左右循环移动，但脚本仍按倒 8 轨迹驱动提示节点。 |
+| **原因** | `JoystickHintUI` 只有单一 `hintRoot` 运动逻辑，未区分跑酷段 Knob 横移与塔防段倒 8。 |
+| **解决** | 新增 `knob` 引用并自动查找 `Knob` 子节点；跑酷模式只让 Knob 按正弦左右移动，塔防模式保留原倒 8 轨迹。 |
+
+### v2（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木到达蓝线后跑酷段已结束，但提示仍容易按跑酷段/子节点隐藏方式残留。 |
+| **原因** | `LOG_FIXED` 只重置提示状态，没有明确把模式切为塔防倒 8，并且隐藏的是 `hintRoot` 而不是 `pref_joystickHint` 根。 |
+| **解决** | `LOG_FIXED` 时先切到 `defense` 模式，再重置轨迹并隐藏 `pref_joystickHint` 根节点；后续若节点被重新激活，运动逻辑按倒 8 执行。 |
+
+### v3（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 摇杆提示隐藏规则应为超过 n 秒未移动后隐藏 `pref_joystickHint` 根节点，而不是空闲后显示。 |
+| **原因** | 旧空闲逻辑方向与需求相反，并且隐藏对象容易落在可视子节点而不是 prefab 根节点。 |
+| **解决** | `JoystickHintUI` 有输入时重置空闲计时并显示根节点，超过 `GameConfig.joystickHintDelay` 无输入时隐藏 `this.node`；`LOG_FIXED` 后切到塔防倒 8 逻辑，跑酷段仍驱动 Knob 左右循环。 |
+
+### v4（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 需求再次明确：当前错误行为是“有输入就隐藏，3 秒无输入就显示”，应反过来。 |
+| **原因** | 历史注释和早期实现仍描述空闲后显示提示，容易误判或回退。 |
+| **解决** | 明确 `JoystickHintUI` 语义为“有输入显示，无输入超过 delay 隐藏”，并保留隐藏 `pref_joystickHint` 根节点的实现。 |
+
+### v5（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 最终需求确认：`JoystickHintUI` 应该是有输入隐藏，3 秒无输入才显示。 |
+| **原因** | v4 按反向语义更新，且隐藏脚本根节点会让组件停止 update，无法靠空闲计时重新显示。 |
+| **解决** | `JoystickHintUI` 改回有输入隐藏、空闲超过 `GameConfig.joystickHintDelay` 显示；组件根节点保持 active，只隐藏/显示可视子节点，并用 `PARKOUR_FINISHED` 切到塔防倒 8 逻辑。 |
+
+---
+
+## fix-enemy-spawner-not-starting — EnemySpawner 不出怪
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 跑酷结束后 `EnemySpawner` 不出怪或生成后小怪无目标表现为不推进。 |
+| **原因** | 刷怪器只靠 `LOG_FIXED` 事件打开 `_farActive`，若组件启动/绑定时已处于非跑酷阶段会错过激活；目标引用失效时也没有自行恢复。 |
+| **解决** | `EnemySpawner.start` 根据当前 `GameManager` 阶段兜底激活，`LOG_FIXED` 激活逻辑幂等化，启动时立即首刷一次，并在更新/生成前自动解析场景中的 `Player` 目标。 |
+
+### v2（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `SpawnPoint_Far` 和其子节点 `_F0`、`_F1` 都应该出怪，但场景里没有看到这些点都参与生成。 |
+| **原因** | `_trySpawnAt` 只使用传入的根节点坐标，没有收集 `SpawnPoint_*` 子节点，也没有在多个点之间轮询。 |
+| **解决** | 生成前收集根节点和激活的 `SpawnPoint_*` 子节点，并按根节点分别维护轮询游标，使 `SpawnPoint_Far/F0/F1` 都能作为生成点。 |
+
+---
+
+## fix-embedded-character-hp-bars — 角色 prefab 内置血条未生效
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 角色 prefab 已经内置并摆好血条，但运行时仍可能在 UI 下动态生成血条，血条也保留在 UI2D Layer。 |
+| **原因** | Player/Hero/Enemy/Log 等逻辑仍调用 `UIManager.spawnHpBar` 或依赖 UI 坐标跟随；三个血条 prefab 的节点 Layer 仍是 UI_2D。 |
+| **解决** | Player、Hero、EnemyMinion、EnemyBoss、Soldier、Log 改为绑定自身子节点中的 `HpBarUI`；`HpBarUI` 发现自己是目标节点后代时保留本地摆放；停止 UIManager 开局自动生成玩家血条；三个血条 prefab Layer 改为 Default。 |
+
+---
+
+## fix-log-blue-line-direct-fixed — 滚木到蓝线未直接结束跑酷
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木到达蓝线后还会按长度是否达标决定 `LOG_FIXED` 或 `LOG_FAILED`，导致跑酷段可能不结束。 |
+| **原因** | `Log._pollParkourLines` 和 `ParkourLineZone` 都在蓝线触发时计算 `blueLineMinLogLength`，并把结果传给 `tryLockAtFinish`。 |
+| **解决** | 蓝线轮询和 Trigger 路径都直接调用 `tryLockAtFinish()`；`tryLockAtFinish` 不再用长度门槛分支，触发即固定滚木并发送 `LOG_FIXED`。 |
+
+### v2（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `LOG_FIXED` 只能表示滚木固定成功；跑酷段结束需要新标识，且滚木固定仍要求到达蓝线并长度 >= 3。 |
+| **原因** | v1 把跑酷结束和滚木固定混在 `LOG_FIXED` 中，导致长度不足时也会触发固定成功后续系统。 |
+| **解决** | 新增 `PARKOUR_FINISHED` 表示滚木到达蓝线并结束跑酷；`LOG_FIXED` 只在长度达到 `GameConfig.blueLineMinLogLength` 时发送；Player/Joystick/SceneSetup/PhaseTransition/JoystickHint 使用新事件，BuildSystem/EnemySpawner 仍只监听 `LOG_FIXED`。 |
+
+### v3（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 建造、刷怪、目标注册等后续逻辑都应该由跑酷段结束驱动，滚木固定本身不需要全局监听。 |
+| **原因** | 继续保留 `LOG_FIXED` 容易让“滚木固定成功”和“跑酷结束”再次混用。 |
+| **解决** | 删除 `GameEvents.LOG_FIXED`；`BuildSystem`、`EnemySpawner`、Player/Joystick/SceneSetup/PhaseTransition/JoystickHint 全部监听 `PARKOUR_FINISHED`；滚木长度达标时只更新自身 fixed 状态并按原有 `BOSS_TARGET_REGISTER` 通道注册 Boss 目标。 |
+
+---
+
+## fix-log-visual-length-scale — 滚木视觉长度过长
+
+### v1（2026-09-07）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木逻辑长度 1/2/3/.../10 直接映射到 Visual X 缩放 1/2/3/.../10，视觉增长过大。 |
+| **原因** | `_refreshLengthVisual` 同一个 `lengthScale` 同时用于视觉缩放和碰撞盒逻辑尺寸。 |
+| **解决** | 逻辑长度保持不变，碰撞盒仍按逻辑长度缩放；Visual X 缩放改为 `1 + 当前长度 * 0.2`，对应 1.2/1.4/1.6/...。 |
+
+---

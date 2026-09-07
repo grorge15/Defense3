@@ -19,7 +19,7 @@ import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { TweenUtil } from '../core/TweenUtil';
-import { UIManager } from '../ui/UIManager';
+import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
@@ -205,6 +205,9 @@ export class Log extends Component {
     }
 
     tryLockAtFinish(canLock: boolean): void {
+        if (this._phase === 'fixed' || this._phase === 'failed') {
+            return;
+        }
         this._pushPlayer?.setParkourCharging(false);
         if (canLock) {
             this._phase = 'fixed';
@@ -216,21 +219,19 @@ export class Log extends Component {
             console.info(
                 `[Log] blue line LOCK OK length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength}`,
             );
-            EventManager.instance.emitEvent(GameEvents.LOG_FIXED);
             EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, {
                 node: this.node,
                 kind: 'log',
             });
             return;
         }
-        // 长度不足：不发 LOG_FIXED，后续建造/阶段不启动
         this._phase = 'failed';
         this._isFading = true;
         this.unbindPlayer();
         this._stopRollAnim();
         this._freezeVisualRotation();
         console.warn(
-            `[Log] blue line LOCK FAIL length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength} → fade out`,
+            `[Log] blue line LOCK FAIL length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength} -> fade out`,
         );
         EventManager.instance.emitEvent(GameEvents.LOG_FAILED, {
             length: this._currentLength,
@@ -281,20 +282,18 @@ export class Log extends Component {
         this._refreshLengthVisual();
     }
 
-    /** 使用玩家血条模板 */
+    /** 使用 prefab 内置血条 */
     private _spawnHpBar(): void {
         if (this._hpBarSpawned) {
             return;
         }
         this._hpBarSpawned = true;
         this.scheduleOnce(() => {
-            const bar = UIManager.instance?.spawnHpBar(
-                'player',
-                this.node,
-                this.visualNode ?? this.node,
-            );
+            const bar = this.node.getComponentInChildren(HpBarUI);
             if (bar) {
                 bar.hideWhenFull = false;
+                bar.bindTarget(this.node);
+                bar.applyHp(this._hp, GameConfig.logMaxHp, true);
                 EventManager.instance.emitEvent(
                     GameEvents.HP_CHANGED,
                     this.node,
@@ -442,8 +441,8 @@ export class Log extends Component {
             this.blueLine.getWorldPosition(this._tmpLinePos);
             if (this._selfPos.y >= this._tmpLinePos.y) {
                 this._blueTriggered = true;
-                const canLock = this.getCurrentLength() >= GameConfig.blueLineMinLogLength;
-                this.tryLockAtFinish(canLock);
+                EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
+                this.tryLockAtFinish(this.getCurrentLength() >= GameConfig.blueLineMinLogLength);
             }
         }
     }
@@ -479,9 +478,10 @@ export class Log extends Component {
 
     private _refreshLengthVisual(): void {
         const lengthScale = this._currentLength / GameConfig.logMinLength;
+        const visualLengthScale = 1 + this._currentLength * 0.2;
         if (this.visualNode) {
             this.visualNode.setScale(
-                this._baseVisualScale.x * lengthScale,
+                this._baseVisualScale.x * visualLengthScale,
                 this._baseVisualScale.y,
                 this._baseVisualScale.z,
             );

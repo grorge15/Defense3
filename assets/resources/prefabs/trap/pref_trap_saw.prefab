@@ -96,7 +96,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 0,
+      "y": -61.834,
       "z": 0
     },
     "_lrot": {
@@ -297,13 +297,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -0.1,
-      "y": 50.8
+      "x": 0.9,
+      "y": 87.1
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 10.1,
-      "height": 97.9
+      "width": 12.1,
+      "height": 170.5
     },
     "_id": ""
   },
@@ -343,6 +343,7 @@
       "__id__": 0
     },
     "fileId": "Node.1042",
+    "instance": null,
     "targetOverrides": null
   }
 ]

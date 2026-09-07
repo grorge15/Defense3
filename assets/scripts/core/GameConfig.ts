@@ -96,7 +96,7 @@ export class GameConfig {
     static readonly joystickHintFigure8Amp = 28;
     /** 倒 8 一周时长（秒） */
     static readonly joystickHintFigure8Period = 2.2;
-    /** LOG_FIXED 后首次 Boss 生成延迟（秒） */
+    /** 跑酷结束后首次 Boss 生成延迟（秒） */
     static readonly bossFirstSpawnDelay = 1.5;
 
     // --- 建造（调试期统一 10 金）---

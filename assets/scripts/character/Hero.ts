@@ -21,7 +21,7 @@ import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { HitFlash } from '../core/HitFlash';
 import { HeroProjectile } from '../projectile/HeroProjectile';
-import { UIManager } from '../ui/UIManager';
+import { HpBarUI } from '../ui/HpBarUI';
 import { Player } from './Player';
 
 const { ccclass, property } = _decorator;
@@ -113,7 +113,7 @@ export class Hero extends Component {
         }
     }
 
-    /** 生成 pref_ui_hp_bar_player 并推送初始满血（可被 BuildSystem 兜底再调） */
+    /** 绑定 prefab 内置血条并推送初始满血（可被 BuildSystem 兜底再调） */
     ensureHpBar(): void {
         this._ensureHpBar();
     }
@@ -122,11 +122,7 @@ export class Hero extends Component {
         if (this._hpBarReady || this._isDead) {
             return;
         }
-        const ui = UIManager.instance;
-        if (!ui) {
-            return;
-        }
-        const bar = ui.spawnHpBar('player', this.node, this.visualNode ?? this.node);
+        const bar = this.node.getComponentInChildren(HpBarUI);
         if (!bar) {
             return;
         }

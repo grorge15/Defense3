@@ -57,6 +57,11 @@ export class HpBarUI extends Component {
 
     bindTarget(target: Node | null, followAnchor: Node | null = null): void {
         this.targetNode = target;
+        if (target && this._isDescendantOf(target)) {
+            this.followAnchor = null;
+            this._syncFromTarget();
+            return;
+        }
         if (followAnchor) {
             this.followAnchor = followAnchor;
         } else if (target) {
@@ -184,5 +189,16 @@ export class HpBarUI extends Component {
             return;
         }
         this.node.setWorldPosition(this._world);
+    }
+
+    private _isDescendantOf(target: Node): boolean {
+        let node: Node | null = this.node;
+        while (node) {
+            if (node === target) {
+                return true;
+            }
+            node = node.parent;
+        }
+        return false;
     }
 }
