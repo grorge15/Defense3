@@ -12,6 +12,8 @@ import {
 import { Player } from '../character/Player';
 import { GameConfig } from '../core/GameConfig';
 import { TweenUtil } from '../core/TweenUtil';
+import { GameManager } from '../game/GameManager';
+import { GamePhase } from '../game/GamePhase';
 
 const { ccclass, property } = _decorator;
 
@@ -59,7 +61,7 @@ export class BowItem extends Component {
     }
 
     update(_dt: number): void {
-        if (this._consumed || !this.node.scene) {
+        if (this._consumed || !this.node.scene || !this._canPickupNow()) {
             return;
         }
         const player = this.node.scene.getComponentInChildren(Player);
@@ -82,7 +84,7 @@ export class BowItem extends Component {
     ): void => {
         void selfCollider;
         void _contact;
-        if (this._consumed) {
+        if (this._consumed || !this._canPickupNow()) {
             return;
         }
         const player =
@@ -96,7 +98,7 @@ export class BowItem extends Component {
     };
 
     private _consume(player: Player): void {
-        if (this._consumed) {
+        if (this._consumed || !this._canPickupNow()) {
             return;
         }
         this._consumed = true;
@@ -114,5 +116,10 @@ export class BowItem extends Component {
                 this.node.destroy();
             },
         );
+    }
+
+    private _canPickupNow(): boolean {
+        const phase = GameManager.instance?.getPhase() ?? GamePhase.RunParkour;
+        return phase !== GamePhase.RunParkour;
     }
 }

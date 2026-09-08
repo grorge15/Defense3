@@ -1,5 +1,6 @@
 import {
     _decorator,
+    BoxCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -11,15 +12,23 @@ import {
     Vec3,
 } from 'cc';
 import { EnemyMinion } from '../enemy/EnemyMinion';
+import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { PathAgent } from '../core/PathAgent';
+import { VisualFacing } from '../core/VisualFacing';
 import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
 export type SoldierDeployment = 'tower' | 'barracks';
+type BossLike = Component & {
+    readonly isDead: boolean;
+    takeDamage(amount: number): void;
+};
+type SoldierAttackTarget = EnemyMinion | BossLike;
 
 @ccclass('Soldier')
 export class Soldier extends Component {
@@ -54,9 +63,14 @@ export class Soldier extends Component {
     private _canAct = true;
     private _isAttacking = false;
     private _currentLocomotionClip = '';
+    private _lockedAttackTarget: SoldierAttackTarget | null = null;
+    private _retargetTimer = 0;
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
+    private readonly _pathAgent = new PathAgent();
+    private readonly _visualFacing = new VisualFacing();
+    private _airWalls: BoxCollider2D[] = [];
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -64,6 +78,7 @@ export class Soldier extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        this._visualFacing.bind(this.visualNode);
         if (this._rb) {
             this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
@@ -93,6 +108,9 @@ export class Soldier extends Component {
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
         }
+        this._lockedAttackTarget = null;
+        this._retargetTimer = 0;
+        this._pathAgent.reset();
     }
 
     getDeployment(): SoldierDeployment {
@@ -101,6 +119,9 @@ export class Soldier extends Component {
 
     setTarget(target: Node | null): void {
         this._target = target;
+        this._lockedAttackTarget = null;
+        this._retargetTimer = 0;
+        this._pathAgent.reset();
     }
 
     activate(): void {
@@ -121,6 +142,7 @@ export class Soldier extends Component {
     deactivate(): void {
         this._canAct = false;
         this._velocity.set(0, 0);
+        this._pathAgent.reset();
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
@@ -131,10 +153,11 @@ export class Soldier extends Component {
             return;
         }
 
-        const enemy = this._resolveTargetEnemy();
+        const enemy = this._resolveAttackTarget();
         if (!enemy) {
             return;
         }
+        this._visualFacing.faceByTarget(this.visualNode, this.node, enemy.node);
 
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
@@ -215,11 +238,14 @@ export class Soldier extends Component {
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.soldierMaxHp;
         this._target = null;
+        this._lockedAttackTarget = null;
+        this._retargetTimer = 0;
         this._attackTimer = 0;
         this._isDead = false;
         this._canAct = true;
         this._isAttacking = false;
         this._currentLocomotionClip = '';
+        this._pathAgent.reset();
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -234,6 +260,7 @@ export class Soldier extends Component {
             this._rb.linearVelocity = this._velocity;
         }
         if (this.visualNode) {
+            this._visualFacing.reset(this.visualNode);
             playAnim(this.visualNode, 'idle');
         }
     }
@@ -253,13 +280,13 @@ export class Soldier extends Component {
                 this._rb.linearVelocity = this._velocity;
             }
             this._updateLocomotionAnim(false);
-            if (this._findNearestEnemy(this.attackRange)) {
+            if (this._findPreferredTarget(this.attackRange)) {
                 this.tryAttack();
             }
             return;
         }
 
-        const enemy = this._findNearestEnemy(Number.POSITIVE_INFINITY);
+        const enemy = this._resolveMeleeChaseTarget(dt);
         if (!enemy) {
             this._velocity.set(0, 0);
             if (this._rb) {
@@ -280,30 +307,101 @@ export class Soldier extends Component {
             if (this._rb) {
                 this._rb.linearVelocity = this._velocity;
             }
+            this._visualFacing.faceByTarget(this.visualNode, this.node, enemy.node);
             this._updateLocomotionAnim(false);
             this.tryAttack();
             return;
         }
 
-        const invDist = 1 / Math.max(dist, 0.001);
         const speed = GameConfig.soldierMoveSpeed;
-        this._velocity.x = dx * invDist * speed;
-        this._velocity.y = dy * invDist * speed;
+        const size = AirWallAabb.bodySize(this.node);
+        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+        this._pathAgent.nextDirection(
+            dt,
+            this._selfPos,
+            this._targetPos,
+            size.w,
+            size.h,
+            walls,
+            this._velocity,
+        );
+        this._velocity.x *= speed;
+        this._velocity.y *= speed;
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
         this._updateLocomotionAnim(true);
     }
 
-    private _resolveTargetEnemy(): EnemyMinion | null {
+    private _resolveAttackTarget(): SoldierAttackTarget | null {
         if (this._target && this._target.activeInHierarchy) {
             const fromTarget = this._target.getComponent(EnemyMinion);
             if (fromTarget) {
                 return fromTarget;
             }
+            const bossFromTarget = this._target.getComponent('EnemyBoss') as BossLike | null;
+            if (bossFromTarget && !bossFromTarget.isDead) {
+                return bossFromTarget;
+            }
         }
         const range = this._deployment === 'tower' ? this.attackRange : this.meleeAttackRange;
-        return this._findNearestEnemy(range);
+        return this._findPreferredTarget(range);
+    }
+
+    private _resolveMeleeChaseTarget(dt: number): SoldierAttackTarget | null {
+        this._retargetTimer -= dt;
+        if (
+            this._lockedAttackTarget &&
+            this._retargetTimer > 0 &&
+            this._isAttackTargetAlive(this._lockedAttackTarget)
+        ) {
+            return this._lockedAttackTarget;
+        }
+
+        const next = this._findPreferredTarget(Number.POSITIVE_INFINITY);
+        if (next !== this._lockedAttackTarget) {
+            this._pathAgent.reset();
+        }
+        this._lockedAttackTarget = next;
+        this._retargetTimer = GameConfig.soldierRetargetInterval;
+        return next;
+    }
+
+    private _findPreferredTarget(maxRange: number): SoldierAttackTarget | null {
+        if (this._deployment === 'barracks') {
+            const boss = this._findNearestBoss(maxRange);
+            if (boss) {
+                return boss;
+            }
+        }
+        return this._findNearestEnemy(maxRange);
+    }
+
+    private _findNearestBoss(maxRange: number): BossLike | null {
+        const scene = this.node.scene;
+        if (!scene) {
+            return null;
+        }
+
+        this.node.getWorldPosition(this._selfPos);
+        let nearest: BossLike | null = null;
+        let nearestDistSq = maxRange * maxRange;
+
+        for (const boss of scene.getComponentsInChildren('EnemyBoss') as BossLike[]) {
+            if (!boss.node.activeInHierarchy || boss.isDead) {
+                continue;
+            }
+            boss.node.getWorldPosition(this._targetPos);
+            const dx = this._targetPos.x - this._selfPos.x;
+            const dy = this._targetPos.y - this._selfPos.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq <= nearestDistSq) {
+                nearestDistSq = distSq;
+                nearest = boss;
+            }
+        }
+        return nearest;
     }
 
     private _findNearestEnemy(maxRange: number): EnemyMinion | null {
@@ -314,22 +412,26 @@ export class Soldier extends Component {
 
         this.node.getWorldPosition(this._selfPos);
         let nearest: EnemyMinion | null = null;
-        let nearestDist = maxRange;
+        let nearestDistSq = maxRange * maxRange;
 
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.activeInHierarchy) {
+            if (!minion.node.activeInHierarchy || minion.isDead) {
                 continue;
             }
             minion.node.getWorldPosition(this._targetPos);
             const dx = this._targetPos.x - this._selfPos.x;
             const dy = this._targetPos.y - this._selfPos.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= nearestDist) {
-                nearestDist = dist;
+            const distSq = dx * dx + dy * dy;
+            if (distSq <= nearestDistSq) {
+                nearestDistSq = distSq;
                 nearest = minion;
             }
         }
         return nearest;
+    }
+
+    private _isAttackTargetAlive(target: SoldierAttackTarget | null): boolean {
+        return !!target?.node?.isValid && target.node.activeInHierarchy && !target.isDead;
     }
 
     private _spawnProjectile(target: Node): void {
@@ -387,11 +489,12 @@ export class Soldier extends Component {
         if (!this.visualNode || this._isDead || this._isAttacking) {
             return;
         }
-        if (this._currentLocomotionClip === 'idle') {
+        const clip = _isMoving ? 'walk' : 'idle';
+        if (this._currentLocomotionClip === clip) {
             return;
         }
-        this._currentLocomotionClip = 'idle';
-        playAnim(this.visualNode, 'idle');
+        this._currentLocomotionClip = clip;
+        playAnim(this.visualNode, clip);
     }
 
     private _bindEmbeddedHpBar(): void {
@@ -399,6 +502,8 @@ export class Soldier extends Component {
         if (!bar) {
             return;
         }
+        bar.hideWhenFull = true;
+        bar.hideWhenDead = true;
         bar.bindTarget(this.node);
         bar.applyHp(this._hp, GameConfig.soldierMaxHp, true);
     }

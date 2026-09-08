@@ -112,6 +112,7 @@ export class CombatSystem extends Component {
         const animDuration = this._resolveMeleeDuration(player);
         this._cooldown = Math.max(GameConfig.playerAttackInterval, animDuration + 0.05);
         this._pendingTarget = target;
+        player.faceTarget(target);
         player.setAttacking(true);
 
         const visual = player.visualNode;

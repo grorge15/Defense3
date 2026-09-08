@@ -811,3 +811,199 @@
 | **解决** | `_refreshLengthVisual` 中碰撞体宽度同步改用 `visualLengthScale = 1 + 当前长度 * 0.2`，保持视觉和碰撞长度一致。 |
 
 ---
+
+## fix-log-rotation-x-unbounded — pref_log rotation.x 无限增长
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_log` 滚动时 `Visual` 的 `rotation.x` 数值持续累加，运行越久 Inspector 中数值越大。 |
+| **原因** | `Log._updateRollVisual` 每帧直接在当前欧拉角 X 上叠加滚动角度，没有做周期归一化。 |
+| **解决** | 滚动视觉仍按速度更新，但每次写回前把 X 角度限制到 0–360 度范围；同时移除 `Log.ts` 中已无用的 `Billboard` 引用。 |
+
+### v2（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 需求明确为不要动 `rotation.x`，滚木 `Visual` 的 X 旋转应始终维持 0。 |
+| **原因** | v1 仍保留滚动视觉对 X 旋转的写入，只是将角度取模，仍不符合静止旋转需求。 |
+| **解决** | 移除滚木运行时滚动旋转累加逻辑，滚动阶段和固定/失败阶段都只把 `Visual` rotation 写为 `(0,0,0)`。 |
+
+---
+
+## fix-soldier-boss-targeting-and-walk — 近战兵不播走路且不优先打 Boss
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_soldier_melee` 已添加 walk 动画，但移动时仍播 idle；近战兵没有优先索敌 Boss。 |
+| **原因** | `Soldier._updateLocomotionAnim` 无论移动状态都只播放 idle；近战兵目标搜索只扫描 `EnemyMinion`，没有把 `EnemyBoss` 纳入候选。 |
+| **解决** | Soldier 移动时播放 walk、停止时播放 idle；近战兵优先查找 Boss，找不到 Boss 再找小怪，并保留远程兵原有逻辑。 |
+
+---
+
+## fix-boss-circle-attack-and-soldier-priority — Boss 攻击范围和索敌优先级不符合需求
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 攻击还是长条范围；Boss 索敌优先级没有把 `pref_soldier_melee` 放在建筑前。 |
+| **原因** | `EnemyBoss._applyLineAttack` 使用朝向前方长条判定；索敌优先级只区分 Structure/hero/player，未纳入 melee Soldier。 |
+| **解决** | Boss 攻击改为以 `attackTriggerRange` 为半径的圆形判定；索敌优先级新增 soldier=40，高于 building/barrier/log=30，并只把 barracks/melee Soldier 插到该优先级。 |
+
+---
+
+## fix-build-plot-background-arrow-and-shrine — 建造地块背景、英雄碑和箭矢表现
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 通用建造地块无法按建筑类型换背景；近战兵 walk 播一次结束；箭矢没有朝射出方向旋转。 |
+| **原因** | `BuildPlot` 未暴露各建筑类型背景图属性；`soldier_melee/walk.anim` wrapMode 为单次；`Arrow` 只移动位置没有设置 Z 轴角度。 |
+| **解决** | `BuildPlot` 暴露 wall/towerBasic/towerAdvanced/barracks/heroShrine/expandArea 背景 SpriteFrame 并随 buildType 应用；近战兵 walk 动画改循环；`Arrow` 按飞行方向设置 Z 轴旋转。 |
+
+### v2（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄召唤后 `pref_hero_shrine` 应继续存在在场景中。 |
+| **原因** | v1 处理中误按“召唤后隐藏/销毁英雄碑”理解，且 BuildSystem 会关闭英雄碑地块。 |
+| **解决** | `HeroShrine` 召唤英雄后不隐藏、不销毁自身；`BuildSystem._onHeroSpawned` 不再关闭 `heroShrinePlots`，只继续显示 expand 地块。 |
+
+### v3（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_build_plot` 根据建筑类型替换图片时改到了 Background，而不是 `PreviewIcon`。 |
+| **原因** | `BuildPlot._applyBackgroundSprite` 读取类型图后写入 `backgroundSprite` 的 Sprite。 |
+| **解决** | 类型图改为应用到 `previewIcon` 的 Sprite；保留原序列化字段名，避免丢失 Inspector 中已配置的 SpriteFrame。 |
+
+---
+
+## fix-path-agent-frame-drop — 寻路导致明显掉帧
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 接入共享 `PathAgent` 后，Boss、小怪、英雄、近战兵同时寻路时帧率明显下降。 |
+| **原因** | 每个单位各自低频 A*，普通小怪和英雄数量多时仍会产生大量路径重建、直线探测和障碍 AABB 检测。 |
+| **解决** | 普通小怪和英雄跟随回退为轻量 `AirWallAabb.steerDirection`；保留 Boss/近战兵使用 `PathAgent`；同时调粗寻路参数：重算间隔 1s、格子 64、最大展开 90，降低单次和总体 CPU 压力；小怪/士兵满血血条默认隐藏，降低同屏 DrawCall 压力。 |
+
+---
+
+## fix-root-sorting-order-auto-bind — 根节点 SortingOrder2D 不给子 Sprite 补 Sorting2D
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 在 prefab 根节点添加 `SortingOrder2D` 后，子节点里带 `Sprite` 的渲染节点没有自动挂上 `Sorting2D`。 |
+| **原因** | 旧 `SortingOrder2D` 只查 `visualNode` 或自身节点上的 `UIRenderer`，并写 `UIRenderer.priority`；没有扫描子 Sprite，也没有创建/同步 `Sorting2D`。 |
+| **解决** | `SortingOrder2D` 改为根节点控制版：按根节点 `worldPosition.y` 计算排序，扫描自身和所有子节点；若工程可用 `cc.Sorting2D`，给带 `Sprite` 的节点自动补 `Sorting2D` 并同步 `sortingOrder`；否则回退写 `UIRenderer.priority`，避免未启用 2D Sorting 时预览缺类。开启 `executeInEditMode` 便于编辑器中生效。 |
+
+### v2（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 在 Inspector 中把 `SortingOrder2D.offset` 从 0 改到 10，子节点 `Sorting2D.sortingOrder` 没有立刻变化。 |
+| **原因** | 脚本只在 `lateUpdate` 同步，编辑器属性变更时不一定触发运行时 lateUpdate 路径。 |
+| **解决** | 增加 `update`、`onRestore`、`resetInEditor` 同步入口，offset 在编辑器修改后会重新扫描子 Sprite 并强制写入排序值。 |
+
+### v3（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `Sorting2D.sortingOrder` 到达 `-32768` 后，修改 `SortingOrder2D.offset` 仍看不到变化。 |
+| **原因** | `Sorting2D.sortingOrder` 有 `-32768~32767` 范围限制；旧公式 `-worldY * 100 + offset` 在场景 Y 较大时很容易被钳到下限。 |
+| **解决** | 去掉 `*100`，改为 `Math.round(-node.worldPosition.y) + offset`，让排序值保持在 `Sorting2D` 可用范围内。 |
+
+### v4（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 部分 prefab 的自定义 `SortingOrder2D` 挂在 `Visual` 等子节点上，一个 prefab 有多个 Sprite 时不能用根节点统一决定整组渲染层级。 |
+| **原因** | 旧挂法按单个 Sprite/Visual 节点排序，根节点移动或存在多 Sprite 子树时，排序控制点不一致。 |
+| **解决** | 将 character/building 相关 prefab 的自定义 `SortingOrder2D` 迁移到 prefab 根节点；子 Sprite 继续由根节点脚本自动补/同步 `cc.Sorting2D`。全量扫描确认 `SortingOrder2D` 非根挂载数为 0。 |
+
+---
+
+## fix-boss-cannot-hit-barracks — Boss 碰到兵营边缘但不攻击
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 靠近 `pref_barracks` 时看起来已经碰到建筑，但不会出手或打不到兵营。 |
+| **原因** | Boss 的进入攻击距离和圆形 AOE 命中都按目标根节点中心点计算；兵营这类宽建筑从侧面被 collider 挡住时，Boss 到根节点中心仍可能大于攻击半径。 |
+| **解决** | Boss 判距改为优先使用目标 `BoxCollider2D.worldAABB` 最近点距离；没有碰撞盒时才回退到根节点中心距离。这样碰到兵营外边缘即可进入攻击并被 AOE 命中。 |
+
+---
+
+## fix-character-left-right-facing — 角色缺少左右转向程序动画
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 小怪、盾兵、弓兵、Boss、Player、Hero1、Hero2 移动或攻击时不会按左右方向翻转 Visual。 |
+| **原因** | 多数角色脚本只更新位移和 locomotion clip，没有同步 Visual 朝向；Hero 里的临时翻转逻辑也只覆盖部分攻击场景。 |
+| **解决** | 新增 `VisualFacing` 共享 helper，记录 Visual 初始缩放并只切换 X 轴正负；Player/Hero/Soldier/EnemyMinion/EnemyBoss 在移动和攻击停住时按速度或目标位置更新左右朝向。 |
+
+### v2（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Player、Hero1、Hero2 的左右转向方向反了；Boss 和近战 Soldier 索敌扫描频率偏高；EnemySpawner 出怪偏慢。 |
+| **原因** | Player/Hero 美术默认朝向与通用 `VisualFacing` 默认方向相反；Boss `pickTarget` 会重复扫描场景目标，近战 Soldier 每帧全场找 Boss/小怪；`farSpawnInterval` 为 2.5 秒。 |
+| **解决** | `VisualFacing` 增加可选反向参数，Player/Hero 移动和攻击朝向使用反向，玩家自动攻击前也面向目标；Boss 新目标扫描按 `bossTargetScanInterval` 低频补表，近战 Soldier 锁定目标并按 `soldierRetargetInterval` 重选；`farSpawnInterval` 调到 1.6 秒。 |
+
+---
+
+## fix-player-arrow-falloff-and-billboard-rotation — 玩家箭穿透伤害与 Billboard 旋转
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家箭矢穿透后每个目标都吃满额伤害；`Billboard` 仍会在 `lateUpdate` 中改节点 rotation。 |
+| **原因** | `Arrow` 只按命中数量销毁，没有按命中序号计算递减伤害；`Billboard` 每帧根据相机位置写 `setRotationFromEuler`。 |
+| **解决** | `Arrow` 前 3 个命中目标造成 `playerAttackDamage`，第 4 个起按 `arrowPierceDamageFalloff` 逐次递减，仍保留 5 命中或超距销毁；`Billboard` 保留组件字段但不再修改 rotation。 |
+
+### v2（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 多个 prefab 上仍挂着 `Billboard` 组件，即使脚本已不再旋转，也会保留多余组件绑定。 |
+| **原因** | 之前批量给角色、建筑、道具、弹道 prefab 添加了 `Billboard` 组件，需求改为取消 prefab 上的该脚本挂载。 |
+| **解决** | 从 22 个 prefab 中移除 `Billboard` 组件对象及对应 `cc.CompPrefabInfo`，并重映射 prefab 内部 `__id__` 引用；未修改场景。 |
+
+---
+
+## fix-arrow-bow-parkour-heroselect-slots — 箭矢朝向、跑酷拾弓和英雄选择槽
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_projectile_arrow` 的 Z 轴朝向还差 180 度；跑酷段仍可能拾取 `pref_item_bow`；HeroSelect 的两个槽位会随机显示 hero0/hero1。 |
+| **原因** | 箭矢 `directionAngleOffset` 仍按旧贴图朝向；`BowItem` 没有检查当前 `GamePhase`；`HeroSelectUI` 会随机打乱 `_offer` 并按 heroIdx 显隐卡内图标槽。 |
+| **解决** | `Arrow.directionAngleOffset` 和 `pref_projectile_arrow` 序列化值改为 180；`BowItem` 在 `RunParkour` 阶段拒绝距离/接触拾取；`HeroSelectUI` 固定 offer 顺序，slot0 显示 icon0，slot1 显示 icon1，并兼容 `HeroSlot0/HeroSlot1` 节点名。 |
+
+---
+
+## fix-expand-unlock-hide-list — 拓展区解锁后需要隐藏额外节点
+
+### v1（2026-09-08）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 拓展区解锁后，只显示 `Plot_Expand`，但没有统一入口隐藏其它需要收起的场景节点。 |
+| **原因** | `BuildSystem._onHeroSpawned` 只负责 reveal `expandPlots`，未暴露可配置的隐藏列表。 |
+| **解决** | 在 `BuildSystem` 暴露 `hideWhenExpandUnlocked: Node[]`，拓展地块 reveal 后遍历该列表并设置 `active=false`。 |
+
+---

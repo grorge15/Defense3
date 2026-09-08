@@ -1,7 +1,7 @@
 ---
 slug: shared-path-agent
 版本: 1
-状态: draft
+状态: done
 创建: 2026-09-08
 ---
 
@@ -55,20 +55,20 @@ slug: shared-path-agent
 
 ## To-dos（必填）
 
-- [ ] `SPA.1`：Survey 当前 dirty worktree 和允许文件 diff；确认未提交改动来源，记录不得回退的文件列表。
-- [ ] `SPA.2`：读取 `AirWallAabb.ts`、四个调用方和 `GameConfig.ts`，确认世界坐标轴、移动速度、攻击停步、目标有效性和现有 fallback 调用点。
-- [ ] `SPA.3`：新建 `PathAgent.ts`，提供每单位可复用实例、缓存目标、低频 repath、waypoint 数组、直线可达检查、AABB/栅格 fallback 和现有 steering 降级。
-- [ ] `SPA.4`：在 `GameConfig.ts` 增加 path 相关非战斗参数，避免在调用方散落魔法数。
-- [ ] `SPA.5`：`EnemyMinion.ts` 接入 `PathAgent`，只替换追击移动向量来源；保留 aggro、屏障优先、分离、滚木挡穿、死亡/攻击逻辑。
-- [ ] `SPA.6`：`EnemyBoss.ts` 接入 `PathAgent`，只替换追击移动向量来源；保留目标优先级、5s retarget、攻击条件、卡住侧滑兼容逻辑。
-- [ ] `SPA.7`：`Hero.ts` 接入 `PathAgent`，只作用于 follow offset/leash 移动；远程攻击期间继续停住。
-- [ ] `SPA.8`：`Soldier.ts` 接入 `PathAgent`，仅 melee/barracks 追最近敌人使用；显式确认 ranged/tower soldier 未出现追敌位移。
-- [ ] `SPA.9`：做轻量性能/分配检查，确认路径数组/Vec 在对象内复用，逐帧只跟随当前 waypoint，不做每帧 full A*。
-- [ ] `SPA.10`：运行项目既有 TypeScript 检查命令 `npx tsc --noEmit -p tsconfig.json`；若环境缺依赖或命令失败，记录完整错误并按实际原因处理。
-- [ ] `SPA.11`：用 `rg` 验证四类调用方均引用或调用 `PathAgent`，并确认 ranged soldier 分支未接入 roaming path-follow。
-- [ ] `SPA.12`：对照 OpenSpec 行为 AC 手测或列出 AC-PLAY 待用户项；报告说明 AC-PLAY 不阻塞 done。
-- [ ] `SPA.13`：若未改 scene/prefab，跳过 MCP 表；若意外改过 scene/prefab，按 MCP 流程完成 save/post-scene/gate 并记录证据。
-- [ ] `SPA.14`：写 `.cursor/plans/reports/shared-path-agent-report.md`，包含 dirty worktree 保护说明、PathAgent 参数、调用点、OpenSpec path 和验证命令输出。
+- [x] `SPA.1`：Survey 当前 dirty worktree 和允许文件 diff；确认未提交改动来源，记录不得回退的文件列表。
+- [x] `SPA.2`：读取 `AirWallAabb.ts`、四个调用方和 `GameConfig.ts`，确认世界坐标轴、移动速度、攻击停步、目标有效性和现有 fallback 调用点。
+- [x] `SPA.3`：新建 `PathAgent.ts`，提供每单位可复用实例、缓存目标、低频 repath、waypoint 数组、直线可达检查、AABB/栅格 fallback 和现有 steering 降级。
+- [x] `SPA.4`：在 `GameConfig.ts` 增加 path 相关非战斗参数，避免在调用方散落魔法数。
+- [x] `SPA.5`：`EnemyMinion.ts` 接入 `PathAgent`，只替换追击移动向量来源；保留 aggro、屏障优先、分离、滚木挡穿、死亡/攻击逻辑。
+- [x] `SPA.6`：`EnemyBoss.ts` 接入 `PathAgent`，只替换追击移动向量来源；保留目标优先级、5s retarget、攻击条件、卡住侧滑兼容逻辑。
+- [x] `SPA.7`：`Hero.ts` 接入 `PathAgent`，只作用于 follow offset/leash 移动；远程攻击期间继续停住。
+- [x] `SPA.8`：`Soldier.ts` 接入 `PathAgent`，仅 melee/barracks 追最近敌人使用；显式确认 ranged/tower soldier 未出现追敌位移。
+- [x] `SPA.9`：做轻量性能/分配检查，确认路径数组/Vec 在对象内复用，逐帧只跟随当前 waypoint，不做每帧 full A*。
+- [x] `SPA.10`：运行项目既有 TypeScript 检查命令 `npx tsc --noEmit -p tsconfig.json`；若环境缺依赖或命令失败，记录完整错误并按实际原因处理。
+- [x] `SPA.11`：用 `rg` 验证四类调用方均引用或调用 `PathAgent`，并确认 ranged soldier 分支未接入 roaming path-follow。
+- [x] `SPA.12`：对照 OpenSpec 行为 AC 手测或列出 AC-PLAY 待用户项；报告说明 AC-PLAY 不阻塞 done。
+- [x] `SPA.13`：若未改 scene/prefab，跳过 MCP 表；若意外改过 scene/prefab，按 MCP 流程完成 save/post-scene/gate 并记录证据。
+- [x] `SPA.14`：写 `.cursor/plans/reports/shared-path-agent-report.md`，包含 dirty worktree 保护说明、PathAgent 参数、调用点、OpenSpec path 和验证命令输出。
 
 > 同主题 MCP 合并本 plan；纯脚本 ≤2 文件走 goal-agent。本任务跨 5 个脚本且改玩家可见移动行为，已按 Plan-Build 处理。
 

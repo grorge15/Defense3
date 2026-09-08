@@ -12,6 +12,7 @@ import {
     RigidBody2D,
     Size,
     Sprite,
+    SpriteFrame,
     UITransform,
     Vec3,
 } from 'cc';
@@ -36,6 +37,24 @@ export type BuildPlotType =
 export class BuildPlot extends Component {
     @property({ type: Node, tooltip: '背景 Sprite 节点' })
     backgroundSprite: Node | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'wall 地块 PreviewIcon' })
+    wallBackgroundSprite: SpriteFrame | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'tower basic 地块 PreviewIcon' })
+    towerBasicBackgroundSprite: SpriteFrame | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'tower advanced 地块 PreviewIcon' })
+    towerAdvancedBackgroundSprite: SpriteFrame | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'pref_barracks 地块 PreviewIcon' })
+    barracksBackgroundSprite: SpriteFrame | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'pref_hero_shrine 地块 PreviewIcon' })
+    heroShrineBackgroundSprite: SpriteFrame | null = null;
+
+    @property({ type: SpriteFrame, tooltip: 'expand 地块 PreviewIcon' })
+    expandBackgroundSprite: SpriteFrame | null = null;
 
     @property({ type: Node, tooltip: '金币图标节点' })
     coinIcon: Node | null = null;
@@ -280,10 +299,38 @@ export class BuildPlot extends Component {
     }
 
     private _refreshCostDisplay(): void {
+        this._applyPreviewIconSprite();
         if (this.costLabel) {
             this.costLabel.string = String(this.getBuildCost());
         }
         this._updateFillBar();
+    }
+
+    private _applyPreviewIconSprite(): void {
+        const sprite = this.previewIcon?.getComponent(Sprite) ?? null;
+        const frame = this._resolvePreviewIconFrame();
+        if (sprite && frame) {
+            sprite.spriteFrame = frame;
+        }
+    }
+
+    private _resolvePreviewIconFrame(): SpriteFrame | null {
+        switch (this._buildType) {
+            case 'wall':
+                return this.wallBackgroundSprite;
+            case 'towerBasic':
+                return this.towerBasicBackgroundSprite;
+            case 'towerAdvanced':
+                return this.towerAdvancedBackgroundSprite;
+            case 'barracks':
+                return this.barracksBackgroundSprite;
+            case 'heroShrine':
+                return this.heroShrineBackgroundSprite;
+            case 'expandArea':
+                return this.expandBackgroundSprite;
+            default:
+                return null;
+        }
     }
 
     private _updateFillBar(): void {

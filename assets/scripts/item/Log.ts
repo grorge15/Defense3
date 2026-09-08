@@ -14,7 +14,6 @@ import {
 import { Player } from '../character/Player';
 import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim } from '../core/AnimUtil';
-import { Billboard } from '../core/Billboard';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -59,7 +58,6 @@ export class Log extends Component {
     private _yellowTriggered = false;
     private _blueTriggered = false;
     private readonly _baseVisualScale = new Vec3(1, 1, 1);
-    private readonly _visualEuler = new Vec3();
     private _hp = GameConfig.logMaxHp;
     private _hpBarSpawned = false;
 
@@ -312,15 +310,12 @@ export class Log extends Component {
         this._fadeOut();
     }
 
-    /** 固定/失败后停止滚动与 Billboard，避免 Visual 继续改 rotation */
+    /** 固定/失败后停止滚动，避免 Visual 继续改 rotation */
     private _freezeVisualRotation(): void {
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
             this._rb.angularVelocity = 0;
             this._rb.fixedRotation = true;
-        }
-        for (const billboard of this.node.getComponentsInChildren(Billboard)) {
-            billboard.enabled = false;
         }
         if (this.visualNode) {
             this.visualNode.setRotationFromEuler(0, 0, 0);
@@ -334,9 +329,7 @@ export class Log extends Component {
         if (this._phase !== 'rolling' && this._phase !== 'charging') {
             return;
         }
-        // 滚动视觉用玩家速度；跟木贴位放 lateUpdate，避免误差/dt 追赶导致根节点坐标跳
-        const spd = this._pushPlayer.getVelocity().length();
-        this._updateRollVisual(dt, spd);
+        this._keepVisualRotationFlat();
         this._pollParkourLines();
     }
 
@@ -447,19 +440,10 @@ export class Log extends Component {
         }
     }
 
-    private _updateRollVisual(dt: number, speed: number): void {
-        if (!this.visualNode || dt <= 0) {
-            return;
+    private _keepVisualRotationFlat(): void {
+        if (this.visualNode) {
+            this.visualNode.setRotationFromEuler(0, 0, 0);
         }
-        if (speed < 0.001) {
-            return;
-        }
-        const radius = Math.max(this.segmentSize * 0.5, 0.01);
-        const deltaDeg =
-            ((speed * GameConfig.logRollSpeed) / radius) * dt * (180 / Math.PI);
-        this._visualEuler.set(this.visualNode.eulerAngles);
-        this._visualEuler.x += deltaDeg;
-        this.visualNode.setRotationFromEuler(this._visualEuler);
     }
 
     private _playRollAnim(): void {

@@ -22,6 +22,9 @@ export class Arrow extends Component {
     @property({ type: Node, tooltip: 'Visual 子节点' })
     visualNode: Node | null = null;
 
+    @property({ tooltip: '箭矢贴图默认朝向相对 +X 轴的角度偏移；贴图朝左填 180，朝右填 0' })
+    directionAngleOffset = 180;
+
     private _collider: Collider2D | null = null;
     private _damage = GameConfig.playerAttackDamage;
     private _speed = GameConfig.arrowSpeed;
@@ -62,6 +65,7 @@ export class Arrow extends Component {
         } else {
             this._dir.normalize();
         }
+        this._faceMoveDirection();
     }
 
     update(dt: number): void {
@@ -75,6 +79,7 @@ export class Arrow extends Component {
         this._pos.y += this._dir.y * step;
         this._pos.z += this._dir.z * step;
         this.node.setWorldPosition(this._pos);
+        this._faceMoveDirection();
 
         this._traveled += step;
         if (this._traveled >= GameConfig.arrowMaxDistance) {
@@ -162,36 +167,51 @@ export class Arrow extends Component {
             // 命中节点树上 Boss 优先于小怪（与索敌一致）
             const boss = cur.getComponent(EnemyBoss);
             if (boss) {
-                this._damageEnemy(cur.uuid, () => boss.takeDamage(this._damage));
+                this._damageEnemy(cur.uuid, (damage) => boss.takeDamage(damage));
                 return;
             }
             const minion = cur.getComponent(EnemyMinion);
             if (minion) {
-                this._damageEnemy(cur.uuid, () => minion.takeDamage(this._damage));
+                this._damageEnemy(cur.uuid, (damage) => minion.takeDamage(damage));
                 return;
             }
             const log = cur.getComponent(Log);
             if (log?.isAttackable()) {
-                this._damageEnemy(cur.uuid, () => log.takeDamage(this._damage));
+                this._damageEnemy(cur.uuid, (damage) => log.takeDamage(damage));
                 return;
             }
             cur = cur.parent;
         }
     }
 
-    private _damageEnemy(id: string, apply: () => void): void {
+    private _damageEnemy(id: string, apply: (damage: number) => void): void {
         if (this._piercedIds.has(id)) {
             return;
         }
+        const damage = this._damageForHit(this._piercedIds.size + 1);
         this._piercedIds.add(id);
-        apply();
+        apply(damage);
         if (this._piercedIds.size >= GameConfig.arrowMaxPierce) {
             this._destroySelf();
         }
     }
 
+    private _damageForHit(hitIndex: number): number {
+        if (hitIndex <= GameConfig.arrowFullDamageHits) {
+            return this._damage;
+        }
+        const decaySteps = hitIndex - GameConfig.arrowFullDamageHits;
+        const multiplier = Math.pow(GameConfig.arrowPierceDamageFalloff, decaySteps);
+        return Math.max(1, Math.round(this._damage * multiplier));
+    }
+
     private _destroySelf(): void {
         this._alive = false;
         this.node.destroy();
+    }
+
+    private _faceMoveDirection(): void {
+        const angleDeg = Math.atan2(this._dir.y, this._dir.x) * 180 / Math.PI;
+        this.node.setRotationFromEuler(0, 0, angleDeg + this.directionAngleOffset);
     }
 }

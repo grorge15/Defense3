@@ -100,31 +100,6 @@ export class HeroShrine extends Component {
         );
 
         this.onHeroSpawned?.(heroNode);
-        this._hideShrineVisual();
-    }
-
-    /** 召唤完成后隐藏召唤碑 Visual（关掉碑根 + 整块 Plot_*，避免地贴/碑身残留） */
-    private _hideShrineVisual(): void {
-        if (!this.visualNode) {
-            this.visualNode = this.node.getChildByName('Visual');
-        }
-        if (this.visualNode) {
-            this.visualNode.active = false;
-        }
-        // 关掉 Visual 上 Sprite 等（防仅关根节点时个别渲染组件仍可见）
-        for (const child of this.node.children) {
-            child.active = false;
-        }
-        this.node.active = false;
-        const plotRoot = this.node.parent;
-        if (!plotRoot) {
-            return;
-        }
-        for (const child of plotRoot.children) {
-            child.active = false;
-        }
-        // 整块地块关掉：Plot_HeroShrine 上若还有地贴/装饰一并消失
-        plotRoot.active = false;
     }
 
     private _resolveSpawnParent(): Node {

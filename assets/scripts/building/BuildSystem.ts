@@ -52,6 +52,9 @@ export class BuildSystem extends Component {
     @property({ type: [Node], tooltip: '拓展地块：Plot_Expand' })
     expandPlots: Node[] = [];
 
+    @property({ type: [Node], tooltip: '拓展地块解锁后需要隐藏的节点列表' })
+    hideWhenExpandUnlocked: Node[] = [];
+
     @property({ type: [Node], tooltip: '高级塔地块：Plot_TowerAdvanced_L/R' })
     towerAdvancedPlots: Node[] = [];
 
@@ -459,8 +462,16 @@ export class BuildSystem extends Component {
             hero.ensureHpBar();
         }
         this._registerBossTarget(heroNode, 'hero');
-        this._setPlotsActive(this.heroShrinePlots, false);
         this._revealPlots(this.expandPlots, 'expandArea');
+        this._hideExpandUnlockNodes();
+    }
+
+    private _hideExpandUnlockNodes(): void {
+        for (const node of this.hideWhenExpandUnlocked) {
+            if (node?.isValid) {
+                node.active = false;
+            }
+        }
     }
 
     private _onExpandComplete(): void {

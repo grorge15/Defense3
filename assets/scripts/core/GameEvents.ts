@@ -17,8 +17,8 @@ export const GameEvents = {
     BOTH_ADVANCED_TOWERS_COMPLETE: 'both_advanced_towers_complete',
     /**
      * Boss 索敌名单注册/更新。
-     * payload: { node: Node, kind: 'player'|'hero'|'building'|'barrier'|'log', buildOrder?: number }
-     * 优先级：Structure(building/barrier/log) > hero > player；Structure 内按建造顺序。
+     * payload: { node: Node, kind: 'player'|'hero'|'soldier'|'building'|'barrier'|'log', buildOrder?: number }
+     * 优先级：soldier > Structure(building/barrier/log) > hero > player；Structure 内按建造顺序。
      */
     BOSS_TARGET_REGISTER: 'boss_target_register',
 } as const;

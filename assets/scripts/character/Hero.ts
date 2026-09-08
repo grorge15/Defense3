@@ -20,6 +20,7 @@ import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { HitFlash } from '../core/HitFlash';
+import { VisualFacing } from '../core/VisualFacing';
 import { HeroProjectile } from '../projectile/HeroProjectile';
 import { HpBarUI } from '../ui/HpBarUI';
 import { Player } from './Player';
@@ -80,6 +81,7 @@ export class Hero extends Component {
     private readonly _playerPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _desiredPos = new Vec3();
+    private readonly _visualFacing = new VisualFacing();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -97,6 +99,7 @@ export class Hero extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        this._visualFacing.bind(this.visualNode);
         this.setHeroVariant(this.heroVariant);
         if (this.attackRange < 40) {
             this.attackRange = GameConfig.heroAttackRange;
@@ -160,7 +163,7 @@ export class Hero extends Component {
         this._attackTimer = this.attackCooldown;
         this._pendingTarget = enemy.node;
         this._ensureProjectilePrefab();
-        this._faceTowardX(enemy.node.worldPosition.x);
+        this._visualFacing.faceByTarget(this.visualNode, this.node, enemy.node, true);
         // 攻击中停住：清速度，不跟随玩家
         this._velocity.set(0, 0);
         if (this._rb) {
@@ -287,12 +290,15 @@ export class Hero extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        if (isMoving) {
+            this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x, true);
+        }
         this._updateLocomotionAnim(isMoving);
 
         // 射程内原地远程出手（不追敌位移）
         const combat = this._findNearestEnemy();
         if (combat) {
-            this._faceTowardX(combat.node.worldPosition.x);
+            this._visualFacing.faceByTarget(this.visualNode, this.node, combat.node, true);
             this.tryAttack();
         }
     }
@@ -318,16 +324,6 @@ export class Hero extends Component {
         const s = leash / dist;
         pos.x = playerPos.x + dx * s;
         pos.y = playerPos.y + dy * s;
-    }
-
-    private _faceTowardX(worldX: number): void {
-        const face = this.visualNode ?? this.node;
-        const s = face.scale;
-        const sx = Math.sign(worldX - this._selfPos.x);
-        if (sx === 0) {
-            return;
-        }
-        face.setScale(Math.abs(s.x) * sx || sx, s.y, s.z);
     }
 
     private _ensureFollowTarget(): void {

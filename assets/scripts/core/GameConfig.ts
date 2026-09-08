@@ -4,10 +4,10 @@
  */
 export class GameConfig {
     // --- 生命值 ---
-    static readonly playerMaxHp = 100;
+    static readonly playerMaxHp = 400;
     static readonly heroMaxHp = 100;
-    static readonly bossMaxHp = 500;
-    static readonly minionMaxHp = 30;
+    static readonly bossMaxHp = 3000;
+    static readonly minionMaxHp = 15;
     static readonly soldierMaxHp = 20;
     static readonly barrierMaxHp = 200;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
@@ -17,7 +17,7 @@ export class GameConfig {
     static readonly logMaxHp = 100;
 
     // --- 攻击 ---
-    static readonly bossAttackDamage = 25;
+    static readonly bossAttackDamage = 90;
     /** Boss 对建筑/屏障/小兵一击拆毁伤害（≥ 各建筑 maxHp） */
     static readonly bossBuildingDamage = 9999;
     static readonly playerAttackDamage = 15;
@@ -37,8 +37,12 @@ export class GameConfig {
     static readonly arrowHitRadius = 48;
     /** 箭矢最大穿透敌人数（含首命中） */
     static readonly arrowMaxPierce = 5;
+    /** 玩家箭矢前 N 个命中目标造成满额 playerAttackDamage */
+    static readonly arrowFullDamageHits = 3;
+    /** 超过满伤命中数后，每多命中一个目标的伤害倍率 */
+    static readonly arrowPierceDamageFalloff = 0.5;
     /** 箭矢最大飞行距离（世界单位） */
-    static readonly arrowMaxDistance = 480;
+    static readonly arrowMaxDistance = 300;
 
     // --- 相机跟随（玩法在 XY 平面，主相机从 +Z 看向原点；UI 由 UICamera 单独渲染）---
     static readonly cameraFollowOffsetX = 0;
@@ -49,10 +53,10 @@ export class GameConfig {
     static readonly cameraFollowSmooth = 6;
 
     // --- 移动 ---
-    static readonly playerMoveSpeed = 5;
-    static readonly playerParkourForwardSpeed = 5;
+    static readonly playerMoveSpeed = 6;
+    static readonly playerParkourForwardSpeed = 7;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 3;
+    static readonly playerParkourChargeSpeed = 4;
     static readonly heroFollowSpeed = 4;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
@@ -65,15 +69,39 @@ export class GameConfig {
      */
     static readonly heroFollowLeash = 0;
     /** Boss 重新索敌间隔（秒） */
-    static readonly bossRetargetInterval = 5;
+    static readonly bossRetargetInterval = 3;
+    /** Boss 扫描场景中新防守目标的间隔（秒） */
+    static readonly bossTargetScanInterval = 1.0;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
     static readonly minionAggroRange = 420;
     static readonly minionMoveSpeed = 2;
     static readonly bossMoveSpeed = 3;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
-    static readonly soldierMoveSpeed = 2;
+    static readonly soldierMoveSpeed = 6;
+    /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
+    static readonly soldierRetargetInterval = 0.35;
     /** 近战小兵停步/出手距离 */
     static readonly soldierMeleeAttackRange = 40;
+
+    // --- 共享寻路（非战斗数值） ---
+    /** PathAgent full repath 最小间隔（秒），避免每帧 A*。 */
+    static readonly pathRepathInterval = 1.0;
+    /** 目标移动超过该距离后，下次 repath 窗口刷新路径。 */
+    static readonly pathTargetMoveThreshold = 48;
+    /** waypoint 视为抵达的半径（世界单位）。 */
+    static readonly pathWaypointReachDistance = 28;
+    /** fallback 栅格尺寸；越小越贴边，节点越多。 */
+    static readonly pathGridSize = 64;
+    /** 直线可达 probe 步长。 */
+    static readonly pathProbeStep = 48;
+    /** AABB probe 尺寸膨胀，降低贴墙穿插。 */
+    static readonly pathProbePadding = 1.08;
+    /** A* 单次最大展开预算。 */
+    static readonly pathMaxNodes = 90;
+    /** 起终点附近寻找可行栅格的最大半径。 */
+    static readonly pathNearestCellRadius = 3;
+    /** 以起终点包围盒外扩的寻路区域。 */
+    static readonly pathBoundsPadding = 128;
 
     // --- 滚木 ---
     static readonly logRollSpeed = 4;
@@ -86,7 +114,7 @@ export class GameConfig {
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 15;
-    static readonly farSpawnInterval = 2.5;
+    static readonly farSpawnInterval = 1.6;
     /** 场上同时存活小怪上限（含侧路） */
     static readonly farSpawnMaxAlive = 50;
     /** 小怪死亡后回池并在 SpawnPoint 重生的延迟（秒） */

@@ -21,12 +21,14 @@ import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { PathAgent } from '../core/PathAgent';
+import { VisualFacing } from '../core/VisualFacing';
 import { Log } from '../item/Log';
 import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
 
-export type BossTargetKind = 'player' | 'hero' | 'building' | 'barrier' | 'log';
+export type BossTargetKind = 'player' | 'hero' | 'soldier' | 'building' | 'barrier' | 'log';
 
 export interface BossTargetRegisterPayload {
     node: Node;
@@ -36,10 +38,11 @@ export interface BossTargetRegisterPayload {
 }
 
 /**
- * 索敌优先级：Structure(building/barrier/log) > hero > player。
+ * 索敌优先级：soldier > Structure(building/barrier/log) > hero > player。
  * Structure 内再按 buildOrder 升序（建造顺序）。
  */
 const BOSS_TARGET_PRIORITY: Record<BossTargetKind, number> = {
+    soldier: 40,
     building: 30,
     barrier: 30,
     log: 30,
@@ -65,13 +68,13 @@ export class EnemyBoss extends Component {
     @property({ tooltip: 'Visual 子节点，挂有 Animation 组件' })
     visualNode: Node | null = null;
 
-    @property({ tooltip: '长条攻击长度（世界单位）' })
+    @property({ tooltip: '已废弃：Boss 攻击现在使用 attackTriggerRange 圆形范围' })
     attackLength = 4;
 
-    @property({ tooltip: '长条攻击宽度（世界单位）' })
+    @property({ tooltip: '已废弃：Boss 攻击现在使用 attackTriggerRange 圆形范围' })
     attackWidth = 2;
 
-    @property({ tooltip: '进入攻击的距离（世界单位）' })
+    @property({ tooltip: 'Boss 圆形攻击半径（世界单位）' })
     attackTriggerRange = 3.5;
 
     @property({ tooltip: '攻击冷却（秒）' })
@@ -85,6 +88,7 @@ export class EnemyBoss extends Component {
     private _playerNode: Node | null = null;
     private _lockedTarget: Node | null = null;
     private _retargetTimer = 0;
+    private _targetScanTimer = 0;
     private _nextBuildOrder = 1;
     private _stuckFrames = 0;
     private readonly _lastPos = new Vec3();
@@ -93,12 +97,14 @@ export class EnemyBoss extends Component {
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _toTarget = new Vec2();
+    private readonly _pathAgent = new PathAgent();
     private _airWalls: BoxCollider2D[] = [];
     private _attackTimer = 0;
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
     private _currentLocomotionClip = '';
+    private readonly _visualFacing = new VisualFacing();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -106,6 +112,7 @@ export class EnemyBoss extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        this._visualFacing.bind(this.visualNode);
         this._hp = GameConfig.bossMaxHp;
         // 近战停步/出手距离（百级像素）；追击无上限
         if (this.attackTriggerRange < 20 || this.attackTriggerRange > 80) {
@@ -170,6 +177,7 @@ export class EnemyBoss extends Component {
             }
         }
         this._injectSceneDefenseTargets();
+        this._targetScanTimer = GameConfig.bossTargetScanInterval;
     }
 
     /** 扫描场景内已有防守目标（Boss 晚于塔/兵营生成时补表） */
@@ -201,6 +209,15 @@ export class EnemyBoss extends Component {
         for (const h of scene.getComponentsInChildren(Hero)) {
             if (h.node.activeInHierarchy) {
                 this._upsertTarget(h.node, 'hero');
+            }
+        }
+        for (const soldier of scene.getComponentsInChildren(Soldier)) {
+            if (
+                soldier.node.activeInHierarchy &&
+                !soldier.isDead &&
+                this._isMeleeSoldier(soldier)
+            ) {
+                this._upsertTarget(soldier.node, 'soldier');
             }
         }
         for (const barrier of scene.getComponentsInChildren(Barrier)) {
@@ -283,16 +300,19 @@ export class EnemyBoss extends Component {
         }
 
         let best: BossTargetEntry | null = null;
+        let bestDistSq = Number.POSITIVE_INFINITY;
         for (const e of this._targetList) {
             if (e.priority !== bestPriority || !this._isTargetAlive(e.node)) {
                 continue;
             }
+            const distSq = this._distSq(e.node);
             if (
                 !best ||
                 e.buildOrder < best.buildOrder ||
-                (e.buildOrder === best.buildOrder && this._distSq(e.node) < this._distSq(best.node))
+                (e.buildOrder === best.buildOrder && distSq < bestDistSq)
             ) {
                 best = e;
+                bestDistSq = distSq;
             }
         }
         return best?.node ?? null;
@@ -314,6 +334,7 @@ export class EnemyBoss extends Component {
         if (!lockedAlive || this._retargetTimer <= 0) {
             this._lockedTarget = this.pickTarget();
             this._retargetTimer = GameConfig.bossRetargetInterval;
+            this._pathAgent.reset();
         }
         return this._lockedTarget;
     }
@@ -341,19 +362,22 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        this.node.getWorldPosition(this._selfPos);
-        target.getWorldPosition(this._targetPos);
-        const dx = this._targetPos.x - this._selfPos.x;
-        const dy = this._targetPos.y - this._selfPos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = this._distanceToTargetSurface(target);
         const melee = Math.max(this.attackTriggerRange, 48);
         if (dist > melee) {
             return;
         }
 
+        target.getWorldPosition(this._targetPos);
+        const dx = this._targetPos.x - this._selfPos.x;
+        const dy = this._targetPos.y - this._selfPos.y;
         if (dist > 0.001) {
-            this._facingDir.set(dx / dist, dy / dist);
+            const centerDist = Math.sqrt(dx * dx + dy * dy);
+            if (centerDist > 0.001) {
+                this._facingDir.set(dx / centerDist, dy / centerDist);
+            }
         }
+        this._visualFacing.faceByTarget(this.visualNode, this.node, target);
 
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
@@ -364,13 +388,13 @@ export class EnemyBoss extends Component {
                 'attack',
                 () => {
                     if (!this._isDead) {
-                        this._applyLineAttack();
+                        this._applyCircleAttack();
                     }
                 },
                 0.75,
             );
         } else {
-            this._applyLineAttack();
+            this._applyCircleAttack();
         }
         this.scheduleOnce(() => {
             this._isAttacking = false;
@@ -412,6 +436,7 @@ export class EnemyBoss extends Component {
         this._isAttacking = false;
         this._currentLocomotionClip = '';
         this._facingDir.set(0, 1);
+        this._pathAgent.reset();
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -420,6 +445,7 @@ export class EnemyBoss extends Component {
             this._rb.linearVelocity = new Vec2(0, 0);
         }
         if (this.visualNode) {
+            this._visualFacing.reset(this.visualNode);
             playAnim(this.visualNode, 'idle');
         }
         this._bootstrapExistingTargets();
@@ -440,8 +466,9 @@ export class EnemyBoss extends Component {
         if (!this._canMove || this._isDead || dt <= 0) {
             return;
         }
+        this._scanTargetsByInterval(dt);
 
-        // 每 5s 重索敌；Structure > hero > player（Structure 按建造序）
+        // 每 5s 重索敌；soldier > Structure > hero > player（Structure 按建造序）
         const target = this._resolveChaseTarget(dt);
         if (!target) {
             this._velocity.set(0, 0);
@@ -456,11 +483,13 @@ export class EnemyBoss extends Component {
         target.getWorldPosition(this._targetPos);
         const dx = this._targetPos.x - this._selfPos.x;
         const dy = this._targetPos.y - this._selfPos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const centerDist = Math.sqrt(dx * dx + dy * dy);
+        const dist = this._distanceFromSelfToTargetSurface(target);
 
-        if (dist > 0.001) {
-            this._facingDir.set(dx / dist, dy / dist);
+        if (centerDist > 0.001) {
+            this._facingDir.set(dx / centerDist, dy / centerDist);
         }
+        this._visualFacing.faceByTarget(this.visualNode, this.node, target);
 
         const melee = Math.max(this.attackTriggerRange, 48);
         if (dist <= melee) {
@@ -478,7 +507,8 @@ export class EnemyBoss extends Component {
         // 卡住时加大探测距离，逼出侧向绕行
         const stuck = this._stuckFrames > 12;
         const probe = stuck ? Math.max(size.w, size.h) * 2.2 : undefined;
-        AirWallAabb.steerDirection(
+        this._pathAgent.nextDirection(
+            dt,
             this._selfPos,
             this._targetPos,
             size.w,
@@ -500,8 +530,18 @@ export class EnemyBoss extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
-        this._updateStuck(dist);
+        this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
+        this._updateStuck(centerDist);
         this._updateLocomotionAnim(true);
+    }
+
+    private _scanTargetsByInterval(dt: number): void {
+        this._targetScanTimer -= dt;
+        if (this._targetScanTimer > 0) {
+            return;
+        }
+        this._targetScanTimer = GameConfig.bossTargetScanInterval;
+        this._injectSceneDefenseTargets();
     }
 
     private _updateStuck(targetDist: number): void {
@@ -516,13 +556,10 @@ export class EnemyBoss extends Component {
         }
     }
 
-    private _applyLineAttack(): void {
+    private _applyCircleAttack(): void {
         const candidates = this._collectAttackCandidates();
-        const halfWidth = this.attackWidth * 0.5;
-        const forwardX = this._facingDir.x;
-        const forwardY = this._facingDir.y;
-        const perpX = -forwardY;
-        const perpY = forwardX;
+        const radius = Math.max(this.attackTriggerRange, 48);
+        const radiusSq = radius * radius;
 
         this.node.getWorldPosition(this._selfPos);
 
@@ -530,33 +567,58 @@ export class EnemyBoss extends Component {
             if (!this._isTargetAlive(node)) {
                 continue;
             }
-            node.getWorldPosition(this._targetPos);
-            const offsetX = this._targetPos.x - this._selfPos.x;
-            const offsetY = this._targetPos.y - this._selfPos.y;
-            const forwardDist = offsetX * forwardX + offsetY * forwardY;
-            if (forwardDist < 0 || forwardDist > this.attackLength) {
-                continue;
-            }
-            const sideDist = Math.abs(offsetX * perpX + offsetY * perpY);
-            if (sideDist > halfWidth) {
+            if (this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
                 continue;
             }
             this._dealDamageToNode(node);
         }
     }
 
+    private _distanceToTargetSurface(node: Node): number {
+        this.node.getWorldPosition(this._selfPos);
+        return Math.sqrt(this._distanceFromSelfToTargetSurfaceSq(node));
+    }
+
+    private _distanceFromSelfToTargetSurface(node: Node): number {
+        return Math.sqrt(this._distanceFromSelfToTargetSurfaceSq(node));
+    }
+
+    private _distanceFromSelfToTargetSurfaceSq(node: Node): number {
+        const box = node.getComponent(BoxCollider2D);
+        if (box) {
+            const aabb = box.worldAABB;
+            const closestX = Math.max(aabb.xMin, Math.min(this._selfPos.x, aabb.xMax));
+            const closestY = Math.max(aabb.yMin, Math.min(this._selfPos.y, aabb.yMax));
+            const dx = closestX - this._selfPos.x;
+            const dy = closestY - this._selfPos.y;
+            return dx * dx + dy * dy;
+        }
+
+        node.getWorldPosition(this._targetPos);
+        const dx = this._targetPos.x - this._selfPos.x;
+        const dy = this._targetPos.y - this._selfPos.y;
+        return dx * dx + dy * dy;
+    }
+
     private _collectAttackCandidates(): Node[] {
         this._pruneDeadTargets();
         const out: Node[] = [];
+        const seen = new Set<Node>();
         for (const e of this._targetList) {
-            if (e.node?.isValid && this._isTargetAlive(e.node)) {
+            if (e.node?.isValid && this._isTargetAlive(e.node) && !seen.has(e.node)) {
+                seen.add(e.node);
                 out.push(e.node);
             }
         }
         const scene = this.node.scene;
         if (scene) {
             for (const soldier of scene.getComponentsInChildren(Soldier)) {
-                if (soldier.node?.isValid && this._isTargetAlive(soldier.node)) {
+                if (
+                    soldier.node?.isValid &&
+                    this._isTargetAlive(soldier.node) &&
+                    !seen.has(soldier.node)
+                ) {
+                    seen.add(soldier.node);
                     out.push(soldier.node);
                 }
             }
@@ -601,6 +663,10 @@ export class EnemyBoss extends Component {
             return !soldier.isDead;
         }
         return true;
+    }
+
+    private _isMeleeSoldier(soldier: Soldier): boolean {
+        return soldier.getDeployment() === 'barracks' || /melee/i.test(soldier.node.name);
     }
 
     private _dealDamageToNode(node: Node): void {

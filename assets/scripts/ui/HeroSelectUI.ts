@@ -51,8 +51,8 @@ export class HeroSelectUI extends Component {
     private _mask: Node | null = null;
     private readonly _cards: Node[] = [];
     private readonly _cardSprites: (Sprite | null)[] = [];
-    /** 每卡下英雄图标槽 [card][heroIndex] */
-    private readonly _cardHeroSlots: (Node | null)[][] = [];
+    /** 每卡固定展示槽，slot0 显示 icon0，slot1 显示 icon1 */
+    private readonly _cardHeroSlots: (Node | null)[] = [];
     private readonly _cardBasePos: Vec3[] = [];
     private readonly _cardBaseScale: Vec3[] = [];
 
@@ -124,11 +124,7 @@ export class HeroSelectUI extends Component {
             this._cardBasePos.push(card.position.clone());
             this._cardBaseScale.push(card.scale.clone());
 
-            const slots: (Node | null)[] = [];
-            for (let h = 0; h < 4; h++) {
-                slots.push(card.children[h] ?? null);
-            }
-            this._cardHeroSlots.push(slots);
+            this._cardHeroSlots.push(this._findHeroSlot(card, i - 1));
         }
 
         if (!this.fingerNode) {
@@ -169,20 +165,9 @@ export class HeroSelectUI extends Component {
 
         this._busy = true;
         this._shrine = shrine;
-        this._offer = this._pickTwo(remaining);
+        this._offer = remaining.slice(0, 2).sort((a, b) => a - b);
         this._openPanel();
     };
-
-    private _pickTwo(pool: number[]): number[] {
-        const copy = pool.slice();
-        for (let i = copy.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            const tmp = copy[i];
-            copy[i] = copy[j];
-            copy[j] = tmp;
-        }
-        return copy.slice(0, 2);
-    }
 
     private _openPanel(): void {
         this.node.active = true;
@@ -198,6 +183,7 @@ export class HeroSelectUI extends Component {
 
     private _applyOfferVisuals(): void {
         for (let slot = 0; slot < this._cards.length; slot++) {
+            const card = this._cards[slot];
             const heroIdx = this._offer[slot] ?? 0;
             const cardSprite = this._cardSprites[slot];
             if (cardSprite) {
@@ -207,24 +193,24 @@ export class HeroSelectUI extends Component {
                 }
             }
 
-            const slots = this._cardHeroSlots[slot] ?? [];
-            for (let h = 0; h < slots.length; h++) {
-                const iconNode = slots[h];
-                if (!iconNode) {
-                    continue;
-                }
-                const show = h === heroIdx;
-                iconNode.active = show;
-                if (show) {
-                    const sp = iconNode.getComponent(Sprite);
-                    const frame = heroIdx === 0 ? this.heroIcon0 : this.heroIcon1;
-                    if (sp && frame) {
-                        sp.spriteFrame = frame;
+            if (card) {
+                for (let h = 0; h < card.children.length; h++) {
+                    const child = card.children[h];
+                    if (/^HeroSlot\d+$/i.test(child.name)) {
+                        child.active = child === this._cardHeroSlots[slot];
                     }
                 }
             }
+            const iconNode = this._cardHeroSlots[slot];
+            if (iconNode) {
+                iconNode.active = true;
+                const sp = iconNode.getComponent(Sprite);
+                const frame = heroIdx === 0 ? this.heroIcon0 : this.heroIcon1;
+                if (sp && frame) {
+                    sp.spriteFrame = frame;
+                }
+            }
 
-            const card = this._cards[slot];
             if (card) {
                 card.setPosition(this._cardBasePos[slot]);
                 card.setScale(this._cardBaseScale[slot]);
@@ -252,6 +238,15 @@ export class HeroSelectUI extends Component {
         for (const card of this._cards) {
             card?.off(Node.EventType.TOUCH_END);
         }
+    }
+
+    private _findHeroSlot(card: Node, slot: number): Node | null {
+        return (
+            card.getChildByName(`HeroSlot${slot}`) ??
+            card.getChildByName('HeroSlot0') ??
+            card.children[0] ??
+            null
+        );
     }
 
     private _makeCardHandler(slot: number): (e: EventTouch) => void {

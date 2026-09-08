@@ -25,7 +25,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 12
+      "__id__": 10
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -75,13 +75,10 @@
       },
       {
         "__id__": 7
-      },
-      {
-        "__id__": 9
       }
     ],
     "_prefab": {
-      "__id__": 11
+      "__id__": 9
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -186,26 +183,6 @@
     "fileId": "Comp.p02.sp"
   },
   {
-    "__type__": "7bee2OkY11CfK5SYucC6MQh",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 2
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 8
-    },
-    "visualNode": null,
-    "mainCamera": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "Comp.p02.bb"
-  },
-  {
     "__type__": "329653I9DxOXbX8SFJsOd/A",
     "_name": "",
     "_objFlags": 0,
@@ -215,7 +192,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 10
+      "__id__": 8
     },
     "visualNode": null,
     "offset": 0,

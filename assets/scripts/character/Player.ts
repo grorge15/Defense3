@@ -11,6 +11,7 @@ import {
 import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
 import { HitFlash } from '../core/HitFlash';
+import { VisualFacing } from '../core/VisualFacing';
 import { CombatSystem } from '../game/CombatSystem';
 import { HealthSystem } from '../game/HealthSystem';
 import { EventManager } from '../core/EventManager';
@@ -48,6 +49,7 @@ export class Player extends Component {
     private _currentLocomotionClip = '';
     private _boundLog: Log | null = null;
     private _parkourCharging = false;
+    private readonly _visualFacing = new VisualFacing();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -72,6 +74,7 @@ export class Player extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        this._visualFacing.bind(this.visualNode);
 
         EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
         EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
@@ -127,6 +130,10 @@ export class Player extends Component {
 
     getVelocity(): Readonly<Vec2> {
         return this._velocity;
+    }
+
+    faceTarget(target: Node | null): void {
+        this._visualFacing.faceByTarget(this.visualNode, this.node, target, true);
     }
 
     bindLog(log: Log | null): void {
@@ -224,6 +231,7 @@ export class Player extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x, true);
         this._updateLocomotionAnim();
     }
 

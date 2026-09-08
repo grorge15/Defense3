@@ -16,6 +16,7 @@ import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { VisualFacing } from '../core/VisualFacing';
 import { CoinSystem } from '../game/CoinSystem';
 import { Log } from '../item/Log';
 import { Player } from '../character/Player';
@@ -61,6 +62,7 @@ export class EnemyMinion extends Component {
     private _isAttacking = false;
     private _forceChaseTarget = false;
     private _currentLocomotionClip = '';
+    private readonly _visualFacing = new VisualFacing();
 
     /** 死亡收进对象池时回调（EnemySpawner 监听并 5s 后重生） */
     public onReturnedToPool: ((minion: EnemyMinion) => void) | null = null;
@@ -83,6 +85,7 @@ export class EnemyMinion extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+        this._visualFacing.bind(this.visualNode);
     }
 
     start(): void {
@@ -111,6 +114,7 @@ export class EnemyMinion extends Component {
             return;
         }
         this._isAttacking = true;
+        this._visualFacing.faceByTarget(this.visualNode, this.node, this._target);
         if (this.visualNode) {
             // minion frame_012 → 0.4s
             playAttackWithFrameHit(
@@ -178,6 +182,7 @@ export class EnemyMinion extends Component {
             this._rb.linearVelocity = new Vec2(0, 0);
         }
         if (this.visualNode) {
+            this._visualFacing.reset(this.visualNode);
             playAnim(this.visualNode, 'idle');
         }
         this._bindEmbeddedHpBar();
@@ -238,6 +243,7 @@ export class EnemyMinion extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
         this._updateLocomotionAnim(true);
     }
 
@@ -351,6 +357,7 @@ export class EnemyMinion extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+        this._visualFacing.faceByTarget(this.visualNode, this.node, this._target);
         this._updateLocomotionAnim(false);
         if (doAttack) {
             this.tryAttack();
@@ -446,6 +453,8 @@ export class EnemyMinion extends Component {
         if (!bar) {
             return;
         }
+        bar.hideWhenFull = true;
+        bar.hideWhenDead = true;
         bar.bindTarget(this.node);
         bar.applyHp(this._hp, GameConfig.minionMaxHp, true);
     }
