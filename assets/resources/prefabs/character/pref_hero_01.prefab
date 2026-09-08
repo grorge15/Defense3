@@ -31,17 +31,17 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 31
-      },
-      {
         "__id__": 33
       },
       {
         "__id__": 35
+      },
+      {
+        "__id__": 37
       }
     ],
     "_prefab": {
-      "__id__": 37
+      "__id__": 39
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -486,6 +486,12 @@
       },
       {
         "__id__": 30
+      },
+      {
+        "__id__": 31
+      },
+      {
+        "__id__": 32
       }
     ],
     "removedComponents": []
@@ -517,7 +523,7 @@
     "value": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 71.325,
+      "y": 76.002,
       "z": 0
     }
   },
@@ -583,6 +589,31 @@
     }
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 24
+    },
+    "propertyPath": [
+      "_lscale"
+    ],
+    "value": {
+      "__type__": "cc.Vec3",
+      "x": 0.5,
+      "y": 0.5,
+      "z": 1
+    }
+  },
+  {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 29
+    },
+    "propertyPath": [
+      "followOffsetY"
+    ],
+    "value": 0
+  },
+  {
     "__type__": "cc.RigidBody2D",
     "_name": "",
     "_objFlags": 0,
@@ -592,7 +623,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 32
+      "__id__": 34
     },
     "enabledContactListener": false,
     "bullet": false,
@@ -626,7 +657,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 34
+      "__id__": 36
     },
     "tag": 0,
     "_group": 32,
@@ -660,7 +691,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 36
+      "__id__": 38
     },
     "visualNode": {
       "__id__": 8
@@ -701,7 +732,7 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 38
+        "__id__": 40
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -716,7 +747,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 39
+      "__id__": 41
     },
     "propertyPath": [
       "fillSprite"
@@ -725,7 +756,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 40
+      "__id__": 42
     }
   },
   {

@@ -477,7 +477,6 @@ export class Log extends Component {
     }
 
     private _refreshLengthVisual(): void {
-        const lengthScale = this._currentLength / GameConfig.logMinLength;
         const visualLengthScale = 1 + this._currentLength * 0.2;
         if (this.visualNode) {
             this.visualNode.setScale(
@@ -488,7 +487,7 @@ export class Log extends Component {
         }
         if (this._collider) {
             this._collider.size = new Size(
-                this._baseColliderWidth * lengthScale,
+                this._baseColliderWidth * visualLengthScale,
                 this._baseColliderHeight,
             );
             // 拾取加长时必须 apply，否则物理盒仍是旧尺寸

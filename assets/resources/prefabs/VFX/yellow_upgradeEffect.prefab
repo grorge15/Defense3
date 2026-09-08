@@ -65,7 +65,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Sprite",
+    "_name": "Visual",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {

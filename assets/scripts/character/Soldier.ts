@@ -11,7 +11,7 @@ import {
     Vec3,
 } from 'cc';
 import { EnemyMinion } from '../enemy/EnemyMinion';
-import { playAnim } from '../core/AnimUtil';
+import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -139,22 +139,56 @@ export class Soldier extends Component {
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
 
+        const unlock = (): void => {
+            this._isAttacking = false;
+            this._currentLocomotionClip = '';
+        };
+
         if (this._deployment === 'tower') {
             if (this.visualNode) {
-                playAnim(this.visualNode, 'remoteAttack');
+                playAttackWithFrameHit(
+                    this.visualNode,
+                    'remoteAttack',
+                    () => {
+                        if (enemy.node.isValid && !enemy.isDead) {
+                            this._spawnProjectile(enemy.node);
+                            enemy.takeDamage(this.attackDamage);
+                        }
+                    },
+                    0.9,
+                    unlock,
+                );
+                this.scheduleOnce(() => {
+                    if (this._isAttacking) {
+                        unlock();
+                    }
+                }, 1.2);
+            } else {
+                this._spawnProjectile(enemy.node);
+                enemy.takeDamage(this.attackDamage);
+                unlock();
             }
-            this._spawnProjectile(enemy.node);
-            enemy.takeDamage(this.attackDamage);
+        } else if (this.visualNode) {
+            playAttackWithFrameHit(
+                this.visualNode,
+                'meleeAttack',
+                () => {
+                    if (enemy.node.isValid && !enemy.isDead) {
+                        enemy.takeDamage(this.attackDamage);
+                    }
+                },
+                0.5,
+                unlock,
+            );
+            this.scheduleOnce(() => {
+                if (this._isAttacking) {
+                    unlock();
+                }
+            }, 0.9);
         } else {
-            if (this.visualNode) {
-                playAnim(this.visualNode, 'meleeAttack');
-            }
             enemy.takeDamage(this.attackDamage);
+            unlock();
         }
-
-        this.scheduleOnce(() => {
-            this._isAttacking = false;
-        }, 0.1);
     }
 
     get isDead(): boolean {

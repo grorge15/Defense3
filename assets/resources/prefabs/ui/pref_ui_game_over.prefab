@@ -603,8 +603,14 @@
     "nextButton": {
       "__id__": 14
     },
-    "winSprite": null,
-    "loseSprite": null,
+    "winSprite": {
+      "__uuid__": "361cce86-bbd1-4379-b61f-4b9a5c29f059@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "loseSprite": {
+      "__uuid__": "56e8c49f-6c9b-4981-987a-85369553275b@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
     "_id": ""
   },
   {

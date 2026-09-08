@@ -50,15 +50,15 @@ export class GameConfig {
 
     // --- 移动 ---
     static readonly playerMoveSpeed = 5;
-    static readonly playerParkourForwardSpeed = 3;
+    static readonly playerParkourForwardSpeed = 5;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 2;
+    static readonly playerParkourChargeSpeed = 3;
     static readonly heroFollowSpeed = 4;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
      */
-    static readonly heroFollowDistance = 1.5;
+    static readonly heroFollowDistance = 80;
     /**
      * 英雄相对玩家的软拴绳半径（世界单位）。
      * ≤0 时用 max(heroFollowDistance * 8, 12)，防止脱节。

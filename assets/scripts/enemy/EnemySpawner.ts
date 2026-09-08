@@ -3,8 +3,6 @@ import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
-import { GameManager } from '../game/GameManager';
-import { GamePhase } from '../game/GamePhase';
 import { EnemyMinion } from './EnemyMinion';
 
 const { ccclass, property } = _decorator;
@@ -23,15 +21,15 @@ export class EnemySpawner extends Component {
     @property({ type: Node, tooltip: '生成后朝向的目标（玩家）' })
     target: Node | null = null;
 
-    @property({ type: Node, tooltip: 'PARKOUR_FINISHED 后激活的左侧刷怪点' })
+    @property({ type: Node, tooltip: '左侧刷怪点' })
     leftSpawnRoot: Node | null = null;
 
-    @property({ type: Node, tooltip: 'PARKOUR_FINISHED 后激活的右侧刷怪点' })
+    @property({ type: Node, tooltip: '右侧刷怪点' })
     rightSpawnRoot: Node | null = null;
 
     private _timer = 0;
     private _alive = 0;
-    /** 远端刷怪默认关；PARKOUR_FINISHED 后再开，避免开局怪堆在玩家附近 */
+    /** 远端刷怪开局直接启用 */
     private _farActive = false;
     private _leftStopped = false;
     private _rightStopped = false;
@@ -60,36 +58,27 @@ export class EnemySpawner extends Component {
         if (!this.spawnPoint) {
             this.spawnPoint = this.node;
         }
-        if (this.leftSpawnRoot) {
-            this.leftSpawnRoot.active = false;
-        }
-        if (this.rightSpawnRoot) {
-            this.rightSpawnRoot.active = false;
-        }
-        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
     }
 
     start(): void {
         this._resolveTarget();
-        const phase = GameManager.instance?.getPhase();
-        if (phase && phase !== GamePhase.RunParkour) {
-            this._activateFarSpawning();
-        }
+        this._activateFarSpawning();
     }
 
     onDestroy(): void {
-        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         this.unscheduleAllCallbacks();
     }
 
     setTarget(target: Node | null): void {
         this.target = target;
+        this._syncTargetToSpawned();
     }
 
     update(dt: number): void {
         this._resolveTarget();
+        this._syncTargetToSpawned();
         if (!this._farActive || !this.enemyPrefab || !this.spawnPoint) {
             return;
         }
@@ -125,6 +114,7 @@ export class EnemySpawner extends Component {
         this._spawnOrigin.set(minion, point);
         minion.node.setWorldPosition(point.worldPosition);
         minion.reset();
+        minion.setForceChaseTarget(true);
         minion.setTarget(this.target);
         minion.onReturnedToPool = (m) => this._onMinionDied(m);
         minion.node.active = true;
@@ -166,15 +156,12 @@ export class EnemySpawner extends Component {
             }
             minion.node.setWorldPosition(origin.worldPosition);
             minion.reset();
+            minion.setForceChaseTarget(true);
             minion.setTarget(this.target);
             minion.onReturnedToPool = (m) => this._onMinionDied(m);
             minion.node.active = true;
             this._alive += 1;
         }, GameConfig.enemyRespawnDelay);
-    };
-
-    private _onParkourFinished = (): void => {
-        this._activateFarSpawning();
     };
 
     private _activateFarSpawning(): void {
@@ -257,5 +244,18 @@ export class EnemySpawner extends Component {
             return;
         }
         this.target = this.node.scene?.getComponentInChildren(Player)?.node ?? null;
+    }
+
+    private _syncTargetToSpawned(): void {
+        if (!this.target?.activeInHierarchy) {
+            return;
+        }
+        for (const minion of this._pool) {
+            if (!minion?.isValid || !minion.node.activeInHierarchy) {
+                continue;
+            }
+            minion.setForceChaseTarget(true);
+            minion.setTarget(this.target);
+        }
     }
 }

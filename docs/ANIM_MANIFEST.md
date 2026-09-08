@@ -53,6 +53,19 @@
 
 > bow / log_extend **不为序列帧**；拾取 hop 前与销毁须 `TweenUtil.stopTweensOn(visual)`。电锯以序列帧为主，程序 euler `spinSpeed=0`。
 
+### v3 士兵映射
+
+> v1/v2 中 `soldier_*` 保持空占位是历史基线；v3 已明确放宽，仅 `soldier_melee` 与 `soldier_ranged` 可按下表填入序列帧。`player/parkour`、`player/skill` 与 `log/roll` 仍保持空占位。
+
+| 磁盘路径（`sprite/frames/` 下） | PNG 数（磁盘） | entity / clip | wrapMode | 攻击帧事件 |
+|---|---|---|---|---|
+| `角色/佣兵2/待机` | 6 | soldier_melee / idle | Loop | — |
+| `角色/佣兵2/攻击` | 8 | soldier_melee / melee_attack | Normal | `frame_013` → `onAttackFrameHit` |
+| `角色/佣兵2/死亡` | 8 | soldier_melee / die | Normal | — |
+| `角色/佣兵1/待机` | 7 | soldier_ranged / idle | Loop | — |
+| `角色/佣兵1/攻击` | 12 | soldier_ranged / remote_attack | Normal | `frame_017` → `onAttackFrameHit` |
+| `角色/佣兵1/死亡` | 8 | soldier_ranged / die | Normal | — |
+
 > **实际帧数以磁盘为准**；勿裁到下方「历史英文区间表」假想范围。
 
 ### 缺帧 → 必须留空（禁止凑帧）
@@ -60,8 +73,6 @@
 | entity | clip | 原因 |
 |---|---|---|
 | player | parkour, skill | 无对应中文目录 |
-| soldier_melee | idle, melee_attack, die | 磁盘无士兵帧 |
-| soldier_ranged | idle, remote_attack, die | 磁盘无士兵帧 |
 | log | roll | 默认不做序列帧；程序旋转已够；勿强制绑 `动画-木杆` |
 
 ### 循环约定
@@ -97,7 +108,7 @@
 
 ### enemy_minion / enemy_boss / hero_* / soldier_*（历史）
 
-旧英文目录与区间表已废弃；士兵与 parkour/skill 仍无帧 → 保持空占位。
+旧英文目录与区间表已废弃；`soldier_*` 空占位历史基线已由 v3 放宽，现行士兵映射以 v3 士兵映射表为准；parkour/skill 仍无帧 → 保持空占位。
 
 ### log（历史）
 

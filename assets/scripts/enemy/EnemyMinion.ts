@@ -59,6 +59,7 @@ export class EnemyMinion extends Component {
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
+    private _forceChaseTarget = false;
     private _currentLocomotionClip = '';
 
     /** 死亡收进对象池时回调（EnemySpawner 监听并 5s 后重生） */
@@ -91,8 +92,13 @@ export class EnemyMinion extends Component {
     }
 
     setTarget(target: Node | null): void {
+        this._ensureRuntimeRefs();
         this._target = target;
         this._ai?.setTarget(target);
+    }
+
+    setForceChaseTarget(force: boolean): void {
+        this._forceChaseTarget = force;
     }
 
     tryAttack(): void {
@@ -146,9 +152,11 @@ export class EnemyMinion extends Component {
     }
 
     reset(): void {
+        this._ensureRuntimeRefs();
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.minionMaxHp;
         this._target = null;
+        this._forceChaseTarget = false;
         this._isDead = false;
         this._canMove = true;
         this._isAttacking = false;
@@ -176,6 +184,7 @@ export class EnemyMinion extends Component {
     }
 
     update(_dt: number): void {
+        this._ensureRuntimeRefs();
         if (!this._canMove || this._isDead) {
             return;
         }
@@ -186,7 +195,7 @@ export class EnemyMinion extends Component {
             return;
         }
 
-        if (!this._target || !this._target.active) {
+        if (!this._target || !this._target.activeInHierarchy) {
             this._halt(false);
             return;
         }
@@ -200,7 +209,7 @@ export class EnemyMinion extends Component {
 
         // 分离半径 48 曾大于 attackRange 40 → 永远摸不到攻击距；出手距至少覆盖分离
         const meleeRange = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
-        if (dist > GameConfig.minionAggroRange) {
+        if (!this._forceChaseTarget && dist > GameConfig.minionAggroRange) {
             this._halt(false);
             return;
         }
@@ -439,5 +448,21 @@ export class EnemyMinion extends Component {
         }
         bar.bindTarget(this.node);
         bar.applyHp(this._hp, GameConfig.minionMaxHp, true);
+    }
+
+    private _ensureRuntimeRefs(): void {
+        if (!this._rb) {
+            this._rb = this.getComponent(RigidBody2D);
+        }
+        if (!this._collider) {
+            this._collider = this.getComponent(Collider2D);
+        }
+        if (!this._ai) {
+            this._ai = this.getComponent(EnemyAI) ?? this.addComponent(EnemyAI);
+            this._ai.attackCooldown = this.attackCooldown;
+        }
+        if (!this.visualNode) {
+            this.visualNode = this.node.getChildByName('Visual');
+        }
     }
 }
