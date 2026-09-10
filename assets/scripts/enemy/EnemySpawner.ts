@@ -55,14 +55,8 @@ export class EnemySpawner extends Component {
     @property({ type: Node, tooltip: 'NavBounds max marker. Optional; defaults to GameConfig bounds.' })
     navBoundsMax: Node | null = null;
 
-    @property({ type: [Node], tooltip: 'CastleArea polygon markers in world XY order.' })
-    castleArea: Node[] = [];
-
     @property({ type: [Node], tooltip: 'Walkable ground polygon markers in world XY order. Navigation fails closed when unset.' })
     walkableGround: Node[] = [];
-
-    @property({ type: [EnemyEntranceBinding], tooltip: 'Three stair entrances; id 2 is permanently open.' })
-    entrances: EnemyEntranceBinding[] = [];
 
     private _timer = 0;
     private _alive = 0;
@@ -288,12 +282,6 @@ export class EnemySpawner extends Component {
 
     private _onBuildComplete = (payload: { buildType?: string; spawnSide?: string }): void => {
         const side = payload?.spawnSide;
-        if (payload?.buildType === 'wall') {
-            EnemyNavigation.get(this.node.scene)?.syncClosedEntranceFromPlot(
-                (payload as { plotRoot?: Node }).plotRoot ?? null,
-                side,
-            );
-        }
         if (side === 'left' || side === 'right') {
             this.stopSide(side);
         }
@@ -332,16 +320,7 @@ export class EnemySpawner extends Component {
         service.configure({
             boundsMin: this.navBoundsMin,
             boundsMax: this.navBoundsMax,
-            castlePolygon: this.castleArea,
             walkablePolygon: this.walkableGround,
-            entrances: this.entrances.map((e) => ({
-                id: e.id,
-                outside: e.outside,
-                inside: e.inside,
-                closePlot: e.closePlot,
-                width: e.width,
-                open: e.id === 2 ? true : e.open,
-            })),
         });
     }
 
@@ -349,18 +328,7 @@ export class EnemySpawner extends Component {
         const parts = [
             this.navBoundsMin?.uuid ?? '',
             this.navBoundsMax?.uuid ?? '',
-            ...this.castleArea.map((n) => n?.uuid ?? ''),
             ...this.walkableGround.map((n) => n?.uuid ?? ''),
-            ...this.entrances.map((e) =>
-                [
-                    e.id,
-                    e.outside?.uuid ?? '',
-                    e.inside?.uuid ?? '',
-                    e.closePlot?.uuid ?? '',
-                    e.width,
-                    e.id === 2 ? true : e.open,
-                ].join(':'),
-            ),
         ];
         return parts.join('|');
     }

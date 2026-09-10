@@ -44,5 +44,6 @@ export class Building extends Component {
 
     protected _onDestroyed(): void {
         this.node.active = false;
+        EventManager.instance.emitEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED);
     }
 }

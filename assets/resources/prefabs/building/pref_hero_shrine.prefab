@@ -247,8 +247,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 2.044,
-      "y": -65.761,
+      "x": 109.942,
+      "y": 67.659,
       "z": 0
     },
     "_lrot": {
@@ -291,7 +291,6 @@
     "__type__": "36f47pUnglID4b3FGHkjaxA",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 1
     },

@@ -1,6 +1,7 @@
 import {
     _decorator,
     BoxCollider2D,
+    CircleCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -61,6 +62,7 @@ export class EnemyMinion extends Component {
     private _hp = GameConfig.minionMaxHp;
     private _target: Node | null = null;
     private readonly _velocity = new Vec2();
+    private readonly _physicsVelocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _tmpPos = new Vec3();
@@ -70,7 +72,7 @@ export class EnemyMinion extends Component {
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
-    private _blockingLog: Log | null = null;
+    private _blockingObstacle: Node | null = null;
     private _lifeGeneration = 0;
     private _attackGeneration = 0;
     private _forceChaseTarget = false;
@@ -111,7 +113,7 @@ export class EnemyMinion extends Component {
     setTarget(target: Node | null): void {
         this._ensureRuntimeRefs();
         if (this._target !== target) {
-            this._blockingLog = null;
+            this._blockingObstacle = null;
             this._attackGeneration++;
             this._isAttacking = false;
             this._inAttackHysteresis = false;
@@ -130,8 +132,8 @@ export class EnemyMinion extends Component {
             return;
         }
         const range = GameConfig.enemyMinionAttackEnterRange;
-        const log = this._blockingLog, target = this._target;
-        if (!this._ai.beginAttack(range, log)) {
+        const obstacle = this._blockingObstacle, target = this._target;
+        if (!this._ai.beginAttack(range, obstacle)) {
             return;
         }
         this._isAttacking = true;
@@ -143,10 +145,10 @@ export class EnemyMinion extends Component {
         const damage = (): void => {
             if (hit || !valid()) return;
             hit = true;
-            if (log) { if (this._blockingLog === log) this._ai?.applyLogDamage(log, range); }
+            if (obstacle) { if (this._blockingObstacle === obstacle) this._ai?.applyObstacleDamage(obstacle, range); }
             else this._ai?.applyAttackDamage(range);
         };
-        this._visualFacing.faceByTarget(this.visualNode, this.node, log?.node ?? target);
+        this._visualFacing.faceByTarget(this.visualNode, this.node, obstacle ?? target);
         if (this.visualNode) {
             // minion frame_012 → 0.4s
             playAttackWithFrameHit(
@@ -185,7 +187,7 @@ export class EnemyMinion extends Component {
 
     reset(): void {
         this._lifeGeneration++;
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._ensureRuntimeRefs();
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.minionMaxHp;
@@ -227,7 +229,7 @@ export class EnemyMinion extends Component {
         }
 
         if (!this._target?.isValid || !this._target.activeInHierarchy || this._target.getComponent(Player)?.isDead) {
-            this._blockingLog = null;
+            this._blockingObstacle = null;
             EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this._halt(false);
             return;
@@ -246,23 +248,24 @@ export class EnemyMinion extends Component {
         }
         const size = this._bodySize();
         const nav = EnemyNavigation.get(this.node.scene);
+        const navigationSpeed = EnemyNavigation.worldSpeedForPhysicsVelocity(GameConfig.minionMoveSpeed);
         const request = { unit: this.node, target: this._target, role: 'minion' as const,
-            speed: GameConfig.minionMoveSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
-        if (this._isAttacking && this._blockingLog) { this._halt(false); return; }
-        const diversion = nav?.blockingLog(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
-        if (this._blockingLog !== (diversion?.log ?? null)) {
+            speed: navigationSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
+        if (this._isAttacking && this._blockingObstacle) { this._halt(false); return; }
+        const diversion = nav?.blockingObstacle(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
+        if (this._blockingObstacle !== (diversion?.target ?? null)) {
             nav?.resetUnit(this.node);
             this._inAttackHysteresis = false;
         }
-        this._blockingLog = diversion?.log ?? null;
+        this._blockingObstacle = diversion?.target ?? null;
         if (diversion && nav) {
-            if (nav.canAttackLog(this.node, diversion.log, size, GameConfig.enemyMinionAttackEnterRange)) {
+            if (nav.canAttackObstacle(this.node, diversion.target, size, GameConfig.enemyMinionAttackEnterRange)) {
                 this._halt(true); return;
             }
-            nav.nextLogVelocity(request, diversion, this._velocity);
-            this._adjustVelocityAgainstLog();
-            nav.constrainFinalVelocity(this.node, size, _dt, GameConfig.minionMoveSpeed, this._velocity);
-            if (this._rb) this._rb.linearVelocity = this._velocity;
+            nav.nextObstacleVelocity(request, diversion, this._velocity);
+            this._adjustVelocityAgainstLog(true);
+            nav.constrainFinalVelocity(this.node, size, _dt, navigationSpeed, this._velocity);
+            this._applyNavigationVelocity();
             this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
             this._updateLocomotionAnim(true);
             return;
@@ -284,7 +287,7 @@ export class EnemyMinion extends Component {
                     unit: this.node,
                     target: this._target,
                     role: 'minion',
-                    speed: GameConfig.minionMoveSpeed,
+                    speed: navigationSpeed,
                     dt: _dt,
                     body: { width: size.w, height: size.h, offsetX: size.offsetX, offsetY: size.offsetY },
                     stopDistance: GameConfig.enemyMinionAttackEnterRange,
@@ -306,12 +309,14 @@ export class EnemyMinion extends Component {
         }
 
         this._biasVelocityAwayFromPlayer();
-        this._adjustVelocityAgainstLog();
+        this._adjustVelocityAgainstLog(!!nav);
         // Preserve legal rolling-log carry speed, but never let post-processing bypass the map sweep.
-        const finalSpeed = Math.max(GameConfig.minionMoveSpeed, Math.hypot(this._velocity.x, this._velocity.y));
+        const finalSpeed = Math.max(navigationSpeed, Math.hypot(this._velocity.x, this._velocity.y));
         nav?.constrainFinalVelocity(this.node, size, _dt, finalSpeed, this._velocity);
 
-        if (this._rb) {
+        if (nav) {
+            this._applyNavigationVelocity();
+        } else if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
         this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
@@ -319,7 +324,7 @@ export class EnemyMinion extends Component {
     }
 
     /** 跑酷中滚木仍为 sensor：重叠时只改速度挡穿，不写位置 */
-    private _adjustVelocityAgainstLog(): void {
+    private _adjustVelocityAgainstLog(navigationVelocity: boolean): void {
         const log = this._resolveLog();
         if (!log || log.getPhase() === 'failed') {
             return;
@@ -352,7 +357,8 @@ export class EnemyMinion extends Component {
         } else if (minPen === penB) {
             this._velocity.y = Math.min(this._velocity.y, 0);
         } else if (phase === 'rolling' || phase === 'charging') {
-            const rideY = this._readRideSpeedY();
+            const rideSpeed = this._readRideSpeedY();
+            const rideY = navigationVelocity ? EnemyNavigation.worldSpeedForPhysicsVelocity(rideSpeed) : rideSpeed;
             this._velocity.y = rideY > 0 ? rideY : Math.max(this._velocity.y, 0);
         } else {
             this._velocity.y = Math.max(this._velocity.y, 0);
@@ -410,6 +416,11 @@ export class EnemyMinion extends Component {
         }
     }
 
+    private _applyNavigationVelocity(): void {
+        if (!this._rb) return;
+        this._rb.linearVelocity = EnemyNavigation.writePhysicsVelocity(this._velocity, this._physicsVelocity);
+    }
+
     private _resolveLog(): Log | null {
         this._log = EnemyNavigation.get(this.node.scene)?.contactLog() ?? null;
         return this._log;
@@ -452,7 +463,7 @@ export class EnemyMinion extends Component {
 
     private _die(): void {
         const life = ++this._lifeGeneration;
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._isAttacking = false;
         EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
         this._isDead = true;
@@ -488,7 +499,7 @@ export class EnemyMinion extends Component {
 
     onDisable(): void {
         this._lifeGeneration++;
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._isAttacking = false;
         this._target = null;
         this._ai?.setTarget(null);
@@ -554,6 +565,13 @@ export class EnemyMinion extends Component {
                 });
                 return { ...stable, w: stable.width, h: stable.height };
             }
+        }
+        const circle = this.node.getComponent(CircleCollider2D);
+        if (circle) {
+            const physical = EnemyNavigation.bodyForCircle?.(circle);
+            if (physical) return { ...physical, w: physical.width, h: physical.height };
+            const aabb = circle.worldAABB;
+            return { width: Math.abs(aabb.width), height: Math.abs(aabb.height), w: Math.abs(aabb.width), h: Math.abs(aabb.height) };
         }
         const fallback = AirWallAabb.bodySize(this.node);
         return { ...fallback, width: fallback.w, height: fallback.h, offsetX: 0, offsetY: 0 };

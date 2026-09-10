@@ -1,0 +1,24 @@
+{
+  "head": "7811e198f2c1b399a2dcd80ae1cbb2b68f88379d",
+  "continuation": false,
+  "status": [
+    " M assets/scripts/building/BuildSystem.ts",
+    " M assets/scripts/enemy/EnemyBoss.ts",
+    " M bugs.md",
+    "?? .cursor/plans/fix-enemy-navigation-rebuild-stalls.md",
+    "?? openspec/changes/fix-enemy-navigation-rebuild-stalls/proposal.md",
+    "?? openspec/changes/fix-enemy-navigation-rebuild-stalls/specs/enemy-navigation-construction-scheduling/spec.md"
+  ],
+  "sourceHashes": {
+    "assets/scripts/core/FlowField.ts": "d3e135f512be2c45dd7b6ebb0ba587417fc0d6771c202c299b5f6ba02b4edcd2",
+    "assets/scripts/core/EnemyNavigation.ts": "75d66f5460bdaaf55c6a3c8ba13b638923532246cfe8d487c227e43a54814831",
+    "assets/scripts/core/GameConfig.ts": "b76eaea52de4e5ebfec1acda1b521a6a508ea3157b4bafd70fb7750e67da4a0d",
+    ".cursor/scripts/test-enemy-navigation.cjs": "dae188493ae66b8844f57a10d92e5ba8b3cd3a1c395be705426201040af4e22f",
+    ".cursor/scripts/bench-enemy-navigation.cjs": "0acc67aeb493682c3d5f626c8f7d8738cd3553d991e1b926dd82c02d7e75b8e9"
+  },
+  "foreignDirtyFiles": [
+    "assets/scripts/building/BuildSystem.ts",
+    "assets/scripts/enemy/EnemyBoss.ts",
+    "bugs.md"
+  ]
+}

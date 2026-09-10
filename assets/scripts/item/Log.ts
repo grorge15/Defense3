@@ -16,6 +16,7 @@ import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { EnemyNavigation } from '../core/EnemyNavigation';
 import { TweenUtil } from '../core/TweenUtil';
 import { HpBarUI } from '../ui/HpBarUI';
 
@@ -281,6 +282,7 @@ export class Log extends Component {
     }
 
     private _onDestroyedAsBarrier(): void {
+        EnemyNavigation.get(this.node.scene)?.invalidate();
         this._isFading = true;
         if (this._collider) {
             this._collider.enabled = false;

@@ -1,6 +1,8 @@
 import { _decorator, Collider2D, Component, Node } from 'cc';
 import { GameConfig } from '../core/GameConfig';
 import { HitFlash } from '../core/HitFlash';
+import { EventManager } from '../core/EventManager';
+import { GameEvents } from '../core/GameEvents';
 
 const { ccclass, property } = _decorator;
 
@@ -66,6 +68,7 @@ export class Barrier extends Component {
             this._collider.enabled = false;
         }
         this.node.active = false;
+        EventManager.instance.emitEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED);
     }
 
     private _updateHpBarVisibility(): void {

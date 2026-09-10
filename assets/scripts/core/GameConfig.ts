@@ -9,7 +9,7 @@ export class GameConfig {
     static readonly bossMaxHp = 3000;
     static readonly minionMaxHp = 15;
     static readonly soldierMaxHp = 20;
-    static readonly barrierMaxHp = 200;
+    static readonly barrierMaxHp = 2000;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
     static readonly towerMaxHp = 200;
     static readonly barracksMaxHp = 200;
@@ -23,7 +23,7 @@ export class GameConfig {
     // --- 攻击 ---
     static readonly bossAttackDamage = 90;
     /** Boss 对建筑/屏障/小兵一击拆毁伤害（≥ 各建筑 maxHp） */
-    static readonly bossBuildingDamage = 9999;
+    static readonly bossBuildingDamage = 200;
     static readonly playerAttackDamage = 15;
     static readonly minionAttackDamage = 10;
     /**
@@ -66,7 +66,7 @@ export class GameConfig {
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
      */
-    static readonly heroFollowDistance = 80;
+    static readonly heroFollowDistance = 100;
     /**
      * 英雄相对玩家的软拴绳半径（世界单位）。
      * ≤0 时用 max(heroFollowDistance * 8, 12)，防止脱节。
@@ -78,8 +78,8 @@ export class GameConfig {
     static readonly bossTargetScanInterval = 1.0;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
     static readonly minionAggroRange = 420;
-    static readonly minionMoveSpeed = 2;
-    static readonly bossMoveSpeed = 3;
+    static readonly minionMoveSpeed = 4;
+    static readonly bossMoveSpeed = 5;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
     static readonly soldierMoveSpeed = 6;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
@@ -108,12 +108,13 @@ export class GameConfig {
     static readonly pathBoundsPadding = 128;
 
     // --- Enemy shared flow-field navigation ---
-    static readonly enemyFlowCellSize = 20;
+    static readonly enemyFlowCellSize = 30;
     static readonly enemyFlowLookaheadCells = 20;
     static readonly enemyFlowTargetSearchCells = 8;
     static readonly enemyFlowCacheEntries = 32;
     static readonly enemyFlowCacheBytes = 8 * 1024 * 1024;
     static readonly enemyFlowMaxCells = 262144;
+    static readonly enemyNavWorkUnitsPerFrame = 4096;
     static readonly enemyNavDiagnostics = false;
     static readonly enemyNavDefaultMinX = -1200;
     static readonly enemyNavDefaultMinY = -1200;

@@ -1,4 +1,4 @@
-import { BoxCollider2D, director, Node, Quat, Scene, Vec2, Vec3 } from 'cc';
+import { BoxCollider2D, CircleCollider2D, director, Node, PolygonCollider2D, Quat, Scene, Vec2, Vec3 } from 'cc';
 import { Barracks } from '../building/Barracks';
 import { Barrier } from '../building/Barrier';
 import { Building } from '../building/Building';
@@ -11,16 +11,17 @@ import {
     FlowBody,
     FlowField,
     FlowPoint,
-    FlowPortal,
+    FlowQueryResult,
     FlowRect,
 } from './FlowField';
 import { GameConfig } from './GameConfig';
 import { GameEvents } from './GameEvents';
+import { NavigationObstacle, NavigationObstacleKind } from './NavigationObstacle';
 
 export type EnemyNavRole = 'minion' | 'boss';
-export type EnemyRegion = 'outside' | 'transition' | 'inside';
-type LogEntry = { entranceId: number; enteringInside: boolean; transition: boolean };
-export type BlockingLogRoute = { log: Log; point: FlowPoint; entry?: LogEntry };
+export type BlockingObstacleRoute = { target: Node; point: FlowPoint };
+/** Legacy source compatibility for callers which still name the Log-specific route. */
+export type BlockingLogRoute = { log: Log; point: FlowPoint };
 
 export type EnemyEntranceConfig = {
     id: number;
@@ -48,10 +49,7 @@ type RouteTarget = {
 };
 
 type UnitRouteState = {
-    entranceId: number;
-    phase: EnemyRegion;
     fieldId: string;
-    enteringInside: boolean;
 };
 
 type ObstacleSnapshot = {
@@ -59,11 +57,28 @@ type ObstacleSnapshot = {
     rects: FlowRect[];
 };
 
+type NavigationCollider = BoxCollider2D | PolygonCollider2D;
+
 const sceneServices = new WeakMap<Scene, EnemyNavigation>();
 const _tmpA = new Vec3();
 const _tmpB = new Vec3();
 
 export class EnemyNavigation {
+    // Cocos Box2D expresses linear velocity in meters/sec while this navigation map uses world pixels.
+    private static readonly _physicsPixelsPerMeter = 32;
+
+    static worldSpeedForPhysicsVelocity(physicsVelocity: number): number {
+        return physicsVelocity * EnemyNavigation._physicsPixelsPerMeter;
+    }
+
+    static writePhysicsVelocity(worldVelocity: Readonly<Vec2>, out: Vec2): Vec2 {
+        out.set(
+            worldVelocity.x / EnemyNavigation._physicsPixelsPerMeter,
+            worldVelocity.y / EnemyNavigation._physicsPixelsPerMeter,
+        );
+        return out;
+    }
+
     static bodyForCollider(box: BoxCollider2D): FlowBody | null {
         const node = box.node;
         if (!box.size || !box.offset || !node.worldScale || !node.worldRotation) return null;
@@ -76,6 +91,18 @@ export class EnemyNavigation {
         const ox = box.offset.x * sx, oy = box.offset.y * sy;
         return { width: Math.abs(c) * w + Math.abs(s) * h,
             height: Math.abs(s) * w + Math.abs(c) * h, offsetX: c * ox - s * oy, offsetY: s * ox + c * oy };
+    }
+
+    static bodyForCircle(circle: CircleCollider2D): FlowBody | null {
+        const node = circle.node;
+        if (!circle.radius || !circle.offset || !node.worldScale || !node.worldRotation) return null;
+        Quat.toEulerInYXZOrder(_tmpB, node.worldRotation);
+        const angle = _tmpB.z * Math.PI / 180;
+        const c = Math.cos(angle), s = Math.sin(angle);
+        const sx = Math.abs(node.worldScale.x), sy = Math.abs(node.worldScale.y);
+        const ox = circle.offset.x * sx, oy = circle.offset.y * sy;
+        return { width: 2 * circle.radius * sx, height: 2 * circle.radius * sy,
+            offsetX: c * ox - s * oy, offsetY: s * ox + c * oy };
     }
 
     static get(scene: Scene | null): EnemyNavigation | null {
@@ -97,24 +124,23 @@ export class EnemyNavigation {
         { entries: GameConfig.enemyFlowCacheEntries ?? 32, bytes: GameConfig.enemyFlowCacheBytes ?? 8388608,
             cells: GameConfig.enemyFlowMaxCells ?? 262144 },
     );
-    private readonly _entrances = new Map<number, EnemyEntranceConfig>();
     private readonly _unitState = new Map<Node, UnitRouteState>();
-    private _logEntries = new WeakMap<Node, { target: Node; log: Log; entry: LogEntry }>();
     private readonly _registeredUnits = new Set<Node>();
     private readonly _unitPositions = new Map<Node, FlowPoint>();
     private readonly _buckets = new Map<string, Node[]>();
-    private readonly _completedWallPlots = new WeakSet<Node>();
-    private readonly _completedWallSides = new Set<string>();
     private readonly _peerPositions: FlowPoint[] = [];
     private readonly _velocity = new Vec2();
     private readonly _self = new Vec3();
     private readonly _target = new Vec3();
     private readonly _obstacles: ObstacleSnapshot = { version: 1, rects: [] };
-    private readonly _tracked = new Set<BoxCollider2D>();
+    private readonly _tracked = new Set<NavigationCollider>();
     private readonly _watched = new Set<Node>();
     private readonly _geometryWatched = new Set<Node>();
-    private readonly _rectByCollider = new Map<BoxCollider2D, FlowRect>();
-    private readonly _fixedByCollider = new Map<BoxCollider2D, Log>();
+    private readonly _rectByCollider = new Map<NavigationCollider, FlowRect>();
+    private readonly _kindByCollider = new Map<NavigationCollider, NavigationObstacleKind | 'legacy'>();
+    private _candidateRevision = -1;
+    private _candidateSnapshot: Array<{ node: Node; rects: FlowRect[]; key: string }> = [];
+    private readonly _fixedByCollider = new Map<NavigationCollider, Log>();
     private _contactLog: Log | null = null;
     private _discovered = false;
     private _lastGeometryFrame = -1;
@@ -125,7 +151,8 @@ export class EnemyNavigation {
     private _dirty = true;
     private _topology: number[] = [];
     readonly debugStats = { fullSceneScan: 0, trackedColliderChecks: 0, signatureBuild: 0,
-        invalidateRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0 };
+        invalidateRequests: 0, geometryCheckRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0,
+        schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0 };
     private readonly _area: FlowArea = {
         bounds: {
             minX: GameConfig.enemyNavDefaultMinX,
@@ -139,7 +166,6 @@ export class EnemyNavigation {
     private _boundsMin: Node | null = null;
     private _boundsMax: Node | null = null;
     private _walkablePolygonNodes: Node[] = [];
-    private _castlePolygonNodes: Node[] = [];
     private _lastPreparedFrame = -1;
     private _refreshScanCount = 0;
     private _bucketBuildCount = 0;
@@ -149,7 +175,6 @@ export class EnemyNavigation {
         this._scene = scene;
         scene.on?.('node-destroyed', this.destroy, this);
         EventManager.instance.onEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED, this.invalidate, this);
-        EventManager.instance.onEvent(GameEvents.ENEMY_ENTRANCE_STATE_CHANGED, this._onEntranceEvent, this);
     }
 
     get debugObstacleRefreshCount(): number {
@@ -167,20 +192,18 @@ export class EnemyNavigation {
     destroy(): void {
         this._scene.off?.('node-destroyed', this.destroy, this);
         EventManager.instance.offEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED, this.invalidate, this);
-        EventManager.instance.offEvent(GameEvents.ENEMY_ENTRANCE_STATE_CHANGED, this._onEntranceEvent, this);
         this._field.clear();
-        this._entrances.clear();
         this._unitState.clear();
-        this._logEntries = new WeakMap();
         this._registeredUnits.clear();
         this._unitPositions.clear();
         this._buckets.clear();
         for (const node of this._watched) this._unwatch(node);
-        this._watched.clear(); this._tracked.clear(); this._rectByCollider.clear(); this._fixedByCollider.clear();
+        this._watched.clear(); this._tracked.clear(); this._rectByCollider.clear(); this._kindByCollider.clear(); this._fixedByCollider.clear();
+        this._candidateSnapshot = [];
         this._contactLog = null;
         for (const node of this._geometryWatched) {
-            node.off?.('transform-changed', this.invalidate, this);
-            node.off?.('active-in-hierarchy-changed', this.invalidate, this);
+            node.off?.('transform-changed', this._markGeometryForCheck, this);
+            node.off?.('active-in-hierarchy-changed', this._markGeometryForCheck, this);
         }
         this._geometryWatched.clear();
         sceneServices.delete(this._scene);
@@ -199,40 +222,24 @@ export class EnemyNavigation {
         if (options.boundsMax !== undefined) {
             this._boundsMax = options.boundsMax;
         }
-        if (options.castlePolygon) {
-            this._castlePolygonNodes = options.castlePolygon.filter((n) => !!n?.isValid);
-        }
         if (options.walkablePolygon) {
             this._walkablePolygonNodes = options.walkablePolygon.filter((n) => !!n?.isValid);
         }
-        if (options.entrances) {
-            for (const entrance of options.entrances) {
-                if (!entrance || !entrance.id) {
-                    continue;
-                }
-                const old = this._entrances.get(entrance.id);
-                const builtClosed =
-                    entrance.id !== 2 &&
-                    (this._plotHasCompletedWall(entrance.closePlot) ||
-                        (entrance.id === 1 && this._completedWallSides.has('left')) ||
-                        (entrance.id === 3 && this._completedWallSides.has('right')));
-                this._entrances.set(entrance.id, {
-                    id: entrance.id,
-                    outside: entrance.outside,
-                    inside: entrance.inside,
-                    closePlot: entrance.closePlot,
-                    width: Math.max(1, entrance.width || GameConfig.enemyEntranceWidth),
-                    open: entrance.id === 2 ? true : (builtClosed ? false : (old?.open ?? entrance.open)),
-                });
-            }
-        }
         this._dirty = true;
-        for (const node of [this._boundsMin, this._boundsMax, ...this._castlePolygonNodes, ...this._walkablePolygonNodes]) this._watchGeometry(node);
-        for (const e of this._entrances.values()) { this._watchGeometry(e.outside); this._watchGeometry(e.inside); }
+        for (const node of [this._boundsMin, this._boundsMax, ...this._walkablePolygonNodes]) this._watchGeometry(node);
     }
 
     invalidate(): void {
         this.debugStats.invalidateRequests++;
+        this._markGeometryForCheck();
+    }
+
+    /**
+     * Physics synchronizes even static bodies by assigning their transform, which emits this
+     * event every frame. A snapshot comparison below decides whether that event changed navigation.
+     */
+    private _markGeometryForCheck(): void {
+        this.debugStats.geometryCheckRequests++;
         this._dirty = true;
     }
 
@@ -245,7 +252,6 @@ export class EnemyNavigation {
             this._field.release(state.fieldId);
         }
         this._unitState.delete(unit);
-        this._logEntries.delete(unit);
         this._registeredUnits.delete(unit);
         const pos = this._unitPositions.get(unit);
         if (pos) {
@@ -261,48 +267,10 @@ export class EnemyNavigation {
         this.releaseUnit(unit);
     }
 
-    setEntranceOpen(id: number, open: boolean): void {
-        if (id === 2) {
-            open = true;
-        }
-        let entrance = this._entrances.get(id);
-        if (!entrance) {
-            entrance = { id, outside: null, inside: null, closePlot: null, width: GameConfig.enemyEntranceWidth, open };
-            this._entrances.set(id, entrance);
-        }
-        if (entrance.open === open) {
-            return;
-        }
-        entrance.open = open;
-        for (const [unit, state] of this._unitState) {
-            if (state.entranceId === id && state.phase !== 'inside') {
-                this.releaseUnit(unit);
-            }
-        }
-        this.invalidate();
-    }
-
-    syncClosedEntranceFromPlot(plotRoot: Node | null, spawnSide?: string): void {
-        if (!plotRoot && !spawnSide) {
-            return;
-        }
-        if (plotRoot?.isValid) {
-            this._completedWallPlots.add(plotRoot);
-        }
-        if (spawnSide === 'left' || spawnSide === 'right') {
-            this._completedWallSides.add(spawnSide);
-        }
-        let matched = false;
-        for (const entrance of this._entrances.values()) {
-            if (plotRoot && entrance.closePlot === plotRoot) {
-                this.setEntranceOpen(entrance.id, false);
-                matched = true;
-            }
-        }
-        if (!matched && (spawnSide === 'left' || spawnSide === 'right')) {
-            this.setEntranceOpen(spawnSide === 'left' ? 1 : 3, false);
-        }
-    }
+    // Retained only to deserialize older scene references. Unified navigation ignores it.
+    setEntranceOpen(_id: number, _open: boolean): void {}
+    // Retained only to deserialize older scene references. Collider snapshots handle walls.
+    syncClosedEntranceFromPlot(_plotRoot: Node | null, _spawnSide?: string): void {}
 
     nextVelocity(request: EnemyMoveRequest, out: Vec2 = this._velocity): Vec2 {
         out.set(0, 0);
@@ -333,6 +301,11 @@ export class EnemyNavigation {
         request.target.getWorldPosition(this._target);
         const self = { x: this._self.x, y: this._self.y };
         const finalTarget = { x: this._target.x, y: this._target.y };
+        if (!this._field.pointWalkable(self, request.body, this._area)) {
+            this._releaseField(unit);
+            this._recoveryVelocity(self, request.body, request.dt, request.speed, out);
+            return out;
+        }
         const diagnosticStart = GameConfig.enemyNavDiagnostics ? Date.now() : 0;
         const routeTarget = this._resolveRouteTarget(request, self, finalTarget);
         if (GameConfig.enemyNavDiagnostics) {
@@ -344,7 +317,8 @@ export class EnemyNavigation {
             console.log('[EnemyNavPerf]', JSON.stringify({ frame: readFrame(), unit: unit.name, body: request.body,
                 from: self, target: finalTarget, graphs: this._field.debugGraphBuildCount, fields: this._field.buildCount,
                 version: this._area.obstacleVersion, stats: this.debugStats, entries: this._field.debugEntries,
-                bytes: this._field.debugBytes, flowStats: this._field.debugStats, queries: this._diagnosticQueries,
+                bytes: this._field.debugBytes, flowStats: this._field.debugStats, jobs: this._field.debugJobStats,
+                queries: this._diagnosticQueries,
                 approachMs: this._diagnosticQueryMs, lastGeometry: this._diagnosticChange }));
             this._diagnosticQueries = 0; this._diagnosticQueryMs = 0;
         }
@@ -361,7 +335,14 @@ export class EnemyNavigation {
             return out;
         }
 
-        const result = this._field.direction(self, routeTarget.point, request.body, this._area, true);
+        let result = this._field.direction(self, routeTarget.point, request.body, this._area, true);
+        if (result.blocked && routeTarget.final && this._field.debugPendingJobs === 0) {
+            const approach = this._reachableApproach(self, finalTarget, request.body, true);
+            if (approach) {
+                this._field.release(result.fieldId);
+                result = this._field.direction(self, approach.point, request.body, this._area, true);
+            }
+        }
         const state = this._unitState.get(unit);
         if (state) {
             if (state.fieldId && state.fieldId !== result.fieldId) {
@@ -385,114 +366,167 @@ export class EnemyNavigation {
         return out;
     }
 
-    blockingLog(request: EnemyMoveRequest, range: number): BlockingLogRoute | null {
+    blockingObstacle(request: EnemyMoveRequest, range: number): BlockingObstacleRoute | null {
         this._prepareFrame();
-        if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured() ||
-            !this._hasConfiguredEntrance() || (this._area.castlePolygon?.length ?? 0) < 3) return null;
+        if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured()) return null;
         const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
         if (!this._field.pointWalkable(from, body, this._area)) return null;
-        const selfInside = this.isInside(from), targetInside = this.isInside(target);
-        const pending = this._logEntries.get(request.unit);
-        const state = this._unitState.get(request.unit);
-        let entry: LogEntry | null = null;
-        if (pending && pending.target === request.target && this._fixedLog(pending.log) &&
-            pending.entry.enteringInside === targetInside) {
-            entry = pending.entry;
-        } else {
-            this._logEntries.delete(request.unit);
-            if (state?.phase === 'transition') entry = { entranceId: state.entranceId,
-                enteringInside: state.enteringInside, transition: true };
-            else if (selfInside !== targetInside) entry = { entranceId: 0, enteringInside: targetInside, transition: false };
-        }
         const targetBox = request.target.getComponent(BoxCollider2D);
         const targetRect = targetBox ? this._rectByCollider.get(targetBox) : undefined;
-        if (!entry && !targetRect && this._field.lineClear(from, target, body, this._area)) return null;
-        const condition = `blocking:${request.role}:${range}:${selfInside}:${targetInside}:${JSON.stringify(entry)}:` +
-            `${target.x},${target.y}:${targetRect ? JSON.stringify(targetRect) : ''}`;
-        return this._field.sharedQuery(from, body, this._area, condition, () => {
-            const reachable = (area: FlowArea): number | null =>
-                this._objectiveEntrance(from, target, targetRect, body, area, range, entry);
-            if (reachable(this._area) !== null) return null;
-            this.debugStats.blockingScans++;
-            for (const [box, rect] of this._rectByCollider) {
-                const log = box.node.getComponent(Log);
-                if (!this._fixedLog(log)) continue;
-                // Diagnostic view never enters direction(), avoidance or the final movement sweep.
-                const diagnostic: FlowArea = { ...this._area, obstacles: this._area.obstacles.filter(r => r !== rect),
-                    diagnosticOf: this._area, ignoredObstacle: rect };
-                const entranceId = reachable(diagnostic);
-                if (entranceId === null) continue;
-                const point = this._surface(from, rect, body, this._area, range);
-                if (point) return { log: log!, point, entry: entry ? { ...entry, entranceId,
-                    transition: entry.transition && entry.entranceId === entranceId } : undefined };
+        const reachesTarget = (area: FlowArea): FlowQueryResult<boolean> => {
+            if (targetRect) {
+                const surface = this._surface(from, targetRect, body, area, range, true);
+                return surface.readiness === 'pending' ? surface : { readiness: 'settled', value: !!surface.value };
             }
-            return null;
+            const reachability = this._field.reachability(from, target, body, area);
+            return reachability === 'pending' ? { readiness: 'pending' } :
+                { readiness: 'settled', value: reachability === 'reachable' };
+        };
+        if (!targetRect && this._field.lineClear(from, target, body, this._area)) return null;
+        const key = `blocking:${request.role}:${range}:${request.target.uuid}:${target.x},${target.y}:` +
+            `${targetRect ? JSON.stringify(targetRect) : 'point'}:v${this._obstacles.version}`;
+        const query = this._field.sharedQueryState(from, body, this._area, key, () => {
+            const normal = reachesTarget(this._area);
+            if (normal.readiness === 'pending' || normal.value) return normal.readiness === 'pending' ? normal :
+                { readiness: 'settled', value: null };
+            const diagnostics = this._destructibleCandidates().filter(candidate => candidate.node !== request.target).map(candidate => ({ candidate, area: { ...this._area,
+                obstacles: this._area.obstacles.filter(rect => candidate.rects.indexOf(rect) < 0),
+                diagnosticOf: this._area, ignoredObstacle: candidate.rects[0] } }));
+            this.debugStats.blockingScans++;
+            let pending = false;
+            for (const diagnostic of diagnostics) {
+                const opened = reachesTarget(diagnostic.area);
+                if (opened.readiness === 'pending') return opened;
+                if (!opened.value) continue;
+                for (const rect of diagnostic.candidate.rects) {
+                    const surface = this._surface(from, rect, body, this._area, range);
+                    if (surface.readiness === 'pending') return surface;
+                    if (surface.value) return { readiness: 'settled', value: { target: diagnostic.candidate.node, point: surface.value } };
+                }
+            }
+            return pending ? { readiness: 'pending' } : { readiness: 'settled', value: null };
         });
+        return query.readiness === 'settled' ? query.value ?? null : null;
     }
 
-    private _objectiveEntrance(from: FlowPoint, target: FlowPoint, targetRect: FlowRect | undefined,
-        body: FlowBody, area: FlowArea, range: number, entry: LogEntry | null): number | null {
-        const finish = (start: FlowPoint): boolean => targetRect
-            ? !!this._surface(start, targetRect, body, area, range, true)
-            : this._field.canReach(start, target, body, area);
-        if (!entry) return finish(from) ? 0 : null;
-        const current = this._entrances.get(entry.entranceId);
-        const continuing = entry.transition && current && this._entranceUsable(current, body, area);
-        for (const entrance of this._entrances.values()) {
-            if (continuing && entrance !== current) continue;
-            if (!this._entranceUsable(entrance, body, area)) continue;
-            const first = nodePoint(entry.enteringInside ? entrance.outside! : entrance.inside!);
-            const second = nodePoint(entry.enteringInside ? entrance.inside! : entrance.outside!);
-            if (this._field.canReach(from, continuing ? second : first, body, area) && finish(second)) return entrance.id;
-        }
-        return null;
+    blockingLog(request: EnemyMoveRequest, range: number): BlockingLogRoute | null {
+        const route = this.blockingObstacle(request, range);
+        const log = route?.target.getComponent(Log) ?? null;
+        return route && log ? { log, point: route.point } : null;
     }
 
-    logRoute(unit: Node, log: Log, body: FlowBody, range: number): BlockingLogRoute | null {
+    obstacleRoute(unit: Node, target: Node, body: FlowBody, range: number): BlockingObstacleRoute | null {
         this._prepareFrame();
-        const rect = this._logRect(log);
-        if (!rect) return null;
+        const rects = this._obstacleRects(target);
+        if (!rects.length || !this._isDestructibleNode(target)) return null;
         const from = nodePoint(unit);
-        const point = this._field.sharedQuery(from, body, this._area, `surface:${range}:${JSON.stringify(rect)}`,
-            () => this._surface(from, rect, body, this._area, range));
-        return point ? { log, point } : null;
+        const query = this._field.sharedQueryState(from, body, this._area, `surface:${range}:${target.uuid}`,
+            () => {
+                let pending = false;
+                for (const rect of rects) {
+                    const surface = this._surface(from, rect, body, this._area, range);
+                    if (surface.readiness === 'pending') pending = true;
+                    else if (surface.value) return surface;
+                }
+                return pending ? { readiness: 'pending' as const } : { readiness: 'settled' as const, value: null };
+            });
+        return query.readiness === 'settled' && query.value ? { target, point: query.value } : null;
     }
 
-    canAttackLog(unit: Node, log: Log, body: FlowBody, range: number): boolean {
+    canAttackObstacle(unit: Node, target: Node, body: FlowBody, range: number): boolean {
         this._prepareFrame();
-        const rect = this._logRect(log);
-        if (!rect || !unit.isValid || !unit.activeInHierarchy) return false;
-        return this._surfaceHit(nodePoint(unit), rect, body, this._area, range);
+        const targetRects = this._obstacleRects(target);
+        return this._isDestructibleNode(target) && unit.isValid && unit.activeInHierarchy &&
+            targetRects.some(rect => this._surfaceHit(nodePoint(unit), rect, body, this._area, range, targetRects));
     }
 
-    nextLogVelocity(request: EnemyMoveRequest, route: BlockingLogRoute, out: Vec2 = this._velocity): Vec2 {
+    isDestructibleObstacle(target: Node | null): boolean {
+        return !!target?.isValid && this._isDestructibleNode(target);
+    }
+
+    nextObstacleVelocity(request: EnemyMoveRequest, route: BlockingObstacleRoute, out: Vec2 = this._velocity): Vec2 {
         out.set(0, 0); this._prepareFrame(); this._releaseField(request.unit);
-        if (!this._logRect(route.log) || request.dt <= 0 || request.speed <= 0) return out;
+        if (!this._obstacleRects(route.target).length || request.dt <= 0 || request.speed <= 0) return out;
         const from = nodePoint(request.unit);
-        // Callers reset ordinary routing when selecting a diversion. Restore its entry obligation here,
-        // from the shared route value, without treating crossing the castle edge as completing the stairs.
-        if (route.entry && request.target) {
-            const entrance = this._entrances.get(route.entry.entranceId);
-            const first = route.entry.enteringInside ? entrance?.outside : entrance?.inside;
-            const reach = Math.max(GameConfig.pathWaypointReachDistance, request.body.width);
-            const transition = route.entry.transition || this.isInside(from) === route.entry.enteringInside ||
-                (!!first && distSqPoint(from, nodePoint(first)) <= reach * reach);
-            this._logEntries.set(request.unit, { target: request.target, log: route.log,
-                entry: { ...route.entry, transition } });
+        if (!this._field.pointWalkable(from, request.body, this._area)) {
+            this._recoveryVelocity(from, request.body, request.dt, request.speed, out);
+            return out;
         }
         const result = this._field.direction(from, route.point, request.body, this._area);
         if (result.blocked || result.reached) return out;
-        const speed = Math.min(request.speed, Math.hypot(route.point.x-from.x, route.point.y-from.y)/request.dt);
-        out.set(result.x*speed, result.y*speed);
+        const speed = Math.min(request.speed, Math.hypot(route.point.x - from.x, route.point.y - from.y) / request.dt);
+        out.set(result.x * speed, result.y * speed);
         this._registeredUnits.add(request.unit); this._insertUnitIntoBuckets(request.unit);
         this._applyLocalAvoidance(request.unit, from, request.body, request.speed, out);
         this._constrainVelocity(from, request.body, request.dt, out);
         return out;
     }
 
+    logRoute(unit: Node, log: Log, body: FlowBody, range: number): BlockingLogRoute | null {
+        const route = this.obstacleRoute(unit, log.node, body, range);
+        return route ? { log, point: route.point } : null;
+    }
+
+    canAttackLog(unit: Node, log: Log, body: FlowBody, range: number): boolean {
+        return this.canAttackObstacle(unit, log.node, body, range);
+    }
+
+    nextLogVelocity(request: EnemyMoveRequest, route: BlockingLogRoute, out: Vec2 = this._velocity): Vec2 {
+        return this.nextObstacleVelocity(request, { target: route.log.node, point: route.point }, out);
+    }
+
     private _fixedLog(log: Log | null): boolean {
         return !!log && log.isValid !== false && log.node.isValid && log.node.activeInHierarchy &&
             log.getPhase() === 'fixed' && log.isAttackable();
+    }
+
+    private _obstacleKind(node: Node): NavigationObstacleKind | null {
+        const marker = node.getComponent(NavigationObstacle);
+        return marker ? marker.kind : null;
+    }
+
+    private _isDestructibleNode(node: Node): boolean {
+        const marked = this._obstacleKind(node);
+        if (marked !== null) return marked === NavigationObstacleKind.Destructible && this._isDamageableAlive(node);
+        return this._isDamageableAlive(node);
+    }
+
+    private _hasSupportedDamageAdapter(node: Node): boolean {
+        return !!node.getComponent(Log) || !!node.getComponent(Barrier) || !!node.getComponent(Building);
+    }
+
+    private _isDamageableAlive(node: Node): boolean {
+        const log = node.getComponent(Log);
+        if (log) return this._fixedLog(log);
+        const barrier = node.getComponent(Barrier);
+        if (barrier) return barrier.isAlive();
+        const building = node.getComponent(Building);
+        return !!building?.isAlive();
+    }
+
+    private _destructibleCandidates(): Array<{ node: Node; rects: FlowRect[]; key: string }> {
+        if (this._candidateRevision === this._obstacles.version) return this._candidateSnapshot;
+        const byNode = new Map<Node, FlowRect[]>();
+        for (const [box, rect] of this._rectByCollider) {
+            const node = box.node;
+            if (!node || !this._isDestructibleNode(node)) continue;
+            const rects = byNode.get(node) ?? [];
+            rects.push(rect); byNode.set(node, rects);
+        }
+        this._candidateRevision = this._obstacles.version;
+        this._candidateSnapshot = Array.from(byNode, ([node, rects]) => ({ node, rects,
+            key: `${node.uuid}:${rects.map(rect => JSON.stringify(rect)).join(',')}` }));
+        return this._candidateSnapshot;
+    }
+
+    private _obstacleRect(node: Node): FlowRect | null {
+        return this._obstacleRects(node)[0] ?? null;
+    }
+
+    private _obstacleRects(node: Node): FlowRect[] {
+        const rects: FlowRect[] = [];
+        for (const [box, rect] of this._rectByCollider) if (box.node === node) rects.push(rect);
+        return rects;
     }
 
     contactLog(): Log | null {
@@ -501,23 +535,31 @@ export class EnemyNavigation {
     }
 
     private _logRect(log: Log): FlowRect | null {
-        if (!this._hasGroundConfigured() || !this._hasConfiguredEntrance() ||
-            (this._area.castlePolygon?.length ?? 0) < 3 || !this._fixedLog(log)) return null;
-        const box = log.getBoxCollider();
-        return box?.enabled ? this._rectByCollider.get(box) ?? null : null;
+        return this._fixedLog(log) ? this._obstacleRect(log.node) : null;
     }
 
-    private _surfaceHit(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number): boolean {
-        if (!this._field.pointWalkable(from, body, area)) return false;
+    private _surfaceHit(
+        from: FlowPoint,
+        rect: FlowRect,
+        body: FlowBody,
+        area: FlowArea,
+        range: number,
+        ignoredRects: readonly FlowRect[] = [],
+    ): boolean {
+        const attackArea = ignoredRects.length
+            ? { ...area, obstacles: area.obstacles.filter(obstacle => ignoredRects.indexOf(obstacle) < 0) }
+            : area;
+        if (!this._field.pointWalkable(from, body, attackArea)) return false;
         const cx = from.x+(body.offsetX ?? 0), cy = from.y+(body.offsetY ?? 0);
         const sx = Math.max(rect.xMin, Math.min(cx, rect.xMax)), sy = Math.max(rect.yMin, Math.min(cy, rect.yMax));
         const bx = Math.max(cx-body.width/2, Math.min(sx,cx+body.width/2));
         const by = Math.max(cy-body.height/2, Math.min(sy,cy+body.height/2));
         return Math.hypot(sx-bx,sy-by) <= range && this._field.lineClear({x:bx,y:by},{x:sx,y:sy},
-            {width:0,height:0},area);
+            {width:0,height:0},attackArea);
     }
 
-    private _surface(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number, rootRange = false): FlowPoint | null {
+    private _surface(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number,
+        rootRange = false): FlowQueryResult<FlowPoint | null> {
         this.debugStats.surfaceScans++;
         const ox = body.offsetX ?? 0, oy = body.offsetY ?? 0;
         const candidates: FlowPoint[] = [];
@@ -537,51 +579,16 @@ export class EnemyNavigation {
             });
         }
         // Stable ordering lets the selected surface be shared by an entire connected region.
+        let pending = false;
         for (const point of candidates) {
             if (rootRange && Math.hypot(point.x-Math.max(rect.xMin,Math.min(point.x,rect.xMax)),
                 point.y-Math.max(rect.yMin,Math.min(point.y,rect.yMax))) > range) continue;
-            if (this._surfaceHit(point,rect,body,area,range) && this._field.canReach(from,point,body,area)) return point;
+            if (!this._surfaceHit(point, rect, body, area, range)) continue;
+            const reachability = this._field.reachability(from, point, body, area);
+            if (reachability === 'reachable') return { readiness: 'settled', value: point };
+            pending ||= reachability === 'pending';
         }
-        return null;
-    }
-
-    chooseEntrance(
-        from: FlowPoint,
-        body: FlowBody,
-        role: EnemyNavRole,
-        preferTarget?: FlowPoint | null,
-    ): EnemyEntranceConfig | null {
-        this._prepareFrame();
-        if (!this._hasGroundConfigured()) return null;
-        const candidates: EnemyEntranceConfig[] = [];
-        for (const entrance of this._entrances.values()) {
-            if (!this._entranceUsable(entrance, body)) {
-                continue;
-            }
-            entrance.outside!.getWorldPosition(_tmpA);
-            const outside = { x: _tmpA.x, y: _tmpA.y };
-            const dir = this._field.direction(from, outside, body, this._area);
-            if (!dir.blocked || this._field.lineClear(from, outside, body, this._area)) {
-                candidates.push(entrance);
-            }
-        }
-        if (candidates.length === 0) {
-            return null;
-        }
-        if (role === 'boss' && preferTarget) {
-            candidates.sort((a, b) => {
-                a.inside!.getWorldPosition(_tmpA);
-                b.inside!.getWorldPosition(_tmpB);
-                return distSq(_tmpA, preferTarget) - distSq(_tmpB, preferTarget);
-            });
-            return candidates[0];
-        }
-        const idx = Math.floor(Math.random() * candidates.length);
-        return candidates[idx] ?? candidates[0];
-    }
-
-    isInside(point: FlowPoint): boolean {
-        return this._field.pointInPolygon(point, this._area.castlePolygon);
+        return pending ? { readiness: 'pending' } : { readiness: 'settled', value: null };
     }
 
     hasLineOfSight(from: Node | null, to: Node | null, body: FlowBody): boolean {
@@ -605,85 +612,37 @@ export class EnemyNavigation {
         self: FlowPoint,
         finalTarget: FlowPoint,
     ): RouteTarget | null {
-        const hasEntrances = this._hasConfiguredEntrance();
-        if (
-            !this._hasGroundConfigured() ||
-            !hasEntrances ||
-            !this._area.castlePolygon ||
-            this._area.castlePolygon.length < 3
-        ) {
-            return null;
-        }
-
-        const targetInside = this.isInside(finalTarget);
-        const selfInside = this.isInside(self);
+        if (!this._hasGroundConfigured()) return null;
         let state = this._unitState.get(request.unit);
         if (!state) {
-            state = {
-                entranceId: 0,
-                phase: selfInside ? 'inside' : 'outside',
-                fieldId: '',
-                enteringInside: targetInside,
-            };
+            state = { fieldId: '' };
             this._unitState.set(request.unit, state);
         }
-
-        if (state.phase === 'inside' && selfInside === targetInside) {
-            return this._approachTarget(self, finalTarget, request.body);
-        }
-        if (selfInside === targetInside && state.phase !== 'transition') {
-            state.phase = selfInside ? 'inside' : 'outside';
-            return this._approachTarget(self, finalTarget, request.body);
-        }
-
-        let entrance = this._entrances.get(state.entranceId) ?? null;
-        if (!entrance || !this._entranceUsable(entrance, request.body)) {
-            state.entranceId = 0;
-            state.phase = selfInside ? 'inside' : 'outside';
-            entrance = this.chooseEntrance(
-                self,
-                request.body,
-                request.role,
-                request.preferEntranceNearestTo ? nodePoint(request.preferEntranceNearestTo) : finalTarget,
-            );
-        }
-        if (!entrance || !this._entranceUsable(entrance, request.body)) {
-            return null;
-        }
-        state.entranceId = entrance.id;
-        entrance.outside!.getWorldPosition(_tmpA);
-        entrance.inside!.getWorldPosition(_tmpB);
-        const outside = { x: _tmpA.x, y: _tmpA.y };
-        const inside = { x: _tmpB.x, y: _tmpB.y };
-        const enterFromOutside =
-            state.phase === 'transition' ? state.enteringInside : !selfInside && targetInside;
-        state.enteringInside = enterFromOutside;
-        const first = enterFromOutside ? outside : inside;
-        const second = enterFromOutside ? inside : outside;
-        const reach = Math.max(GameConfig.pathWaypointReachDistance, request.body.width);
-        const reachSq = reach * reach;
-
-        if (state.phase !== 'transition' && distSqPoint(self, first) > reachSq) {
-            state.phase = enterFromOutside ? 'outside' : 'inside';
-            return { point: first, final: false };
-        }
-        state.phase = 'transition';
-        if (distSqPoint(self, second) > reachSq) {
-            return { point: second, final: false };
-        }
-        state.phase = targetInside ? 'inside' : 'outside';
         return this._approachTarget(self, finalTarget, request.body);
     }
 
     private _approachTarget(self: FlowPoint, target: FlowPoint, body: FlowBody): RouteTarget | null {
+        if (this._field.pointWalkable(target, body, this._area)) return { point: target, final: true };
+        return this._reachableApproach(self, target, body);
+    }
+
+    private _reachableApproach(
+        self: FlowPoint,
+        target: FlowPoint,
+        body: FlowBody,
+        allowBlockedTargetApproach = false,
+    ): RouteTarget | null {
         const point = this._field.nearestReachableWalkable(
             self,
             target,
             body,
             this._area,
             GameConfig.enemyFlowTargetSearchCells,
+            allowBlockedTargetApproach,
         );
-        return point ? { point, final: true } : null;
+        // A disconnected target is not the actual arrival point. Continue toward the nearest
+        // reachable collision boundary without treating a hard wall as demolishable.
+        return point ? { point, final: false } : null;
     }
 
     private _refreshArea(): void {
@@ -695,15 +654,14 @@ export class EnemyNavigation {
             this._area.bounds.minY = Math.min(_tmpA.y, _tmpB.y);
             this._area.bounds.maxY = Math.max(_tmpA.y, _tmpB.y);
         }
-        const castle = this._castlePolygonNodes.filter(n => n.isValid);
         const ground = this._walkablePolygonNodes.filter(n => n.isValid);
-        this._area.castlePolygon = castle.length >= 3 ? castle.map(n => nodePoint(n)) : undefined;
         if (ground.length >= 3) {
             this._area.walkablePolygons = [ground.map((n) => nodePoint(n))];
         } else {
             this._area.walkablePolygons = undefined;
         }
-        this._area.portals = this._buildPortals();
+        this._area.castlePolygon = undefined;
+        this._area.portals = undefined;
         this._area.obstacleVersion = this._obstacles.version;
         this._area.obstacles = this._obstacles.rects;
     }
@@ -712,6 +670,7 @@ export class EnemyNavigation {
         if (!this._discovered) {
             this._discovered = true; this._refreshScanCount++; this.debugStats.fullSceneScan++;
             for (const box of this._scene.getComponentsInChildren(BoxCollider2D)) this._trackCandidate(box);
+            for (const polygon of this._scene.getComponentsInChildren(PolygonCollider2D)) this._trackCandidate(polygon);
             this._watchTree(this._scene);
         }
         let changed = false;
@@ -721,6 +680,9 @@ export class EnemyNavigation {
         }
         for (const box of this._rectByCollider.keys()) {
             if (!this._tracked.has(box)) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
+        }
+        for (const box of this._kindByCollider.keys()) {
+            if (!this._tracked.has(box)) { this._kindByCollider.delete(box); changed = true; }
         }
         for (const box of this._tracked) {
             this.debugStats.trackedColliderChecks++;
@@ -733,6 +695,11 @@ export class EnemyNavigation {
                 changed = true;
             }
             const old = this._rectByCollider.get(box);
+            const kind = this._obstacleKind(box.node) ?? 'legacy';
+            if (this._kindByCollider.get(box) !== kind) {
+                this._kindByCollider.set(box, kind);
+                changed = true;
+            }
             if (box.isValid === false || box.node?.isValid === false || !this._isBlockingCollider(box)) {
                 if (old) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
                 if (box.isValid === false || box.node?.isValid === false) this._tracked.delete(box);
@@ -752,6 +719,7 @@ export class EnemyNavigation {
             this._topology = topology;
             this._obstacles.rects = Array.from(this._rectByCollider.values());
             this._obstacles.version++; this.debugStats.effectiveCommits++;
+            this._candidateRevision = -1;
             this._area.obstacles = this._obstacles.rects; this._area.obstacleVersion = this._obstacles.version;
             this._field.invalidate();
             for (const state of this._unitState.values()) state.fieldId = '';
@@ -759,10 +727,18 @@ export class EnemyNavigation {
         this._dirty = false;
     }
 
-    private _isBlockingCollider(box: BoxCollider2D): boolean {
+    private _isBlockingCollider(box: NavigationCollider): boolean {
         const node = box.node;
         if (!node?.activeInHierarchy || box.enabled === false) {
             return false;
+        }
+        const marked = this._obstacleKind(node);
+        if (marked !== null) {
+            if (marked === NavigationObstacleKind.Ignore) return false;
+            if (marked === NavigationObstacleKind.Hard) return true;
+            // Unsupported "Destructible" markers are never made walkable. They stay
+            // hard until an actual Log/Building/Barrier damage adapter is present.
+            return !this._hasSupportedDamageAdapter(node) || this._isDamageableAlive(node);
         }
         if (node.name.startsWith('airWall')) {
             return true;
@@ -782,56 +758,8 @@ export class EnemyNavigation {
         return !!log?.isAttackable();
     }
 
-    private _buildPortals(): FlowPortal[] {
-        const portals: FlowPortal[] = [];
-        for (const entrance of this._entrances.values()) {
-            if (!entrance.outside?.isValid || !entrance.inside?.isValid) {
-                continue;
-            }
-            entrance.outside.getWorldPosition(_tmpA);
-            entrance.inside.getWorldPosition(_tmpB);
-            portals.push({
-                id: entrance.id,
-                a: { x: _tmpA.x, y: _tmpA.y },
-                b: { x: _tmpB.x, y: _tmpB.y },
-                width: entrance.width,
-                open: entrance.open,
-            });
-        }
-        return portals;
-    }
-
-    private _entranceUsable(entrance: EnemyEntranceConfig, body: FlowBody, area: FlowArea = this._area): boolean {
-        if (!entrance.open || entrance.width < Math.max(body.width, body.height)) {
-            return false;
-        }
-        if (!entrance.outside?.isValid || !entrance.inside?.isValid) {
-            return false;
-        }
-        entrance.outside.getWorldPosition(_tmpA);
-        entrance.inside.getWorldPosition(_tmpB);
-        return (
-            this._field.pointWalkable({ x: _tmpA.x, y: _tmpA.y }, body, area) &&
-            this._field.pointWalkable({ x: _tmpB.x, y: _tmpB.y }, body, area) &&
-            this._field.lineClear({ x: _tmpA.x, y: _tmpA.y }, { x: _tmpB.x, y: _tmpB.y }, body, area)
-        );
-    }
-
-    private _hasConfiguredEntrance(): boolean {
-        for (const entrance of this._entrances.values()) {
-            if (entrance.outside?.isValid && entrance.inside?.isValid) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private _hasGroundConfigured(): boolean {
         return !!this._area.walkablePolygons?.some((poly) => poly.length >= 3);
-    }
-
-    private _plotHasCompletedWall(plotRoot: Node | null): boolean {
-        return !!plotRoot?.isValid && this._completedWallPlots.has(plotRoot);
     }
 
     private _applyLocalAvoidance(
@@ -880,13 +808,17 @@ export class EnemyNavigation {
         out.y = (safe.y - self.y) / dt;
     }
 
-    private _onEntranceEvent = (...args: unknown[]): void => {
-        const payload = (args[0] ?? null) as { id?: number; open?: boolean } | null;
-        if (typeof payload?.id !== 'number' || typeof payload.open !== 'boolean') {
-            return;
-        }
-        this.setEntranceOpen(payload.id, payload.open);
-    };
+    private _recoveryVelocity(self: FlowPoint, body: FlowBody, dt: number, speed: number, out: Vec2): boolean {
+        if (dt <= 0 || speed <= 0) return false;
+        const escape = this._field.nearestWalkable(self, body, this._area, 2);
+        if (!escape) return false;
+        const dx = escape.x - self.x, dy = escape.y - self.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance <= 0.001) return false;
+        const recoverySpeed = Math.min(speed, distance / dt);
+        out.set(dx * recoverySpeed / distance, dy * recoverySpeed / distance);
+        return true;
+    }
 
     private _prepareFrame(): void {
         const frame = readFrame();
@@ -901,15 +833,18 @@ export class EnemyNavigation {
         this._lastPreparedFrame = frame;
         this._rebuildBuckets();
         this._field.prune();
+        const work = this._field.advanceJobs(GameConfig.enemyNavWorkUnitsPerFrame ?? 4096);
+        this.debugStats.schedulerFrames++;
+        this.debugStats.schedulerWork += work;
+        this.debugStats.schedulerLastWork = work;
     }
 
     private _topologyValues(): number[] {
         const b = this._area.bounds;
         const values = [b.minX, b.minY, b.maxX, b.maxY];
-        for (const poly of [this._area.castlePolygon ?? [], ...(this._area.walkablePolygons ?? [])]) {
+        for (const poly of this._area.walkablePolygons ?? []) {
             values.push(poly.length); for (const p of poly) values.push(p.x, p.y);
         }
-        for (const p of this._area.portals ?? []) values.push(p.id, p.a.x, p.a.y, p.b.x, p.b.y, p.width, +p.open);
         return values;
     }
 
@@ -920,7 +855,7 @@ export class EnemyNavigation {
         node.on?.('child-removed', this._removeTree, this);
         node.on?.('component-added', this._componentAdded, this);
         node.on?.('component-removed', this._componentRemoved, this);
-        for (const box of node.getComponents?.(BoxCollider2D) ?? []) this._trackCandidate(box);
+        this._trackNodeCandidates(node);
         for (const child of node.children ?? []) this._watchTree(child);
         this._dirty = true;
     };
@@ -935,22 +870,28 @@ export class EnemyNavigation {
     private _removeTree = (node: Node): void => {
         this._unwatch(node); this._watched.delete(node);
         if (this._geometryWatched.delete(node)) {
-            node.off?.('transform-changed', this.invalidate, this);
-            node.off?.('active-in-hierarchy-changed', this.invalidate, this);
+            node.off?.('transform-changed', this._markGeometryForCheck, this);
+            node.off?.('active-in-hierarchy-changed', this._markGeometryForCheck, this);
         }
         for (const box of node.getComponents?.(BoxCollider2D) ?? []) this._componentRemoved(box);
+        for (const polygon of node.getComponents?.(PolygonCollider2D) ?? []) this._componentRemoved(polygon);
         for (const child of node.children ?? []) this._removeTree(child);
     };
 
     private _componentAdded = (component: unknown): void => {
         const node = (component as { node?: Node })?.node;
-        if (node) for (const box of node.getComponents?.(BoxCollider2D) ?? []) this._trackCandidate(box);
+        if (node) this._trackNodeCandidates(node);
         this._dirty = true;
     };
 
-    private _trackCandidate(box: BoxCollider2D): void {
+    private _trackNodeCandidates(node: Node): void {
+        for (const box of node.getComponents?.(BoxCollider2D) ?? []) this._trackCandidate(box);
+        for (const polygon of node.getComponents?.(PolygonCollider2D) ?? []) this._trackCandidate(polygon);
+    }
+
+    private _trackCandidate(box: NavigationCollider): void {
         const n = box.node;
-        if (!n || !(n.name.startsWith('airWall') || n.getComponent(Wall) || n.getComponent(Tower) ||
+        if (!n || !(n.getComponent(NavigationObstacle) || n.name.startsWith('airWall') || n.getComponent(Wall) || n.getComponent(Tower) ||
             n.getComponent(Barracks) || n.getComponent(Barrier) || n.getComponent(Building) || n.getComponent(Log))) return;
         this._tracked.add(box); this._watchGeometry(n);
     }
@@ -959,13 +900,13 @@ export class EnemyNavigation {
         for (let n = node; n; n = n.parent) {
             if (this._geometryWatched.has(n)) continue;
             this._geometryWatched.add(n);
-            n.on?.('transform-changed', this.invalidate, this);
-            n.on?.('active-in-hierarchy-changed', this.invalidate, this);
+            n.on?.('transform-changed', this._markGeometryForCheck, this);
+            n.on?.('active-in-hierarchy-changed', this._markGeometryForCheck, this);
         }
     }
 
     private _componentRemoved = (component: unknown): void => {
-        if (component instanceof BoxCollider2D) {
+        if (component instanceof BoxCollider2D || component instanceof PolygonCollider2D) {
             // Keep the old snapshot until the next consumer can commit the removal atomically.
             this._tracked.delete(component);
         }
@@ -981,6 +922,10 @@ export class EnemyNavigation {
         this._prepareFrame();
         if (dt <= 0 || !this._hasGroundConfigured()) { out.set(0, 0); return; }
         unit.getWorldPosition(this._self);
+        if (!this._field.pointWalkable(this._self, body, this._area)) {
+            this._recoveryVelocity(this._self, body, dt, speed, out);
+            return;
+        }
         const magnitude = Math.hypot(out.x, out.y);
         if (magnitude > speed) { out.x *= speed / magnitude; out.y *= speed / magnitude; }
         this._constrainVelocity(this._self, body, dt, out);

@@ -1,6 +1,7 @@
 import {
     _decorator,
     BoxCollider2D,
+    CircleCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -12,6 +13,7 @@ import {
 import { Barracks } from '../building/Barracks';
 import { Barrier } from '../building/Barrier';
 import { Building } from '../building/Building';
+import { HeroShrine } from '../building/HeroShrine';
 import { Tower } from '../building/Tower';
 import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
@@ -94,6 +96,7 @@ export class EnemyBoss extends Component {
     private _stuckFrames = 0;
     private readonly _lastPos = new Vec3();
     private readonly _velocity = new Vec2();
+    private readonly _physicsVelocity = new Vec2();
     private readonly _facingDir = new Vec2(0, 1);
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
@@ -103,7 +106,7 @@ export class EnemyBoss extends Component {
     private _isAttacking = false;
     private _lifeGeneration = 0;
     private _attackGeneration = 0;
-    private _blockingLog: Log | null = null;
+    private _blockingObstacle: Node | null = null;
     private _currentLocomotionClip = '';
     private readonly _visualFacing = new VisualFacing();
 
@@ -156,7 +159,7 @@ export class EnemyBoss extends Component {
     }
 
     onDestroy(): void {
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._lifeGeneration += 1;
         this._isAttacking = false;
         EventManager.instance.offEvent(
@@ -168,7 +171,7 @@ export class EnemyBoss extends Component {
     }
 
     onDisable(): void {
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._lockedTarget = null;
         this._attackTimer = 0;
         this._lifeGeneration += 1;
@@ -219,6 +222,11 @@ export class EnemyBoss extends Component {
         for (const b of scene.getComponentsInChildren(Barracks)) {
             if (b.node.activeInHierarchy) {
                 this._upsertTarget(b.node, 'building');
+            }
+        }
+        for (const shrine of scene.getComponentsInChildren(HeroShrine)) {
+            if (shrine.node.activeInHierarchy && shrine.isAlive()) {
+                this._upsertTarget(shrine.node, 'building');
             }
         }
         for (const h of scene.getComponentsInChildren(Hero)) {
@@ -343,7 +351,7 @@ export class EnemyBoss extends Component {
 
     /** 每 bossRetargetInterval 重索敌；期间锁当前目标（死亡则立刻重选） */
     private _resolveChaseTarget(dt: number): Node | null {
-        if (this._blockingLog && this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)) return this._lockedTarget;
+        if (this._blockingObstacle && this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)) return this._lockedTarget;
         this._retargetTimer -= dt;
         const lockedAlive =
             !!this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget);
@@ -370,7 +378,7 @@ export class EnemyBoss extends Component {
         }
 
         // 无索敌距离：追当前锁定目标；仅近战距离内出手
-        const target = this._blockingLog?.node ?? (
+        const target = this._blockingObstacle ?? (
             this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)
                 ? this._lockedTarget
                 : this.pickTarget());
@@ -380,8 +388,8 @@ export class EnemyBoss extends Component {
 
         const dist = this._distanceToTargetSurface(target);
         const melee = Math.max(this.attackTriggerRange, 48);
-        const log = target.getComponent(Log);
-        if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), melee) : dist > melee) {
+        const obstacle = target.getComponent(Log) || target.getComponent(Barrier) || target.getComponent(Building);
+        if (obstacle ? !EnemyNavigation.get(this.node.scene)?.canAttackObstacle(this.node, target, this._bodySize(), melee) : dist > melee) {
             return;
         }
 
@@ -397,11 +405,11 @@ export class EnemyBoss extends Component {
         this._visualFacing.faceByTarget(this.visualNode, this.node, target);
 
         const generation = this._lifeGeneration;
-        const attack = ++this._attackGeneration, original = this._lockedTarget, temporary = this._blockingLog;
+        const attack = ++this._attackGeneration, original = this._lockedTarget, temporary = this._blockingObstacle;
         let hit = false;
         const valid = (): boolean => this._lifeGeneration === generation && this._attackGeneration === attack &&
             !this._isDead && this.node.isValid && this.node.activeInHierarchy && this._lockedTarget === original &&
-            (!original || this._isTargetAlive(original)) && this._blockingLog === temporary;
+            (!original || this._isTargetAlive(original)) && this._blockingObstacle === temporary;
         const damage = (): void => {
             if (hit || !valid() || !this._isAttacking) return;
             hit = true; this._applyCircleAttack();
@@ -448,7 +456,7 @@ export class EnemyBoss extends Component {
     }
 
     reset(): void {
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._lifeGeneration += 1;
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.bossMaxHp;
@@ -505,7 +513,7 @@ export class EnemyBoss extends Component {
         // 每 5s 重索敌；soldier > Structure > hero > player（Structure 按建造序）
         const target = this._resolveChaseTarget(dt);
         if (!target) {
-            this._blockingLog = null;
+            this._blockingObstacle = null;
             EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this._velocity.set(0, 0);
             this._stopMovement();
@@ -516,21 +524,22 @@ export class EnemyBoss extends Component {
         const size = this._bodySize();
         const nav = EnemyNavigation.get(this.node.scene);
         const melee = Math.max(this.attackTriggerRange, 48);
-        const request = { unit: this.node, target, role: 'boss' as const, speed: GameConfig.bossMoveSpeed,
-            dt, body: size, stopDistance: melee, preferEntranceNearestTo: this._playerNode };
-        const ordinaryLog = target.getComponent(Log);
-        const diversion = ordinaryLog ? null : nav?.blockingLog(request, melee) ?? null;
-        if (this._blockingLog !== (diversion?.log ?? null)) nav?.resetUnit(this.node);
-        this._blockingLog = diversion?.log ?? null;
-        const log = ordinaryLog ?? this._blockingLog;
-        if (log && nav) {
-            if (nav.canAttackLog(this.node, log, size, melee)) {
+        const navigationSpeed = EnemyNavigation.worldSpeedForPhysicsVelocity(GameConfig.bossMoveSpeed);
+        const request = { unit: this.node, target, role: 'boss' as const, speed: navigationSpeed,
+            dt, body: size, stopDistance: melee };
+        const ordinaryObstacle = target.getComponent(Log) || target.getComponent(Barrier) || target.getComponent(Building) ? target : null;
+        const diversion = nav?.blockingObstacle(request, melee) ?? null;
+        if (this._blockingObstacle !== (diversion?.target ?? null)) nav?.resetUnit(this.node);
+        this._blockingObstacle = diversion?.target ?? null;
+        const obstacle = this._blockingObstacle ?? ordinaryObstacle;
+        if (obstacle && nav) {
+            if (nav.canAttackObstacle(this.node, obstacle, size, melee)) {
                 this._stopMovement(); this._updateLocomotionAnim(false); this.tryAttack(); return;
             }
-            const route = diversion ?? nav.logRoute(this.node, log, size, melee);
-            if (route) nav.nextLogVelocity(request, route, this._velocity);
+            const route = diversion ?? nav.obstacleRoute(this.node, obstacle, size, melee);
+            if (route) nav.nextObstacleVelocity(request, route, this._velocity);
             else this._velocity.set(0,0);
-            if (this._rb) this._rb.linearVelocity = this._velocity;
+            this._applyNavigationVelocity();
             this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
             this._updateLocomotionAnim(true); return;
         }
@@ -559,17 +568,14 @@ export class EnemyBoss extends Component {
                 unit: this.node,
                 target,
                 role: 'boss',
-                speed: GameConfig.bossMoveSpeed,
+                speed: navigationSpeed,
                 dt,
                 body: { width: size.w, height: size.h, offsetX: size.offsetX, offsetY: size.offsetY },
                 stopDistance: melee,
-                preferEntranceNearestTo: this._playerNode,
             },
             this._velocity,
         );
-        if (this._rb) {
-            this._rb.linearVelocity = this._velocity;
-        }
+        this._applyNavigationVelocity();
         this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
         this._updateStuck(centerDist);
         this._updateLocomotionAnim(true);
@@ -607,8 +613,8 @@ export class EnemyBoss extends Component {
             if (!this._isTargetAlive(node)) {
                 continue;
             }
-            const log = node.getComponent(Log);
-            if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), radius)
+            const obstacle = node.getComponent(Log) || node.getComponent(Barrier) || node.getComponent(Building);
+            if (obstacle ? !EnemyNavigation.get(this.node.scene)?.canAttackObstacle(this.node, node, this._bodySize(), radius)
                 : this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
                 continue;
             }
@@ -646,7 +652,7 @@ export class EnemyBoss extends Component {
         this._pruneDeadTargets();
         const out: Node[] = [];
         const seen = new Set<Node>();
-        if (this._blockingLog?.node.isValid) { out.push(this._blockingLog.node); seen.add(this._blockingLog.node); }
+        if (this._blockingObstacle?.isValid) { out.push(this._blockingObstacle); seen.add(this._blockingObstacle); }
         for (const e of this._targetList) {
             if (e.node?.isValid && this._isTargetAlive(e.node) && !seen.has(e.node)) {
                 seen.add(e.node);
@@ -671,6 +677,10 @@ export class EnemyBoss extends Component {
 
     private _isTargetAlive(node: Node | null): boolean {
         if (!node || !node.activeInHierarchy) {
+            return false;
+        }
+        if ((node.getComponent(Log) || node.getComponent(Barrier) || node.getComponent(Building)) &&
+            !EnemyNavigation.get(this.node.scene)?.isDestructibleObstacle(node)) {
             return false;
         }
         const barrier = node.getComponent(Barrier);
@@ -748,7 +758,7 @@ export class EnemyBoss extends Component {
     }
 
     private _die(): void {
-        this._blockingLog = null;
+        this._blockingObstacle = null;
         this._lifeGeneration += 1;
         this._isDead = true;
         this._isAttacking = false;
@@ -804,6 +814,11 @@ export class EnemyBoss extends Component {
         }
     }
 
+    private _applyNavigationVelocity(): void {
+        if (!this._rb) return;
+        this._rb.linearVelocity = EnemyNavigation.writePhysicsVelocity(this._velocity, this._physicsVelocity);
+    }
+
     private _bodySize(): FlowBody & { w: number; h: number } {
         const box = this.node.getComponent(BoxCollider2D);
         if (box) {
@@ -822,6 +837,13 @@ export class EnemyBoss extends Component {
                 });
                 return { ...stable, w: stable.width, h: stable.height };
             }
+        }
+        const circle = this.node.getComponent(CircleCollider2D);
+        if (circle) {
+            const physical = EnemyNavigation.bodyForCircle?.(circle);
+            if (physical) return { ...physical, w: physical.width, h: physical.height };
+            const aabb = circle.worldAABB;
+            return { width: Math.abs(aabb.width), height: Math.abs(aabb.height), w: Math.abs(aabb.width), h: Math.abs(aabb.height) };
         }
         const fallback = AirWallAabb.bodySize(this.node, 60, 60);
         return { ...fallback, width: fallback.w, height: fallback.h, offsetX: 0, offsetY: 0 };

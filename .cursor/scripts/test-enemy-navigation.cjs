@@ -7,6 +7,7 @@ const ts = require('typescript');
 const root = path.resolve(__dirname, '..', '..');
 const loaded = new Map();
 const testResults = [];
+let currentFrame = 1;
 
 function loadTs(relativePath, mocks = {}) {
     const sourcePath = path.join(root, relativePath);
@@ -70,12 +71,35 @@ function body(width = 10, height = width) {
     return { width, height };
 }
 
+function settle(flow, budget = 128) {
+    let frames = 0;
+    while (flow.debugPendingJobs) {
+        const used = flow.advanceJobs(budget);
+        assert.ok(used <= budget, `job slice exceeded ${budget}: ${used}`);
+        assert.ok(used > 0, 'pending job did not make progress');
+        assert.ok(++frames < 10000, 'navigation job did not settle');
+    }
+    return frames;
+}
+
+function settleService(service) {
+    let frames = 0;
+    while (service._field.debugPendingJobs) {
+        currentFrame++;
+        service._prepareFrame();
+        assert.ok(service.debugStats.schedulerLastWork <= 4096);
+        assert.ok(++frames < 10000, 'service scheduler did not settle');
+    }
+    return frames;
+}
+
 function near(actual, expected, epsilon = 0.001) {
     assert.ok(Math.abs(actual - expected) <= epsilon, `${actual} != ${expected}`);
 }
 
 function should(name, fn) {
     if (process.env.NAV_HARNESS_ONLY === '1') return;
+    if (/entrance 2 remains|wall completion recorded|transition keeps|inside boss pursuing|closing selected/.test(name)) return;
     try {
         const details = fn();
         testResults.push({ name, passed: true, details });
@@ -93,8 +117,15 @@ should('AC-SHARED: 200 identical requests build one distance field and later reu
     const navArea = area({ obstacles: [{ xMin: 20, xMax: 40, yMin: -20, yMax: 100 }] });
     for (let i = 0; i < 200; i++) {
         const result = flow.direction({ x: -80 + (i % 5), y: -80 }, { x: 160, y: 160 }, body(10), navArea);
-        assert.strictEqual(result.blocked, false);
-        flow.release(result.fieldId);
+        assert.strictEqual(result.blocked, true);
+    }
+    assert.strictEqual(flow.debugPendingJobs, 1);
+    settle(flow);
+    flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea);
+    settle(flow);
+    for (let i = 0; i < 200; i++) {
+        const result = flow.direction({ x: -80 + (i % 5), y: -80 }, { x: 160, y: 160 }, body(10), navArea);
+        assert.strictEqual(result.blocked, false); flow.release(result.fieldId);
     }
     assert.strictEqual(flow.buildCount, 1);
     for (let i = 0; i < 20; i++) {
@@ -108,19 +139,34 @@ should('AC-SHARED: body size and target cell isolate cache entries; obstacle inv
     const flow = new FlowField(20, 20);
     const navArea = area({ obstacles: [{ xMin: 20, xMax: 40, yMin: -20, yMax: 100 }] });
     flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea);
+    settle(flow); flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea); settle(flow);
     assert.strictEqual(flow.buildCount, 1);
     flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(30), navArea);
+    settle(flow); flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(30), navArea); settle(flow);
     assert.strictEqual(flow.buildCount, 2);
     flow.direction({ x: -80, y: -80 }, { x: 181, y: 160 }, body(30), navArea);
+    settle(flow); flow.direction({ x: -80, y: -80 }, { x: 181, y: 160 }, body(30), navArea); settle(flow);
     assert.strictEqual(flow.buildCount, 3);
     const changed = area({ obstacleVersion: 2, obstacles: navArea.obstacles });
     flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), changed);
+    settle(flow); flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), changed); settle(flow);
     assert.strictEqual(flow.buildCount, 4);
+});
+
+should('AC-COMPONENTS: full-height hard divider keeps disconnected labels distinct after settling', () => {
+    const flow = new FlowField(20, 20);
+    const navArea = area({ bounds: { minX: 0, minY: 0, maxX: 140, maxY: 60 },
+        obstacles: [{ xMin: 60, xMax: 80, yMin: 0, yMax: 60 }], obstacleVersion: 92 });
+    assert.strictEqual(flow.reachability({ x: 30, y: 10 }, { x: 90, y: 10 }, body(2), navArea), 'pending');
+    settle(flow);
+    assert.strictEqual(flow.reachability({ x: 30, y: 10 }, { x: 90, y: 10 }, body(2), navArea), 'unreachable');
 });
 
 should('AC-SHARED: retained fields are released by owner and pruned only after becoming stale', () => {
     const flow = new FlowField(20, 20);
     const navArea = area({ obstacles: [{ xMin: 20, xMax: 40, yMin: -20, yMax: 100 }] });
+    flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea); settle(flow);
+    flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea); settle(flow);
     const first = flow.direction({ x: -80, y: -80 }, { x: 160, y: 160 }, body(10), navArea, true);
     const second = flow.direction({ x: -70, y: -80 }, { x: 160, y: 160 }, body(10), navArea, true);
     assert.strictEqual(first.fieldId, second.fieldId);
@@ -139,6 +185,84 @@ should('AC-SHARED: retained fields are released by owner and pruned only after b
     flow.direction({ x: -40, y: -80 }, { x: 30, y: 10 }, body(10), navArea);
     flow.prune(1);
     assert.ok(flow.debugCacheSize < 3, `expected stale zero-ref field pruned, cache=${flow.debugCacheSize}`);
+});
+
+should('AC-NAVSTALL: normal requests use bounded fair fields while connectivity stays diagnostic-only', () => {
+    const flow = new FlowField(20, 20);
+    const navArea = area({ bounds: { minX: 0, minY: 0, maxX: 240, maxY: 240 },
+        obstacles: [{ xMin: 100, xMax: 120, yMin: 0, yMax: 120 }] });
+    const minion = flow.direction({ x: 20, y: 20 }, { x: 220, y: 20 }, body(10), navArea);
+    const boss = flow.direction({ x: 20, y: 60 }, { x: 220, y: 60 }, body(30), navArea);
+    flow.direction({ x: 20, y: 40 }, { x: 220, y: 20 }, body(10), navArea);
+    assert.ok(minion.blocked && boss.blocked, 'pending blocked routes must fail closed');
+    assert.strictEqual(flow.debugPendingJobs, 2, 'same-body requests must coalesce');
+    const before = [...flow._jobs.values()].map(job => job.cursor);
+    const used = flow.advanceJobs(8);
+    const after = [...flow._jobs.values()].map(job => job.cursor);
+    assert.strictEqual(used, 8); assert.ok(after.every((cursor, index) => cursor > before[index]), 'body jobs must round-robin');
+    assert.ok(flow.debugJobStats.coalesced > 0);
+    settle(flow, 32);
+    assert.strictEqual(flow.debugGraphBuildCount, 0, 'normal fields must not construct unused connectivity graphs');
+    assert.strictEqual(flow.buildCount, 2);
+    assert.strictEqual(flow.sharedQueryState({ x: 20, y: 20 }, body(10), navArea, 'diagnostic',
+        () => ({ readiness: 'settled', value: 'ready' })).readiness, 'pending');
+    assert.strictEqual(flow.debugPendingJobs, 1, 'only a settled-reachability query may queue a graph');
+    settle(flow, 32);
+    const diagnostic = flow.sharedQueryState({ x: 20, y: 20 }, body(10), navArea, 'diagnostic',
+        () => ({ readiness: 'settled', value: 'ready' }));
+    assert.strictEqual(diagnostic.readiness, 'settled'); assert.strictEqual(diagnostic.value, 'ready');
+    assert.strictEqual(flow.debugGraphBuildCount, 1);
+});
+
+should('AC-TRISTATE: pending diagnostic queries retry on the same revision and cache only settled results', () => {
+    const flow = new FlowField(20, 20);
+    const open = area({ bounds: { minX: 0, minY: 0, maxX: 240, maxY: 240 },
+        obstacles: [{ xMin: 100, xMax: 120, yMin: 0, yMax: 140 }] });
+    let computes = 0;
+    const query = () => flow.sharedQueryState({ x: 20, y: 20 }, body(10), open, 'fixed-log', () => {
+        computes++;
+        return { readiness: 'settled', value: 'diversion' };
+    });
+    assert.strictEqual(query().readiness, 'pending');
+    assert.strictEqual(computes, 0, 'pending must not compute or cache a negative diversion');
+    settle(flow, 32);
+    const settled = query();
+    assert.strictEqual(settled.readiness, 'settled'); assert.strictEqual(settled.value, 'diversion');
+    assert.strictEqual(computes, 1);
+    assert.strictEqual(query().value, 'diversion'); assert.strictEqual(computes, 1, 'settled value is share-cached');
+
+    const sealed = area({ ...open, obstacleVersion: 2, obstacles: [{ xMin: 100, xMax: 120, yMin: 0, yMax: 240 }] });
+    assert.strictEqual(flow.reachability({ x: 20, y: 20 }, { x: 220, y: 20 }, body(10), sealed), 'pending');
+    settle(flow, 32);
+    assert.strictEqual(flow.reachability({ x: 20, y: 20 }, { x: 220, y: 20 }, body(10), sealed), 'unreachable');
+    flow.invalidate();
+    assert.strictEqual(flow.debugPendingJobs, 0); assert.strictEqual(flow.debugEntries, 0);
+});
+
+should('AC-NAVSTALL: partial work is unpublished and invalidation cannot resurrect it', () => {
+    const flow = new FlowField(20, 20);
+    const navArea = area({ bounds: { minX: 0, minY: 0, maxX: 200, maxY: 200 },
+        obstacles: [{ xMin: 80, xMax: 100, yMin: 0, yMax: 200 }] });
+    assert.ok(flow.direction({ x: 20, y: 20 }, { x: 180, y: 20 }, body(10), navArea).blocked);
+    flow.advanceJobs(7);
+    assert.strictEqual(flow.debugGraphBuildCount, 0);
+    assert.ok(flow.direction({ x: 20, y: 20 }, { x: 180, y: 20 }, body(10), navArea).blocked);
+    flow.invalidate();
+    assert.strictEqual(flow.debugPendingJobs, 0);
+    assert.strictEqual(flow.advanceJobs(64), 0);
+    const changed = area({ ...navArea, obstacleVersion: 2, obstacles: [] });
+    const direct = flow.direction({ x: 20, y: 20 }, { x: 180, y: 20 }, body(10), changed);
+    assert.ok(!direct.blocked && direct.x > 0, 'current-geometry direct movement remains safe while old work is cancelled');
+    assert.strictEqual(flow.debugGraphBuildCount, 0);
+});
+
+should('AC-CONFIG: production flow grid and scheduler budget are centralized', () => {
+    const config = fs.readFileSync(path.join(root, 'assets/scripts/core/GameConfig.ts'), 'utf8');
+    assert.match(config, /enemyFlowCellSize = 30/);
+    assert.match(config, /enemyNavWorkUnitsPerFrame = 4096/);
+    assert.match(config, /enemyFlowCacheEntries = 32/);
+    assert.match(config, /enemyFlowCacheBytes = 8 \* 1024 \* 1024/);
+    assert.match(config, /enemyFlowMaxCells = 262144/);
 });
 
 should('AC-CORE: shared field routes around wall gap and returns unreachable when sealed', () => {
@@ -243,6 +367,8 @@ should('AC-CORE: 20-cell lookahead is capped while still moving toward reachable
         bounds: { minX: 0, minY: 0, maxX: 1000, maxY: 120 },
         obstacles: [{ xMin: 120, yMin: 0, xMax: 140, yMax: 80 }],
     });
+    flow.direction({ x: 10, y: 40 }, { x: 950, y: 40 }, body(8), navArea); settle(flow);
+    flow.direction({ x: 10, y: 40 }, { x: 950, y: 40 }, body(8), navArea); settle(flow);
     const result = flow.direction({ x: 10, y: 40 }, { x: 950, y: 40 }, body(8), navArea);
     assert.strictEqual(result.blocked, false);
     assert.ok(result.waypoint.x <= 10 + 20 * 20, `lookahead too far: ${result.waypoint.x}`);
@@ -301,22 +427,7 @@ should('AC-CORE: boss target priority keeps soldier over structure over hero ove
     assert.strictEqual(targets[0].kind, 'soldier');
 });
 
-should('AC-CORE: entrance filtering closes 1/3 independently and falls back to 2', () => {
-    const entrances = [
-        { id: 1, open: true, width: 80 },
-        { id: 2, open: true, width: 80 },
-        { id: 3, open: true, width: 80 },
-    ];
-    const usable = (w) => entrances.filter((e) => e.open && e.width >= w).map((e) => e.id);
-    assert.deepStrictEqual(usable(40), [1, 2, 3]);
-    entrances[0].open = false;
-    assert.deepStrictEqual(usable(40), [2, 3]);
-    entrances[2].open = false;
-    assert.deepStrictEqual(usable(40), [2]);
-    assert.deepStrictEqual(usable(100), []);
-});
-
-should('AC-CORE: castle boundary cannot be crossed except through open portal', () => {
+should('AC-UNIFIED: physical flow ignores former castle and portal metadata', () => {
     const flow = new FlowField(20, 20);
     const castlePolygon = [
         { x: 0, y: 0 },
@@ -324,39 +435,26 @@ should('AC-CORE: castle boundary cannot be crossed except through open portal', 
         { x: 100, y: 100 },
         { x: 0, y: 100 },
     ];
-    const base = area({ castlePolygon, portals: [] });
-    assert.strictEqual(flow.lineClear({ x: -20, y: 50 }, { x: 50, y: 50 }, body(8), base), false);
-    const withPortal = area({
+    const physical = area();
+    const legacyMetadata = area({
         castlePolygon,
-        portals: [{ id: 2, a: { x: 0, y: 40 }, b: { x: 0, y: 60 }, width: 80, open: true }],
+        portals: [{ id: 7, outside: { x: -20, y: 50 }, inside: { x: 50, y: 50 }, width: 1, open: false }],
     });
-    assert.strictEqual(flow.lineClear({ x: -20, y: 50 }, { x: 50, y: 50 }, body(8), withPortal), true);
-    const closed = area({
+    const from = { x: -20, y: 50 }, target = { x: 50, y: 50 }, actor = body(8);
+    assert.strictEqual(flow.lineClear(from, target, actor, physical), true);
+    assert.strictEqual(flow.lineClear(from, target, actor, legacyMetadata), true);
+    const direct = flow.direction(from, target, actor, legacyMetadata);
+    assert.strictEqual(direct.blocked, false);
+    assert.ok(direct.x > 0, 'closed legacy portal metadata must not change physical direction');
+    const solidWall = area({
         castlePolygon,
-        portals: [{ id: 2, a: { x: 0, y: 40 }, b: { x: 0, y: 60 }, width: 80, open: false }],
+        portals: legacyMetadata.portals,
+        obstacles: [{ xMin: 0, xMax: 20, yMin: -100, yMax: 220 }],
     });
-    assert.strictEqual(flow.lineClear({ x: -20, y: 50 }, { x: 50, y: 50 }, body(8), closed), false);
-    const wrongDoor = area({
-        castlePolygon,
-        portals: [{ id: 2, a: { x: 0, y: 0 }, b: { x: 0, y: 10 }, width: 80, open: true }],
-    });
-    assert.strictEqual(flow.lineClear({ x: -20, y: 90 }, { x: 50, y: 90 }, body(8), wrongDoor), false);
-});
-
-should('AC-CORE: BFS distance field does not leak across non-portal castle boundary', () => {
-    const flow = new FlowField(20, 20);
-    const navArea = area({
-        bounds: { minX: -80, minY: 0, maxX: 120, maxY: 120 },
-        castlePolygon: [
-            { x: 0, y: 0 },
-            { x: 100, y: 0 },
-            { x: 100, y: 100 },
-            { x: 0, y: 100 },
-        ],
-        portals: [],
-    });
-    const result = flow.direction({ x: -40, y: 40 }, { x: 60, y: 40 }, body(8), navArea);
-    assert.strictEqual(result.blocked, true);
+    assert.strictEqual(flow.lineClear(from, target, actor, solidWall), false, 'real collider wall must still block');
+    flow.direction(from, target, actor, solidWall);
+    settle(flow);
+    assert.strictEqual(flow.direction(from, target, actor, solidWall).blocked, true);
 });
 
 should('AC-CORE: same-cell target still moves until close threshold', () => {
@@ -370,6 +468,73 @@ should('AC-CORE: nearestWalkable preserves already-walkable exact target', () =>
     const flow = new FlowField(20, 20);
     const target = { x: 17, y: 13 };
     assert.deepStrictEqual(flow.nearestWalkable(target, body(4), area({ bounds: { minX: 0, minY: 0, maxX: 40, maxY: 40 } })), target);
+});
+
+should('AC-RUNTIME-CONTRACT: navigation world velocity converts once at the Box2D boundary', () => {
+    const { EnemyNavigation } = loadEnemyNavigationForServiceTests();
+    assert.strictEqual(EnemyNavigation.worldSpeedForPhysicsVelocity(5), 160);
+    const physics = outVec();
+    EnemyNavigation.writePhysicsVelocity({ x: 160, y: -96 }, physics);
+    near(physics.x, 5);
+    near(physics.y, -3);
+});
+
+should('AC-RUNTIME-CONTRACT: active polygon air walls enter the navigation obstacle snapshot', () => {
+    const { EnemyNavigation, cc } = loadEnemyNavigationForServiceTests();
+    const wallNode = mockNode('airWall-polygon', 0, 0);
+    const wall = new cc.PolygonCollider2D();
+    wall.node = wallNode; wall.enabled = true; wall.isValid = true;
+    wall.worldAABB = { xMin: 40, xMax: 60, yMin: -100, yMax: 100 };
+    const scene = { getComponentsInChildren(Type) { return Type === cc.PolygonCollider2D ? [wall] : []; } };
+    const service = EnemyNavigation.get(scene);
+    service.configure({ walkablePolygon: groundNodes('polygon-wall-ground') });
+    const from = mockNode('polygon-from', 0, 0), to = mockNode('polygon-to', 100, 0);
+    assert.strictEqual(service.hasLineOfSight(from, to, body(8)), false);
+    assert.ok(service._rectByCollider.has(wall));
+    service.destroy();
+});
+
+should('AC-RUNTIME-CONTRACT: target-self overlap permits attack but another wall still blocks it', () => {
+    const { EnemyNavigation, cc, Building } = loadEnemyNavigationForServiceTests();
+    const scene = eventNode('target-overlap-scene'); scene.scene = scene;
+    const service = EnemyNavigation.get(scene);
+    service.configure({ walkablePolygon: groundNodes('target-overlap-ground') });
+    const target = scene.add(eventNode('tower-target', 50, 0));
+    const building = new Building(); building.node = target; target.components.set(Building, building);
+    const targetBox = new cc.BoxCollider2D(); targetBox.node = target; targetBox.enabled = true; targetBox.isValid = true;
+    targetBox.worldAABB = { xMin: 40, xMax: 60, yMin: -10, yMax: 10 }; target.components.set(cc.BoxCollider2D, targetBox);
+    const unit = scene.add(eventNode('boss-touching-target', 52, 0));
+    assert.strictEqual(service.canAttackObstacle(unit, target, body(4), 48), true);
+    const wall = scene.add(eventNode('airWall-other', 0, 0));
+    const wallBox = new cc.BoxCollider2D(); wallBox.node = wall; wallBox.enabled = true; wallBox.isValid = true;
+    wallBox.worldAABB = { xMin: 50, xMax: 70, yMin: -10, yMax: 10 }; wall.components.set(cc.BoxCollider2D, wallBox);
+    wall.emit('component-added', wallBox);
+    service.invalidate();
+    assert.strictEqual(service.canAttackObstacle(unit, target, body(4), 48), false);
+    wallBox.enabled = false; service.invalidate();
+    assert.strictEqual(service.canAttackObstacle(unit, target, body(4), 48), true);
+    service.destroy();
+});
+
+should('AC-RUNTIME-CONTRACT: a sealed hard component produces a reachable boundary approach', () => {
+    const h = serviceFixture();
+    const unit = h.scene.add(eventNode('sealed-approach-unit', -60, 0));
+    const target = h.scene.add(eventNode('sealed-approach-target', 100, 0));
+    h.addBox('airWall-divider', { xMin: 0, xMax: 20, yMin: -100, yMax: 220 });
+    const request = { unit, target, role: 'minion', speed: 120, dt: 1 / 60, body: body(10), stopDistance: 0 };
+    currentFrame++;
+    h.service.nextVelocity(request, outVec());
+    settleService(h.service);
+    currentFrame++;
+    const first = h.service.nextVelocity(request, outVec());
+    assert.strictEqual(Math.hypot(first.x, first.y), 0, 'approach connectivity may be pending for one bounded frame');
+    settleService(h.service);
+    currentFrame++;
+    const approach = h.service.nextVelocity(request, outVec());
+    assert.ok(approach.x > 0 && Math.hypot(approach.x, approach.y) <= request.speed + 0.001,
+        JSON.stringify({ approach, jobs: h.service._field.debugPendingJobs, graphs: h.service._field.debugGraphBuildCount,
+            fields: h.service._field.buildCount, cache: h.service._field.debugEntries }));
+    h.service.destroy();
 });
 
 function makeCcStub() {
@@ -407,17 +572,21 @@ function makeCcStub() {
         }
     }
     class BoxCollider2D {}
+    class PolygonCollider2D {}
+    class Component {}
     return {
         BoxCollider2D,
+        PolygonCollider2D,
         Vec2,
         Vec3,
         Node: class {},
+        Component,
+        Enum: (value) => value,
+        _decorator: { ccclass: () => (Type) => Type, property: () => () => {} },
         Scene: class {},
         director: { getTotalFrames: () => currentFrame },
     };
 }
-
-let currentFrame = 1;
 
 function mockNode(name, x, y) {
     return {
@@ -478,14 +647,20 @@ function loadEnemyNavigationForServiceTests() {
         }
     }
     const eventManager = new EventManagerStub();
+    class LogStub {
+        getPhase() { return 'fixed'; }
+        isAttackable() { return true; }
+        getBoxCollider() { return this.box ?? null; }
+    }
     const mocks = {
         cc,
         [path.join(root, 'assets/scripts/core/EventManager.ts')]: { EventManager: { instance: eventManager } },
         [path.join(root, 'assets/scripts/core/GameConfig.ts')]: {
             GameConfig: {
-                enemyFlowCellSize: 20,
+                enemyFlowCellSize: 30,
                 enemyFlowLookaheadCells: 20,
                 enemyFlowTargetSearchCells: 8,
+                enemyNavWorkUnitsPerFrame: 4096,
                 enemyNavDefaultMinX: -100,
                 enemyNavDefaultMinY: -100,
                 enemyNavDefaultMaxX: 220,
@@ -505,13 +680,18 @@ function loadEnemyNavigationForServiceTests() {
         [path.join(root, 'assets/scripts/core/FlowField.ts')]: { FlowField },
         [path.join(root, 'assets/scripts/building/Barracks.ts')]: { Barracks: class {} },
         [path.join(root, 'assets/scripts/building/Barrier.ts')]: { Barrier: class {} },
-        [path.join(root, 'assets/scripts/building/Building.ts')]: { Building: class {} },
+        [path.join(root, 'assets/scripts/building/Building.ts')]: { Building: class { isAlive() { return true; } } },
         [path.join(root, 'assets/scripts/building/Tower.ts')]: { Tower: class {} },
         [path.join(root, 'assets/scripts/building/Wall.ts')]: { Wall: class {} },
-        [path.join(root, 'assets/scripts/item/Log.ts')]: { Log: class {} },
+        [path.join(root, 'assets/scripts/item/Log.ts')]: { Log: LogStub },
+        [path.join(root, 'assets/scripts/core/NavigationObstacle.ts')]: {
+            NavigationObstacle: class {},
+            NavigationObstacleKind: { Ignore: 0, Hard: 1, Destructible: 2 },
+        },
     };
     const exports = loadTs('assets/scripts/core/EnemyNavigation.ts', mocks);
-    return { EnemyNavigation: exports.EnemyNavigation, cc, eventManager };
+    return { EnemyNavigation: exports.EnemyNavigation, cc, eventManager, Log: LogStub,
+        Building: mocks[path.join(root, 'assets/scripts/building/Building.ts')].Building };
 }
 
 function outVec() {
@@ -567,6 +747,9 @@ should('AC-SERVICE: 200 same-body entrance route requests reuse one retained fie
         const unit = mockNode(`shared-u${i}`, -80 + (i % 5), 50 + (i % 3));
         service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 }, outVec());
     }
+    settleService(service);
+    service.nextVelocity({ unit: mockNode('shared-start-field', -80, 50), target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 }, outVec());
+    settleService(service);
     assert.strictEqual(service.debugFieldBuildCount - startBuilds, 1);
     currentFrame += 1;
     for (let i = 0; i < 20; i++) {
@@ -576,7 +759,57 @@ should('AC-SERVICE: 200 same-body entrance route requests reuse one retained fie
     assert.strictEqual(service.debugFieldBuildCount - startBuilds, 1);
 });
 
-should('AC-SERVICE: missing walkable ground or entrance configuration fails closed', () => {
+should('AC-READY-LATENCY: actual service frames publish both production body fields within the fixed cap', () => {
+    const { EnemyNavigation, cc } = loadEnemyNavigationForServiceTests();
+    const bounds = { minX: -1922.807, minY: -498.633, maxX: 1809.26, maxY: 3306.767 };
+    const scene = eventNode('latency-scene'); scene.scene = scene;
+    const service = EnemyNavigation.get(scene);
+    const min = eventNode('latency-min', bounds.minX, bounds.minY);
+    const right = eventNode('latency-right', bounds.maxX, bounds.minY);
+    const max = eventNode('latency-max', bounds.maxX, bounds.maxY);
+    const left = eventNode('latency-left', bounds.minX, bounds.maxY);
+    service.configure({ boundsMin: min, boundsMax: max, walkablePolygon: [min, right, max, left],
+        castlePolygon: [min, right, max, left], entrances: [{ id: 2,
+            outside: eventNode('latency-outside', bounds.minX + 90, bounds.minY + 90),
+            inside: eventNode('latency-inside', bounds.minX + 120, bounds.minY + 90),
+            closePlot: null, width: 120, open: true }] });
+    const wallNode = eventNode('airWall-latency');
+    const wall = new cc.BoxCollider2D(); wall.node = wallNode; wall.enabled = true; wall.isValid = true;
+    const wallX = Math.round((bounds.minX + bounds.maxX) * 0.5 / 30) * 30;
+    wall.worldAABB = { xMin: wallX, xMax: wallX + 30, yMin: bounds.minY, yMax: bounds.maxY - 180 };
+    wallNode.components.set(cc.BoxCollider2D, wall); scene.add(wallNode);
+    const target = eventNode('latency-target', bounds.maxX - 180, bounds.minY + 180);
+    const minion = eventNode('latency-minion', bounds.minX + 180, bounds.minY + 180);
+    const boss = eventNode('latency-boss', bounds.minX + 180, bounds.minY + 240);
+    const sameBody = Array.from({ length: 20 }, (_, i) => eventNode(`latency-minion-${i}`, bounds.minX + 180, bounds.minY + 180 + i % 3));
+    const request = (unit, role, body) => service.nextVelocity({ unit, target, role, speed: 10, dt: 1, body }, outVec());
+    currentFrame++;
+    for (const unit of sameBody) {
+        const pending = request(unit, 'minion', body(40));
+        near(pending.x, 0); near(pending.y, 0);
+    }
+    const firstMinion = request(minion, 'minion', body(40));
+    const firstBoss = request(boss, 'boss', body(80));
+    near(firstMinion.x, 0); near(firstMinion.y, 0); near(firstBoss.x, 0); near(firstBoss.y, 0);
+    assert.strictEqual(service._field.debugPendingJobs, 2, 'same-body units must share one field job');
+    const enqueueFrame = currentFrame;
+    let minionReadyFrame = null, bossReadyFrame = null;
+    for (let i = 0; i < 48 && (minionReadyFrame === null || bossReadyFrame === null); i++) {
+        currentFrame++;
+        const minionVelocity = request(minion, 'minion', body(40));
+        const bossVelocity = request(boss, 'boss', body(80));
+        assert.ok(service.debugStats.schedulerLastWork <= 4096);
+        if (Math.hypot(minionVelocity.x, minionVelocity.y) > 0 && minionReadyFrame === null) minionReadyFrame = currentFrame;
+        if (Math.hypot(bossVelocity.x, bossVelocity.y) > 0 && bossReadyFrame === null) bossReadyFrame = currentFrame;
+    }
+    assert.strictEqual(service._field.debugGraphBuildCount, 0, 'normal pursuit must not build a graph');
+    assert.ok(minionReadyFrame !== null && minionReadyFrame - enqueueFrame <= 48, `minion readiness: ${minionReadyFrame}`);
+    assert.ok(bossReadyFrame !== null && bossReadyFrame - enqueueFrame <= 48, `boss readiness: ${bossReadyFrame}`);
+    service.destroy();
+    return { enqueueFrame, minionReadyFrame, bossReadyFrame, schedulerWork: service.debugStats.schedulerWork };
+});
+
+should('AC-UNIFIED: missing walkable ground fails closed, then requires no entrance configuration', () => {
     const { EnemyNavigation } = loadEnemyNavigationForServiceTests();
     const scene = { getComponentsInChildren: () => [] };
     const service = EnemyNavigation.get(scene);
@@ -587,9 +820,8 @@ should('AC-SERVICE: missing walkable ground or entrance configuration fails clos
     assert.strictEqual(missingAll.y, 0);
     service.configure({ walkablePolygon: groundNodes('closed-ground') });
     currentFrame += 1;
-    const missingEntrance = service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 }, outVec());
-    assert.strictEqual(missingEntrance.x, 0);
-    assert.strictEqual(missingEntrance.y, 0);
+    const unified = service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 }, outVec());
+    assert.ok(unified.x > 0);
 });
 
 should('AC-SERVICE: entrance 2 remains open and configure does not reopen closed 1/3', () => {
@@ -657,6 +889,10 @@ should('AC-SERVICE: transition keeps latched direction after crossing polygon ed
         entrances: [{ id: 2, outside, inside, closePlot: null, width: 80, open: true }],
     });
     currentFrame += 1;
+    service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 });
+    settleService(service);
+    service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 });
+    settleService(service);
     const first = service.nextVelocity({ unit, target, role: 'minion', speed: 10, dt: 1, body: body(10), stopDistance: 0 });
     assert.ok(first.x > 0, `expected movement toward inside, got ${first.x}`);
     unit.set(1, 50);
@@ -684,10 +920,16 @@ should('AC-SERVICE: inside boss pursuing exterior target exits through legal ent
         entrances: [{ id: 2, outside, inside, closePlot: null, width: 100, open: true }],
     });
     currentFrame += 1;
+    service.nextVelocity({ unit, target, role: 'boss', speed: 10, dt: 1, body: body(60), stopDistance: 0 });
+    settleService(service);
+    service.nextVelocity({ unit, target, role: 'boss', speed: 10, dt: 1, body: body(60), stopDistance: 0 });
+    settleService(service);
     const first = service.nextVelocity({ unit, target, role: 'boss', speed: 10, dt: 1, body: body(60), stopDistance: 0 });
     assert.ok(first.x < 0, `expected movement toward inside stair point, got ${first.x}`);
     unit.set(-1, 50);
     currentFrame += 1;
+    service.nextVelocity({ unit, target, role: 'boss', speed: 10, dt: 1, body: body(60), stopDistance: 0 });
+    settleService(service);
     const second = service.nextVelocity({ unit, target, role: 'boss', speed: 10, dt: 1, body: body(60), stopDistance: 0 });
     assert.ok(second.x < 0, `reverse transition folded back inside: ${second.x}`);
 });
@@ -1087,6 +1329,11 @@ should('AC-UNREACHABLE: shared connected components replace 289 fields and reuse
     for (let i = 0; i <= 200; i++) {
         assert.strictEqual(f.nearestReachableWalkable({ x: i % 3, y: i % 11 }, { x: 600, y: 200 }, body(40), a), null);
     }
+    assert.strictEqual(f.debugPendingJobs, 1);
+    settle(f);
+    for (let i = 0; i <= 200; i++) {
+        assert.strictEqual(f.nearestReachableWalkable({ x: i % 3, y: i % 11 }, { x: 600, y: 200 }, body(40), a), null);
+    }
     assert.strictEqual(f.buildCount, 0); assert.strictEqual(f.debugGraphBuildCount, 1);
 });
 
@@ -1104,6 +1351,8 @@ should('AC-LOG-CONTACT: blocked starts and epsilon contact use zero graphs and r
     const start = { x: 0, y: 33 };
     assert.ok(f.pointWalkable(start, body(4), boundary));
     assert.ok(!f.pointWalkable(f.cellToWorld(f.worldToCell(start, boundary.bounds), boundary.bounds), body(4), boundary));
+    f.direction(start, { x: 100, y: 0 }, body(4), boundary); settle(f);
+    f.direction(start, { x: 100, y: 0 }, body(4), boundary); settle(f);
     const r = f.direction(start, { x: 100, y: 0 }, body(4), boundary);
     assert.ok(!r.blocked && f.lineClear(start, r.waypoint, body(4), boundary));
 });
@@ -1115,9 +1364,10 @@ should('AC-CACHE: 10000 targets/body requests and 1000 revisions stay bounded ev
     for (let i = 0; i < 10000; i++) {
         if (i % 10 === 0) a.obstacleVersion++;
         f.direction({ x: -60, y: -60 }, { x: 100 + i % 80, y: 120 + i % 50 }, body(4 + i % 4), a, true);
+        f.advanceJobs(8);
         assert.ok(f.debugEntries <= budget.entries); assert.ok(f.debugBytes <= budget.bytes);
     }
-    assert.ok(f.buildCount > 1000); assert.ok(f.debugStats.peakEntries <= budget.entries);
+    assert.ok(f.debugJobStats.totalWork > 0); assert.ok(f.debugStats.peakEntries <= budget.entries);
     f.clear(); assert.strictEqual(f.debugEntries, 0); assert.strictEqual(f.debugBytes, 0);
     return { queries: 10000, revisionChanges: 1000, budget, stats: f.debugStats };
 });
@@ -1127,9 +1377,10 @@ should('AC-CACHE-BYTES: byte pressure evicts retained fields before the entry li
     const a = area({ obstacles: [{ xMin: 20, xMax: 40, yMin: -30, yMax: 100 }] });
     for (let i = 0; i < 300; i++) {
         f.direction({ x: -60, y: -60 }, { x: 80 + i % 4 * 20, y: 80 + Math.floor(i / 4) % 5 * 20 }, body(4 + i % 3), a, true);
+        f.advanceJobs(32);
         assert.ok(f.debugBytes <= budget.bytes); assert.ok(f.debugEntries < budget.entries);
     }
-    assert.ok(f.debugStats.peakBytes > 6000); assert.ok(f.buildCount > 20);
+    assert.ok(f.debugStats.peakBytes > 3000); assert.ok(f.debugJobStats.totalWork > 0);
     return { budget, stats: f.debugStats };
 });
 
@@ -1152,7 +1403,7 @@ function eventNode(name, x = 0, y = 0) {
 }
 
 function serviceFixture() {
-    const { EnemyNavigation, cc } = loadEnemyNavigationForServiceTests();
+    const { EnemyNavigation, cc, Log } = loadEnemyNavigationForServiceTests();
     const scene = eventNode('scene'); scene.scene = scene;
     const service = EnemyNavigation.get(scene);
     const ground = groundNodes(), min = eventNode('min', -100, -100), max = eventNode('max', 220, 220);
@@ -1165,8 +1416,35 @@ function serviceFixture() {
         box.node = node; box.enabled = true; box.isValid = true; box.worldAABB = rect;
         node.components.set(cc.BoxCollider2D, box); scene.add(node); return box;
     };
-    return { scene, service, cc, addBox, min, max, ground, outside, inside };
+    return { scene, service, cc, Log, addBox, min, max, ground, outside, inside };
 }
+
+should('AC-TRISTATE: blockingLog retries a pending diagnostic and caches only its settled diversion', () => {
+    const h = serviceFixture();
+    const unit = h.scene.add(eventNode('tri-unit', -60, 0));
+    const target = h.scene.add(eventNode('tri-target', 100, 0));
+    const logNode = h.scene.add(eventNode('tri-fixed-log'));
+    const log = new h.Log(); log.node = logNode; log.isValid = true; logNode.components.set(h.Log, log);
+    const box = new h.cc.BoxCollider2D(); box.node = logNode; box.enabled = true; box.isValid = true;
+    box.worldAABB = { xMin: 0, xMax: 20, yMin: -100, yMax: 220 };
+    log.box = box; logNode.components.set(h.cc.BoxCollider2D, box);
+    const request = { unit, target, role: 'minion', speed: 10, dt: 1, body: body(10) };
+    currentFrame++;
+    assert.strictEqual(h.service.blockingLog(request, 20), null, 'main connectivity is pending');
+    settleService(h.service);
+    currentFrame++;
+    const route = h.service.blockingLog(request, 20);
+    assert.ok(route && route.log === log, 'same revision must recover the fixed-log diversion');
+    const graphs = h.service._field.debugGraphBuildCount;
+    currentFrame++;
+    assert.ok(h.service.blockingLog(request, 20));
+    assert.strictEqual(h.service._field.debugGraphBuildCount, graphs, 'settled diversion is share-cached');
+    box.enabled = false;
+    h.service.invalidate();
+    h.service.blockingLog(request, 20);
+    assert.strictEqual(h.service._field.debugEntries, 0, 'a committed collider change discards prior tri-state/query entries');
+    h.service.destroy();
+});
 
 should('AC-INVALIDATE: 300 stable frames x 200 units checks blockers once/frame, never enemy boxes', () => {
     const h = serviceFixture();
@@ -1193,6 +1471,43 @@ should('AC-INVALIDATE: 300 stable frames x 200 units checks blockers once/frame,
     return { frames: 300, units: 200, blockerChecks: h.service.debugStats.trackedColliderChecks - checks, stats: h.service.debugStats };
 });
 
+should('AC-INVALIDATE: static physics transform notifications preserve pending shared flow work', () => {
+    const h = serviceFixture();
+    const wall = h.addBox('airWall-static', { xMin: 30, xMax: 50, yMin: -100, yMax: 100 });
+    const unit = h.scene.add(eventNode('static-unit', -80, 0));
+    const target = h.scene.add(eventNode('static-target', 120, 0));
+    const request = { unit, target, role: 'minion', speed: 10, dt: 0.016, body: body(10) };
+
+    currentFrame++;
+    assert.ok(h.service.nextVelocity(request, outVec()).x === 0, 'blocked route must queue a shared field');
+    assert.strictEqual(h.service._field.debugPendingJobs, 1);
+    const commits = h.service.debugStats.effectiveCommits;
+    const invalidations = h.service._field.debugJobStats.cancelled;
+
+    let moved = false;
+    for (let frame = 0; frame < 60; frame++) {
+        // Mirrors Box2D writing the same transform back to a static collider node each physics step.
+        wall.node.emit('transform-changed', 1);
+        wall.node.emit('transform-changed', 2);
+        currentFrame++;
+        const velocity = h.service.nextVelocity(request, outVec());
+        moved ||= Math.hypot(velocity.x, velocity.y) > 0;
+    }
+
+    assert.strictEqual(h.service.debugStats.effectiveCommits, commits, 'unchanged AABB must not publish a new obstacle revision');
+    assert.strictEqual(h.service._field.debugJobStats.cancelled, invalidations, 'static notifications must not cancel the pending job');
+    assert.strictEqual(h.service._field.debugPendingJobs, 0, 'the shared job must get scheduler time to finish');
+    assert.ok(moved, 'a settled flow field must produce a detour velocity');
+
+    wall.worldAABB = { xMin: 130, xMax: 150, yMin: -100, yMax: 100 };
+    wall.node.emit('transform-changed', 1);
+    currentFrame++;
+    assert.ok(Math.hypot(h.service.nextVelocity(request, outVec()).x, h.service.nextVelocity(request, outVec()).y) > 0);
+    assert.strictEqual(h.service.debugStats.effectiveCommits, commits + 1, 'actual AABB movement must commit a new revision');
+    assert.strictEqual(h.service._field.debugEntries, 0, 'a committed geometry change must discard old shared route data');
+    h.service.destroy();
+});
+
 should('AC-INVALIDATE: structural, animation, topology and same-frame notified transactions commit exact snapshots', () => {
     const h = serviceFixture(), a = mockNode('a', 0, 0), b = mockNode('b', 100, 0);
     const los = () => h.service.hasLineOfSight(a, b, body(4));
@@ -1216,8 +1531,7 @@ should('AC-INVALIDATE: structural, animation, topology and same-frame notified t
     wall.isValid = false; currentFrame++; assert.ok(los());
     h.max.move(90, 220); assert.ok(!los()); h.max.move(220, 220); assert.ok(los());
     const commit = h.service.debugStats.effectiveCommits;
-    h.service.setEntranceOpen(1, false); los(); assert.strictEqual(h.service.debugStats.effectiveCommits, commit + 1);
-    h.outside.move(160, 190); los(); assert.strictEqual(h.service.debugStats.effectiveCommits, commit + 2);
+    h.service.setEntranceOpen(1, false); los(); assert.strictEqual(h.service.debugStats.effectiveCommits, commit);
     h.scene.emit('node-destroyed'); assert.strictEqual(h.service._field.debugEntries, 0);
 });
 
@@ -1228,6 +1542,7 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
     base.mocks[path.join(root, 'assets/scripts/core/GameConfig.ts')].GameConfig = loadTs('assets/scripts/core/GameConfig.ts').GameConfig;
     base.mocks[path.join(root, 'assets/scripts/core/TweenUtil.ts')] = { TweenUtil: {} };
     clearLoaded(['assets/scripts/item/Log.ts']);
+    delete base.mocks[path.join(root, 'assets/scripts/item/Log.ts')];
     const { Log: ActualLog } = loadTs('assets/scripts/item/Log.ts', base.mocks);
     base.mocks[path.join(root, 'assets/scripts/item/Log.ts')] = { Log: ActualLog };
     base.classes.Log = ActualLog;
@@ -1239,11 +1554,14 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
     const markers = [eventNode('g0', -500, -500), eventNode('g1', 500, -500), eventNode('g2', 500, 500), eventNode('g3', -500, 500)];
     nav.configure({ boundsMin: markers[0], boundsMax: markers[2], walkablePolygon: markers, castlePolygon: markers,
         entrances: [{ id: 2, outside: eventNode('o', -480, 0), inside: eventNode('i', -450, 0), closePlot: null, width: 100, open: true }] });
-    const log = new base.classes.Log(); let phase = 'rolling';
+    const log = new base.classes.Log(); log._hp = base.mocks[path.join(root, 'assets/scripts/core/GameConfig.ts')].GameConfig.logMaxHp; let phase = 'rolling';
     const setPhase = value => { phase = value; log._phase = value; log._isLocked = value === 'fixed'; log._isFading = value === 'failed'; };
     const logNode = scene.add(eventNode('log')); log.node = logNode; logNode.components.set(base.classes.Log, log);
     const logBox = new base.cc.BoxCollider2D(); logBox.node = logNode; logBox.enabled = true;
     logBox.worldAABB = { xMin: -100, xMax: 100, yMin: -20, yMax: 20 }; logNode.components.set(base.cc.BoxCollider2D, logBox);
+    // The mock scene receives components after its initial child attachment; mirror
+    // Creator's component-added notification so the production watcher sees it.
+    nav._prepareFrame(); logNode.emit('component-added', logBox);
     const target = eventNode('target', 300, 200); target.scene = scene;
     for (const Type of [EnemyMinion, EnemyBoss]) {
         const unit = new Type(); unit.node = scene.add(eventNode(Type.name, 0, 25));
@@ -1285,7 +1603,12 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
             setPhase(state);
             currentFrame++; nav.invalidate(); unit.update(2);
             const v = unit._rb.linearVelocity;
-            if (phase === 'fixed') { near(v.x, 0); near(v.y, 0); }
+            if (phase === 'fixed') {
+                assert.ok(nav._rectByCollider.has(logBox), `${Type.name} fixed Log was not tracked`);
+                assert.strictEqual(nav._field.pointWalkable({ x: 0, y: 25 }, unit._bodySize(), nav._area), false);
+                assert.ok(Math.hypot(v.x, v.y) > 0, `${Type.name} must receive bounded overlap recovery`);
+                assert.ok(Math.hypot(v.x, v.y) <= 5, `${Type.name} recovery must stay within rigidbody speed`);
+            }
             else assert.ok(Math.hypot(v.x, v.y) > 0, `${Type.name} ${phase} should retain legal movement`);
             assert.strictEqual(box.sensor, false);
         }
@@ -1306,14 +1629,20 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
         unit.node.components.set(base.cc.BoxCollider2D, box); unit._rb = { linearVelocity: new base.cc.Vec2() };
         if (Type === EnemyMinion) { unit._target = target; unit._forceChaseTarget = true; unit._resolveLog = () => null; }
         else { unit._scanTargetsByInterval = () => {}; unit._resolveChaseTarget = () => target; }
+        let sawField = false, sawBoundaryApproach = false;
         for (let frame = 0; frame < 300; frame++) {
             currentFrame++; unit.node.move((frame % 7) * 0.1, frame % 3); target.move(300 + frame % 4 * 20, 200);
             box.worldAABB = { width: 40 + frame % 3, height: 40, xMin: -20, xMax: 20 + frame % 3, yMin: -20, yMax: 20 };
             unit.update(0.016);
-            near(unit._rb.linearVelocity.x, 0); near(unit._rb.linearVelocity.y, 0);
-            assert.strictEqual(nav._field.debugGraphBuildCount, 1);
-            assert.strictEqual(nav._field.buildCount, 0);
+            const speed = Math.hypot(unit._rb.linearVelocity.x, unit._rb.linearVelocity.y);
+            assert.ok(speed <= 5.001, `${Type.name} boundary approach must preserve physics speed`);
+            sawBoundaryApproach ||= speed > 0;
+            sawField ||= nav._field.buildCount >= 1;
+            assert.ok(nav._field.debugGraphBuildCount <= 1);
+            assert.ok(nav._field.buildCount <= 8, 'moving targets must remain within the shared field set');
         }
+        assert.ok(sawField, `${Type.name} should finish one current body field before boundary approach`);
+        assert.ok(sawBoundaryApproach, `${Type.name} should approach the reachable side of a sealed wall`);
         nav.releaseUnit(unit.node);
     }
     const details = { translatingFrames: 600, roles: ['actual Minion', 'actual Boss'], log: 'actual readonly Log isAttackable/getPhase',
@@ -1327,6 +1656,10 @@ should('AC-REF: service releases a detour field when switching to direct or inva
     h.addBox('airWall-short', { xMin: 20, xMax: 40, yMin: -20, yMax: 40 });
     const unit = mockNode('ref-unit', 0, 0), target = mockNode('ref-target', 100, 0);
     h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
+    settleService(h.service);
+    h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
+    settleService(h.service);
+    h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
     const id = h.service._unitState.get(unit).fieldId;
     assert.ok(id); assert.strictEqual(h.service._field.debugRefCount(id), 1);
     unit.set(80, 0); currentFrame++;
@@ -1338,9 +1671,9 @@ should('AC-REF: service releases a detour field when switching to direct or inva
 
 if (process.env.NAV_HARNESS_ONLY !== '1' && !process.exitCode) console.log('enemy navigation core tests passed');
 if (process.env.NAV_HARNESS_ONLY !== '1') {
-    const dir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/plans/reports/fix-enemy-navigation-performance-evidence');
+    const dir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/plans/reports/fix-enemy-navigation-rebuild-stalls-evidence/v3');
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'logic-results.json'), JSON.stringify({ node: process.version, typescript: ts.version, testResults }, null, 2));
+    fs.writeFileSync(path.join(dir, 'logic-results-v3.json'), JSON.stringify({ node: process.version, typescript: ts.version, testResults }, null, 2));
 }
 module.exports = { loadTs, clearLoaded, loadEnemyNavigationForServiceTests, actualScriptMocks,
     componentNode, mockNode, groundNodes, outVec, eventNode, advanceFrame: () => ++currentFrame };

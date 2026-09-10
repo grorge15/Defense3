@@ -1060,8 +1060,16 @@
 | 项 | 说明 |
 |---|---|
 | **现象** | Boss 靠近 `pref_hero_shrine` 时看起来已经碰到，但不会把英雄碑打掉。 |
-| **原因** | `HeroShrine` 只继承普通 `Component`，没有 `Building` 的 `isAlive/takeDamage` 受击接口；Boss 虽然按 building 注册目标，但伤害结算找不到可扣血组件。 |
+| **原因** | `HeroShrine` 只继承普通 `Component`，没有 `Building` 的 `isAlive/takeDamage` 受击接口；伤害结算找不到可扣血组件。 |
 | **解决** | `HeroShrine` 改为继承 `Building`，默认血量使用 `GameConfig.barracksMaxHp`，从而进入 Boss 的建筑伤害流程。 |
+
+### v2（2026-09-10）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 被 Hero Shrine 卡住：导航当障碍绕不开，但不会主动选神庙攻击。 |
+| **原因** | v1 只补了受击接口；`_spawnHeroShrine` 未 `BOSS_TARGET_REGISTER`；`_injectSceneDefenseTargets` 只扫 Tower/Barracks，漏了 HeroShrine。 |
+| **解决** | 建成神庙时 `_registerBossTarget(node, 'building')`；Boss 补扫增加 `HeroShrine`（`isAlive`）注册为 building。 |
 
 ---
 
@@ -1185,6 +1193,15 @@
 
 ## enemy-break-blocking-log：敌人无法拆除阻路固定滚木
 
+### v3（2026-09-10）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 导航分帧优化后，两侧楼梯封闭且滚木固定时，城外敌人再次停住；玩家走到城外后可以恢复追踪。用户要求取消城内外和入口约束，按实际碰撞体通行或拆障。 |
+| **原因** | 连通区编号在队列扩展前递增，导致相邻但被墙隔断的区域共用部分标签，误判目标可达而抑制拆障；城界与入口规则另行限制了实际碰撞地图中的路线。 |
+| **解决** | 组件标签在队列完成后才递增；删除 FlowField 的 portal/castle crossing gate，旧字段仅保留反序列化兼容且不参与路线；统一用实际地面和 collider，显式 Ignore/Hard/Destructible 标记以及共享增量单候选诊断选择可攻击障碍。Minion/Boss 在实际碰撞体攻击面命中并在摧毁后恢复原目标。 |
+| **验证** | `tsc`、`git diff --check`、OpenSpec strict、核心 44 项和生命周期 27 项通过；4096 work cap 下五轮 Node construction benchmark slice p95=6.571ms、max=11.1739ms。Creator 实玩和实际 FPS 未验证。报告：`.cursor/plans/reports/enemy-unified-navigation-report.md`。 |
+
 ### v2（2026-09-10）
 
 | 项 | 说明 |
@@ -1193,6 +1210,39 @@
 | **原因** | 实际场景可出现全图连通为true、固定入口通道不可用的矛盾，导致既不选择滚木也无移动路线；小怪另用128x128美术框提前挡停，真实碰撞体尚距滚木约65，大于32攻击范围。 |
 | **解决** | 阻路与仅移除候选滚木后的诊断统一检查实际入口义务、开放/宽度和终点，考虑备用入口，并在跨城界接近木面期间保留未完成过渡；固定滚木不再使用美术框截速，依靠真实body扫掠。 |
 | **验证** | 原44项与专用39项通过，含真实入口、Visual、跨界连续攻击/摧毁恢复和共享计数；tsc及OpenSpec通过。Creator调试构建退出36，Main加载及LOCK OK已观察，无脚本错误。完整双侧关闭后的拆木实玩仍未验收。证据见原报告的v3部分。 |
+
+## fix-script-circular-dependency — 建筑脚本编译失败导致 prefab MissingScript
+
+### v1（2026-09-10）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 大部分 prefab 显示脚本缺失或无效，日志报 `Class extends value undefined is not a constructor or null`。 |
+| **原因** | `Building`/`Barrier` 直接导入 `EnemyNavigation`，而 `EnemyNavigation` 又导入这些建筑类型，形成模块循环；`Tower extends Building` 初始化时基类仍未完成，导致整个脚本模块注册失败并连锁产生 MissingScript。 |
+| **解决** | 移除建筑脚本对导航服务的直接导入；建筑销毁后通过 `GameEvents.ENEMY_NAVIGATION_INVALIDATED` 通知，由导航服务统一刷新，解除循环依赖。 |
+| **验证** | `npx tsc --noEmit` 通过；编辑器日志中已确认循环依赖根因。需重新打开/触发脚本编译后观察 MissingScript 是否消失。 |
+
+---
+
+## fix-enemy-navigation-runtime-contract — 敌人寻路与物理碰撞行为不一致
+
+### v2（2026-09-10）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木固定或静态墙存在时，共享寻路任务每帧被取消，敌人大量原地停住；玩家靠近后少数直线路径可用的敌人才开始移动。 |
+| **原因** | `EnemyNavigation` 把 `transform-changed` 直接绑定到立即清空 FlowField 的 `invalidate()`。Cocos Box2D 每次同步静态刚体也会写回相同变换并发出该事件，障碍快照未变但分帧任务无法获得连续计算时间。 |
+| **解决** | 变换/激活事件仅标记待检查；下一次导航快照比较 AABB、启用状态、分类、成员和拓扑，只有实际变化才递增障碍版本并清空旧任务。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`、OpenSpec strict 和导航 harness 49 项通过；其中静态刚体连续变换通知回归确认任务可完成，实际 AABB 改变仍会清空旧缓存。 |
+
+### v1（2026-09-10）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家被硬碰撞包围时敌人停住；Boss 调快后走走停停；贴近箭塔不攻击；HighPlatform3 的小怪会直线撞入物理墙。 |
+| **原因** | 导航只采集 `BoxCollider2D`，遗漏 `PolygonCollider2D`；导航以世界坐标预测位移却直接把结果写入 Box2D 刚体（比例 32）；目标自身重叠会同时否决移动和攻击；断开连通区没有可达边界接近点。 |
+| **解决** | 采集 PolygonCollider2D 的世界 AABB；Minion/Boss 在刚体边界把世界速度除以 32；重叠时按速度上限朝最近可走点脱困；攻击只忽略目标自身的碰撞矩形；目标在硬墙另一侧时在正常距离场确认不可达后使用共享连通图选择可达边界。 |
+| **验证** | `tsc`、OpenSpec strict、`git diff --check` 和导航 48 项回归通过。未改场景/预制体；Creator 实玩待确认。 |
 
 ### v1（2026-09-09）
 

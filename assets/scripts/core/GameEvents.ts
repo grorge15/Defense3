@@ -23,8 +23,6 @@ export const GameEvents = {
     BOSS_TARGET_REGISTER: 'boss_target_register',
     /** Enemy shared navigation obstacle snapshot must be rebuilt. */
     ENEMY_NAVIGATION_INVALIDATED: 'enemy_navigation_invalidated',
-    /** payload: { id: 1|2|3, open: boolean } */
-    ENEMY_ENTRANCE_STATE_CHANGED: 'enemy_entrance_state_changed',
 } as const;
 
 export type GameEventName = (typeof GameEvents)[keyof typeof GameEvents];

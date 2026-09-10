@@ -172,7 +172,6 @@ export class BuildSystem extends Component {
             } else if (spawnSide === 'right') {
                 this._wallRightDone = true;
             }
-            EnemyNavigation.get(this.node.scene)?.syncClosedEntranceFromPlot(plotRoot ?? null, spawnSide);
             this._invalidateEnemyNavigation();
             if (this._wallLeftDone && this._wallRightDone) {
                 this._onBothWallsComplete();
@@ -452,6 +451,8 @@ export class BuildSystem extends Component {
         // 场景里 HeroSelect 常开局 inactive → onLoad 未跑、听不到事件；先挂监听再 activate
         this._ensureHeroSelectReady();
         shrine.activate();
+        // 导航当 Building 障碍；须注册索敌，否则 Boss 只绕不开、不主动打
+        this._registerBossTarget(node, 'building');
         this._invalidateEnemyNavigation();
     }
 

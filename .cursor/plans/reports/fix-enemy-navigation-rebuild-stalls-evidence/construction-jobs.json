@@ -1,0 +1,193 @@
+{
+  "phase": "construction-jobs",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "a385b74c6f9ba5a80786dd4ef22ec5184439e11b89bf915df9ea10fbe0b2f17a",
+  "harnessHash": "b7dc50b436ed5fd907c93934fc429b4a6c9451cfd3993ed657979f4a0f947f02",
+  "sceneHash": "e87b06ec58de24b6167de7baed40fdcb9e665eee94c9584ecb95422f0b035f69",
+  "rows": [
+    {
+      "round": 0,
+      "cellSize": 30,
+      "width": 125,
+      "height": 127,
+      "workBudget": 256,
+      "graphFrames": 489,
+      "fieldFrames": 241,
+      "totalFrames": 730,
+      "elapsedMs": 359.8995,
+      "completedJobs": 4,
+      "cancelledJobs": 1,
+      "coalescedJobs": 100,
+      "bodyKeys": [
+        "80x80@0,0:1:1:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]",
+        "40x40@0,0:1:1:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]"
+      ],
+      "cacheEntries": 5,
+      "cacheBytes": 288680,
+      "graphBuilds": 2,
+      "fieldBuilds": 2,
+      "jobStats": {
+        "queued": 4,
+        "completed": 4,
+        "cancelled": 0,
+        "coalesced": 100,
+        "refused": 0,
+        "slices": 730,
+        "lastSliceWork": 211,
+        "totalWork": 186802
+      },
+      "minionReady": true,
+      "bossReady": true
+    },
+    {
+      "round": 1,
+      "cellSize": 30,
+      "width": 125,
+      "height": 127,
+      "workBudget": 256,
+      "graphFrames": 489,
+      "fieldFrames": 241,
+      "totalFrames": 730,
+      "elapsedMs": 319.8171,
+      "completedJobs": 4,
+      "cancelledJobs": 1,
+      "coalescedJobs": 100,
+      "bodyKeys": [
+        "80x80@0,0:1:2:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]",
+        "40x40@0,0:1:2:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]"
+      ],
+      "cacheEntries": 5,
+      "cacheBytes": 288680,
+      "graphBuilds": 2,
+      "fieldBuilds": 2,
+      "jobStats": {
+        "queued": 4,
+        "completed": 4,
+        "cancelled": 0,
+        "coalesced": 100,
+        "refused": 0,
+        "slices": 730,
+        "lastSliceWork": 211,
+        "totalWork": 186802
+      },
+      "minionReady": true,
+      "bossReady": true
+    },
+    {
+      "round": 2,
+      "cellSize": 30,
+      "width": 125,
+      "height": 127,
+      "workBudget": 256,
+      "graphFrames": 489,
+      "fieldFrames": 241,
+      "totalFrames": 730,
+      "elapsedMs": 295.5155,
+      "completedJobs": 4,
+      "cancelledJobs": 1,
+      "coalescedJobs": 100,
+      "bodyKeys": [
+        "80x80@0,0:1:3:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]",
+        "40x40@0,0:1:3:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]"
+      ],
+      "cacheEntries": 5,
+      "cacheBytes": 288680,
+      "graphBuilds": 2,
+      "fieldBuilds": 2,
+      "jobStats": {
+        "queued": 4,
+        "completed": 4,
+        "cancelled": 0,
+        "coalesced": 100,
+        "refused": 0,
+        "slices": 730,
+        "lastSliceWork": 211,
+        "totalWork": 186802
+      },
+      "minionReady": true,
+      "bossReady": true
+    },
+    {
+      "round": 3,
+      "cellSize": 30,
+      "width": 125,
+      "height": 127,
+      "workBudget": 256,
+      "graphFrames": 489,
+      "fieldFrames": 241,
+      "totalFrames": 730,
+      "elapsedMs": 293.731,
+      "completedJobs": 4,
+      "cancelledJobs": 1,
+      "coalescedJobs": 100,
+      "bodyKeys": [
+        "80x80@0,0:1:4:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]",
+        "40x40@0,0:1:4:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]"
+      ],
+      "cacheEntries": 5,
+      "cacheBytes": 288680,
+      "graphBuilds": 2,
+      "fieldBuilds": 2,
+      "jobStats": {
+        "queued": 4,
+        "completed": 4,
+        "cancelled": 0,
+        "coalesced": 100,
+        "refused": 0,
+        "slices": 730,
+        "lastSliceWork": 211,
+        "totalWork": 186802
+      },
+      "minionReady": true,
+      "bossReady": true
+    },
+    {
+      "round": 4,
+      "cellSize": 30,
+      "width": 125,
+      "height": 127,
+      "workBudget": 256,
+      "graphFrames": 489,
+      "fieldFrames": 241,
+      "totalFrames": 730,
+      "elapsedMs": 314.8649999999998,
+      "completedJobs": 4,
+      "cancelledJobs": 1,
+      "coalescedJobs": 100,
+      "bodyKeys": [
+        "80x80@0,0:1:5:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]",
+        "40x40@0,0:1:5:[{\"minX\":-1922.807,\"minY\":-498.633,\"maxX\":1809.26,\"maxY\":3306.767},[[{\"x\":-1922.807,\"y\":-498.633},{\"x\":1809.26,\"y\":-498.633},{\"x\":1809.26,\"y\":3306.767},{\"x\":-1922.807,\"y\":3306.767}]],null,null]"
+      ],
+      "cacheEntries": 5,
+      "cacheBytes": 288680,
+      "graphBuilds": 2,
+      "fieldBuilds": 2,
+      "jobStats": {
+        "queued": 4,
+        "completed": 4,
+        "cancelled": 0,
+        "coalesced": 100,
+        "refused": 0,
+        "slices": 730,
+        "lastSliceWork": 211,
+        "totalWork": 186802
+      },
+      "minionReady": true,
+      "bossReady": true
+    }
+  ],
+  "summary": {
+    "runs": 5,
+    "medianMs": 314.8649999999998,
+    "p95Ms": 359.8995,
+    "cellSize": 30,
+    "grid": {
+      "width": 125,
+      "height": 127
+    },
+    "workBudget": 256
+  }
+}

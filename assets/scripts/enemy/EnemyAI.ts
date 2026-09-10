@@ -1,5 +1,6 @@
-import { _decorator, BoxCollider2D, Component, Node, Vec3 } from 'cc';
+import { _decorator, BoxCollider2D, CircleCollider2D, Component, Node, Vec3 } from 'cc';
 import { Barrier } from '../building/Barrier';
+import { Building } from '../building/Building';
 import { Player } from '../character/Player';
 import { EnemyNavigation } from '../core/EnemyNavigation';
 import { FlowBody } from '../core/FlowField';
@@ -43,12 +44,13 @@ export class EnemyAI extends Component {
             return null;
         }
         const barriers = scene.getComponentsInChildren(Barrier);
+        const navigation = EnemyNavigation.get(scene);
         let nearest: Barrier | null = null;
         let nearestDistSq = range * range;
         this.node.getWorldPosition(this._selfPos);
 
         for (const barrier of barriers) {
-            if (!barrier.isAlive()) {
+            if (!barrier.isAlive() || !navigation?.isDestructibleObstacle(barrier.node)) {
                 continue;
             }
             barrier.node.getWorldPosition(this._barrierPos);
@@ -67,23 +69,37 @@ export class EnemyAI extends Component {
      * 开冷却并允许播攻击动画（伤害改由帧事件 applyAttackDamage）。
      * @returns 是否成功进入攻击
      */
-    beginAttack(range: number, log: Log | null = null): boolean {
+    beginAttack(range: number, obstacle: Node | null = null): boolean {
         if (this._attackTimer > 0) {
             return false;
         }
-        if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._body(), range) : !this._hasAttackTarget(range)) {
+        if (obstacle ? !EnemyNavigation.get(this.node.scene)?.canAttackObstacle(this.node, obstacle, this._body(), range) : !this._hasAttackTarget(range)) {
             return false;
         }
         this._attackTimer = this.attackCooldown;
         return true;
     }
 
-    applyLogDamage(log: Log, range: number): boolean {
+    applyObstacleDamage(obstacle: Node, range: number): boolean {
         const nav = EnemyNavigation.get(this.node.scene);
-        if (!nav?.canAttackLog(this.node, log, this._body(), range)) return false;
-        log.takeDamage(GameConfig.minionAttackDamage);
-        if (!log.isAttackable()) nav.invalidate();
+        if (!nav?.canAttackObstacle(this.node, obstacle, this._body(), range)) return false;
+        const wasActionable = nav.isDestructibleObstacle(obstacle);
+        const log = obstacle.getComponent(Log);
+        const barrier = obstacle.getComponent(Barrier);
+        const building = obstacle.getComponent(Building);
+        if (log) log.takeDamage(GameConfig.minionAttackDamage);
+        else if (barrier) barrier.takeDamage(GameConfig.minionAttackDamage);
+        else if (building) building.takeDamage(GameConfig.minionAttackDamage);
+        else return false;
+        // HP alone does not change the current obstacle snapshot. Concrete
+        // destruction paths notify navigation; retain this fallback for adapters
+        // which become ineligible without emitting their own removal change.
+        if (wasActionable && !nav.isDestructibleObstacle(obstacle)) nav.invalidate();
         return true;
+    }
+
+    applyLogDamage(log: Log, range: number): boolean {
+        return this.applyObstacleDamage(log.node, range);
     }
 
     /** 帧事件出手：近距优先 Barrier，否则打玩家 */
@@ -107,7 +123,8 @@ export class EnemyAI extends Component {
     }
 
     attackBarrierNow(barrier: Barrier | null): boolean {
-        if (!barrier?.isAlive() || this._attackTimer > 0) {
+        if (!barrier?.isAlive() || this._attackTimer > 0 ||
+            !EnemyNavigation.get(this.node.scene)?.isDestructibleObstacle(barrier.node)) {
             return false;
         }
         this._attackTimer = this.attackCooldown;
@@ -188,12 +205,21 @@ export class EnemyAI extends Component {
 
     private _body(): FlowBody {
         const box = this.node.getComponent(BoxCollider2D);
-        if (!box) {
-            return { width: 24, height: 24 };
+        if (box) {
+            const physical = EnemyNavigation.bodyForCollider?.(box);
+            if (physical) return physical;
+            return this._bodyFromAabb(box.worldAABB);
         }
-        const physical = EnemyNavigation.bodyForCollider?.(box);
-        if (physical) return physical;
-        const aabb = box.worldAABB;
+        const circle = this.node.getComponent(CircleCollider2D);
+        if (circle) {
+            const physical = EnemyNavigation.bodyForCircle?.(circle);
+            if (physical) return physical;
+            return this._bodyFromAabb(circle.worldAABB);
+        }
+        return { width: 24, height: 24 };
+    }
+
+    private _bodyFromAabb(aabb: { width: number; height: number; xMin: number; xMax: number; yMin: number; yMax: number }): FlowBody {
         this.node.getWorldPosition(this._selfPos);
         return {
             width: Math.max(1, Math.abs(aabb.width)),

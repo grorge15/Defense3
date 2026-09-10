@@ -37,7 +37,9 @@ export type FlowArea = {
     obstacles: FlowRect[];
     obstacleVersion: number;
     walkablePolygons?: FlowPoint[][];
+    /** Deprecated compatibility data. Physical navigation ignores this boundary. */
     castlePolygon?: FlowPoint[];
+    /** Deprecated compatibility data. Physical navigation ignores these portals. */
     portals?: FlowPortal[];
     diagnosticOf?: FlowArea;
     ignoredObstacle?: FlowRect;
@@ -51,6 +53,9 @@ export type FlowDirectionResult = {
     reached: boolean;
     blocked: boolean;
 };
+
+export type FlowReachability = 'pending' | 'reachable' | 'unreachable';
+export type FlowQueryResult<T> = { readiness: 'pending' } | { readiness: 'settled'; value: T };
 
 type FlowCell = {
     x: number;
@@ -77,6 +82,58 @@ type Connectivity = {
 };
 type Approach = { id: string; point: FlowPoint | null; stamp: number };
 type SharedQuery = { id: string; value: unknown; stamp: number };
+
+type GraphJob = {
+    kind: 'graph';
+    id: string;
+    body: FlowBody;
+    area: FlowArea;
+    width: number;
+    height: number;
+    labels: Int32Array;
+    edges: Uint8Array;
+    queue: Int32Array;
+    phase: 'occupancy' | 'edges' | 'components';
+    cursor: number;
+    component: number;
+    read: number;
+    end: number;
+    stamp: number;
+    fastWalkableRegion: boolean;
+};
+
+type FieldJob = {
+    kind: 'field';
+    id: string;
+    body: FlowBody;
+    area: FlowArea;
+    target: FlowPoint;
+    targetCell: FlowCell;
+    width: number;
+    height: number;
+    distances: Int32Array;
+    walkable: Uint8Array;
+    edges: Uint8Array;
+    queue: Int32Array;
+    phase: 'occupancy' | 'edges' | 'bfs';
+    cursor: number;
+    read: number;
+    end: number;
+    stamp: number;
+    fastWalkableRegion: boolean;
+};
+
+type FlowJob = GraphJob | FieldJob;
+export type FlowJobStats = {
+    queued: number;
+    completed: number;
+    cancelled: number;
+    coalesced: number;
+    refused: number;
+    slices: number;
+    lastSliceWork: number;
+    totalWork: number;
+};
 
 export type FlowBudget = { entries: number; bytes: number; cells: number };
 
@@ -112,9 +169,14 @@ export class FlowField {
     private readonly _graphs = new Map<string, Connectivity>();
     private readonly _approaches = new Map<string, Approach>();
     private readonly _queries = new Map<string, SharedQuery>();
+    private readonly _jobs = new Map<string, FlowJob>();
+    private readonly _jobOrder: string[] = [];
+    private _jobCursor = 0;
     private _graphBuildCount = 0;
     readonly debugStats = { visitedCells: 0, candidates: 0, hits: 0, misses: 0, peakBytes: 0, peakEntries: 0,
         lineChecks: 0, pointChecks: 0, approachHits: 0 };
+    readonly debugJobStats: FlowJobStats = { queued: 0, completed: 0, cancelled: 0, coalesced: 0, refused: 0,
+        slices: 0, lastSliceWork: 0, totalWork: 0 };
     private readonly _budget: FlowBudget;
 
     constructor(cellSize: number, lookaheadCells: number, budget: FlowBudget = { entries: 32, bytes: 8 * 1024 * 1024, cells: 262144 }) {
@@ -130,9 +192,15 @@ export class FlowField {
         for (const g of this._graphs.values()) bytes += g.labels.byteLength + g.edges.byteLength + g.id.length * 2 + 128;
         for (const a of this._approaches.values()) bytes += a.id.length * 2 + 128;
         for (const q of this._queries.values()) bytes += q.id.length * 2 + 256;
+        for (const job of this._jobs.values()) {
+            bytes += job.id.length * 2 + 128 + job.queue.byteLength;
+            bytes += job.kind === 'graph' ? job.labels.byteLength + job.edges.byteLength
+                : job.distances.byteLength + job.walkable.byteLength + job.edges.byteLength;
+        }
         return bytes;
     }
-    get debugEntries(): number { return this._cache.size + this._graphs.size + this._approaches.size + this._queries.size; }
+    get debugEntries(): number { return this._cache.size + this._graphs.size + this._approaches.size + this._queries.size + this._jobs.size; }
+    get debugPendingJobs(): number { return this._jobs.size; }
 
     get buildCount(): number {
         return this._buildCount;
@@ -147,10 +215,14 @@ export class FlowField {
     }
 
     clear(): void {
+        this.debugJobStats.cancelled += this._jobs.size;
         this._cache.clear();
         this._graphs.clear();
         this._approaches.clear();
         this._queries.clear();
+        this._jobs.clear();
+        this._jobOrder.length = 0;
+        this._jobCursor = 0;
     }
 
     invalidate(): void {
@@ -194,8 +266,10 @@ export class FlowField {
             return fc.x === tc.x && fc.y === tc.y && distance <= Math.max(1, this.cellSize * 0.25)
                 ? this._emptyResult('', target, false, true) : this._dirTo('', from, target, false);
         }
-        if (!this._canReach(from, target, body, area)) return this._emptyResult('', from, true);
         const field = this._fieldFor(target, body, area);
+        if (!field) {
+            return this._emptyResult('', from, true);
+        }
         if (retain) {
             field.refs += 1;
         }
@@ -277,9 +351,6 @@ export class FlowField {
 
     lineClear(from: FlowPoint, to: FlowPoint, body: FlowBody, area: FlowArea): boolean {
         this.debugStats.lineChecks++;
-        if (!this._segmentRegionAllowed(from, to, area, body)) {
-            return false;
-        }
         const hw = Math.max(0, body.width) / 2, hh = Math.max(0, body.height) / 2;
         const ox = body.offsetX ?? 0, oy = body.offsetY ?? 0;
         for (const r of area.obstacles) {
@@ -420,6 +491,7 @@ export class FlowField {
         body: FlowBody,
         area: FlowArea,
         maxRadiusCells = 8,
+        allowBlockedTargetApproach = false,
     ): FlowPoint | null {
         if (!this.pointWalkable(from, body, area)) return null;
         if (this.lineClear(from, target, body, area)) return target;
@@ -428,7 +500,8 @@ export class FlowField {
         const graph = this._graphFor(body, area);
         if (!graph) return null;
         const labels = new Set(starts.map(c => graph.labels[this._index(c.x, c.y, graph.width)]).filter(label => label >= 0));
-        const key = `${graph.id}:${Array.from(labels).sort((a,b) => a-b).join(',')}:${target.x},${target.y}:${maxRadiusCells}`;
+        const key = `${graph.id}:${Array.from(labels).sort((a,b) => a-b).join(',')}:${target.x},${target.y}:` +
+            `${maxRadiusCells}:${allowBlockedTargetApproach ? 'boundary' : 'surface'}`;
         const cached = this._approaches.get(key);
         if (cached) { cached.stamp = ++this._stamp; this.debugStats.approachHits++; return cached.point ? { ...cached.point } : null; }
         const remember = (point: FlowPoint | null): FlowPoint | null => {
@@ -461,7 +534,7 @@ export class FlowField {
                     this.debugStats.candidates++;
                     if (
                         !labels.has(graph.labels[this._index(cell.x, cell.y, graph.width)]) ||
-                        !this._approachLineBlockedOnlyNearTarget(point, target, body, area)
+                        (!allowBlockedTargetApproach && !this._approachLineBlockedOnlyNearTarget(point, target, body, area))
                     ) {
                         continue;
                     }
@@ -534,24 +607,7 @@ export class FlowField {
         return inside;
     }
 
-    segmentUsesOpenPortal(
-        from: FlowPoint,
-        to: FlowPoint,
-        area: FlowArea,
-        body: FlowBody,
-    ): boolean {
-        for (const portal of area.portals ?? []) {
-            if (!portal.open || portal.width < Math.max(body.width, body.height)) {
-                continue;
-            }
-            if (segmentsIntersect(from, to, portal.a, portal.b)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private _fieldFor(target: FlowPoint, body: FlowBody, area: FlowArea): Field {
+    private _fieldFor(target: FlowPoint, body: FlowBody, area: FlowArea): Field | null {
         const id = this.fieldIdFor(target, body, area);
         const cached = this._cache.get(id);
         if (cached) {
@@ -560,75 +616,19 @@ export class FlowField {
         }
         const width = this._gridWidth(area.bounds);
         const height = this._gridHeight(area.bounds);
-        const distances = new Int32Array(width * height);
-        distances.fill(-1);
         const targetPoint = this.nearestWalkable(target, body, area) ?? target;
         const targetCell = this._attachments(targetPoint, body, area).sort((a, b) => {
             const p = this.cellToWorld(a, area.bounds), q = this.cellToWorld(b, area.bounds);
             return Math.hypot(p.x - targetPoint.x, p.y - targetPoint.y) - Math.hypot(q.x - targetPoint.x, q.y - targetPoint.y);
         })[0] ?? this.worldToCell(targetPoint, area.bounds);
-        const field: Field = {
-            id,
-            targetCell,
-            distances,
-            width,
-            height,
-            stamp: this._stamp,
-            refs: 0,
-        };
-        this._bfs(field, body, area);
-        this._makeRoom(distances.byteLength + id.length * 2 + 128);
-        this._cache.set(id, field);
-        this._buildCount += 1;
-        this._recordPeak();
-        return field;
+        if (!this._insideCell(targetCell, width, height) ||
+            !this.pointWalkable(this.cellToWorld(targetCell, area.bounds), body, area)) {
+            return null;
+        }
+        this._enqueueField(id, targetPoint, targetCell, body, area, width, height);
+        return null;
     }
 
-    private _bfs(field: Field, body: FlowBody, area: FlowArea): void {
-        const graph = this._graphFor(body, area);
-        if (!graph) return;
-        const queue = new Int32Array(field.width * field.height);
-        if (!this._insideCell(field.targetCell, field.width, field.height)) {
-            return;
-        }
-        const targetPoint = this.cellToWorld(field.targetCell, area.bounds);
-        if (!this.pointWalkable(targetPoint, body, area)) {
-            return;
-        }
-        let read = 0;
-        let end = 1;
-        field.distances[this._index(field.targetCell.x, field.targetCell.y, field.width)] = 0;
-        queue[0] = this._index(field.targetCell.x, field.targetCell.y, field.width);
-        while (read < end) {
-            const x = queue[read] % field.width;
-            const y = Math.floor(queue[read] / field.width);
-            read += 1;
-            const baseDist = field.distances[this._index(x, y, field.width)];
-            for (let edge = 0; edge < ORTHO.length; edge++) {
-                if (!(graph.edges[this._index(x, y, field.width)] & (1 << edge))) continue;
-                const [ox, oy] = ORTHO[edge];
-                const nx = x + ox;
-                const ny = y + oy;
-                if (!this._insideCell({ x: nx, y: ny }, field.width, field.height)) {
-                    continue;
-                }
-                const idx = this._index(nx, ny, field.width);
-                if (field.distances[idx] >= 0) {
-                    continue;
-                }
-                const p = this.cellToWorld({ x: nx, y: ny }, area.bounds);
-                if (!this.pointWalkable(p, body, area)) {
-                    continue;
-                }
-                const cur = this.cellToWorld({ x, y }, area.bounds);
-                if (!this._segmentRegionAllowed(cur, p, area, body)) {
-                    continue;
-                }
-                field.distances[idx] = baseDist + 1;
-                queue[end++] = idx;
-            }
-        }
-    }
 
     private _bestDescendingCell(
         from: FlowCell,
@@ -679,44 +679,51 @@ export class FlowField {
         return this.pointWalkable(this.cellToWorld(cell, area.bounds), body, area);
     }
 
-    private _segmentRegionAllowed(
-        from: FlowPoint,
-        to: FlowPoint,
-        area: FlowArea,
-        body: FlowBody,
-    ): boolean {
-        const poly = area.castlePolygon;
-        if (!poly || poly.length < 3) {
-            return true;
-        }
-        const fromInside = this.pointInPolygon(from, poly);
-        const toInside = this.pointInPolygon(to, poly);
-        const crossings = segmentPolygonCrossings(from, to, poly);
-        if (fromInside === toInside && crossings.length === 0) {
-            return true;
-        }
-        if (crossings.length === 0) {
-            return true;
-        }
-        for (const crossing of crossings) {
-            if (!this._pointCoveredByOpenPortal(crossing, area, body)) {
-                return false;
+    // Adjacent grid centers are already occupancy-checked. For one convex walkable region,
+    // translating a body between two valid centers cannot leave that region, so only expanded
+    // rectangle checks remain. Non-convex/multi-region geometry keeps
+    // the existing half-cell midpoint validation used by lineClear for a 30-unit edge.
+    private _gridEdgeClear(fromX: number, fromY: number, toX: number, toY: number, body: FlowBody, area: FlowArea,
+        fastWalkableRegion: boolean): boolean {
+        const hw = Math.max(0, body.width) / 2, hh = Math.max(0, body.height) / 2;
+        const ox = body.offsetX ?? 0, oy = body.offsetY ?? 0;
+        // The common convex grid path is axis-aligned. Avoid allocating two points
+        // and an expanded rectangle for every edge in a 4096-unit slice.
+        if (fastWalkableRegion) {
+            for (const r of area.obstacles) {
+                const xMin = r.xMin - hw - ox, xMax = r.xMax + hw - ox;
+                const yMin = r.yMin - hh - oy, yMax = r.yMax + hh - oy;
+                if (fromY === toY) {
+                    if (fromY > yMin && fromY < yMax && Math.max(fromX, toX) > xMin && Math.min(fromX, toX) < xMax) return false;
+                } else if (fromX > xMin && fromX < xMax && Math.max(fromY, toY) > yMin && Math.min(fromY, toY) < yMax) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
+        const from = { x: fromX, y: fromY }, to = { x: toX, y: toY };
+        for (const r of area.obstacles) {
+            if (segmentEntersRect(from, to, { xMin: r.xMin - hw - ox, xMax: r.xMax + hw - ox,
+                yMin: r.yMin - hh - oy, yMax: r.yMax + hh - oy })) return false;
+        }
+        return fastWalkableRegion || this.pointWalkable({ x: (from.x + to.x) * 0.5, y: (from.y + to.y) * 0.5 }, body, area);
     }
 
-    private _pointCoveredByOpenPortal(point: FlowPoint, area: FlowArea, body: FlowBody): boolean {
-        for (const portal of area.portals ?? []) {
-            if (!portal.open || portal.width < Math.max(body.width, body.height)) {
-                continue;
-            }
-            const tolerance = Math.max(this.cellSize * 0.25, portal.width * 0.5);
-            if (distancePointToSegment(point, portal.a, portal.b) <= tolerance) {
-                return true;
-            }
+    private _hasConvexWalkableRegion(area: FlowArea): boolean {
+        const polygons = area.walkablePolygons;
+        if (!polygons?.length) return true;
+        if (polygons.length !== 1 || polygons[0].length < 3) return false;
+        let sign = 0;
+        const polygon = polygons[0];
+        for (let i = 0; i < polygon.length; i++) {
+            const a = polygon[i], b = polygon[(i + 1) % polygon.length], c = polygon[(i + 2) % polygon.length];
+            const cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+            if (Math.abs(cross) < 0.000001) continue;
+            const next = cross > 0 ? 1 : -1;
+            if (sign && next !== sign) return false;
+            sign = next;
         }
-        return false;
+        return sign !== 0;
     }
 
     private _gridWidth(bounds: FlowBounds): number {
@@ -770,41 +777,57 @@ export class FlowField {
         return { x: 0, y: 0, waypoint: { x: waypoint.x, y: waypoint.y }, fieldId, blocked, reached };
     }
 
-    canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
-        return this._canReach(from, target, body, area);
-    }
-
-    // Small fixed-shape query results share graph/field admission and LRU, including null results.
-    sharedQuery<T>(from: FlowPoint, body: FlowBody, area: FlowArea, condition: string, compute: () => T): T {
-        const starts = this._attachments(from, body, area);
-        if (!starts.length) return compute();
-        const graph = this._graphFor(body, area);
-        if (!graph) return compute();
-        const labels = Array.from(new Set(starts.map(c => graph.labels[this._index(c.x, c.y, graph.width)])))
-            .filter(l => l >= 0).sort((a,b) => a-b);
-        if (!labels.length) return compute();
-        const id = `${graph.id}:query:${labels.join(',')}:${condition}`;
-        const old = this._queries.get(id);
-        if (old) { old.stamp = ++this._stamp; return old.value as T; }
-        const value = compute();
-        const bytes = id.length * 2 + 256;
-        if (bytes <= this._budget.bytes && this._budget.entries > 0) {
-            this._makeRoom(bytes); this._queries.set(id, { id, value, stamp: ++this._stamp }); this._recordPeak();
-        }
-        return value;
-    }
-
-    private _canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
-        if (this.lineClear(from, target, body, area)) return true;
+    reachability(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): FlowReachability {
+        if (this.lineClear(from, target, body, area)) return 'reachable';
         const starts = this._attachments(from, body, area);
         const ends = this._attachments(target, body, area);
-        if (!starts.length || !ends.length) return false;
+        if (!starts.length || !ends.length) return 'unreachable';
         const graph = this._graphFor(body, area);
-        if (!graph) return false;
+        if (!graph) return 'pending';
         return starts.some(s => ends.some(t => {
             const label = graph.labels[this._index(s.x, s.y, graph.width)];
             return label >= 0 && label === graph.labels[this._index(t.x, t.y, graph.width)];
-        }));
+        })) ? 'reachable' : 'unreachable';
+    }
+
+    canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
+        return this.reachability(from, target, body, area) === 'reachable';
+    }
+
+    // A pending result is never cached: callers must retry the same current-revision key after the graph settles.
+    sharedQueryState<T>(from: FlowPoint, body: FlowBody, area: FlowArea, condition: string,
+        compute: () => FlowQueryResult<T>): FlowQueryResult<T | undefined> {
+        const starts = this._attachments(from, body, area);
+        if (!starts.length) return { readiness: 'settled', value: undefined };
+        const graph = this._graphFor(body, area);
+        if (!graph) return { readiness: 'pending' };
+        const labels = Array.from(new Set(starts.map(c => graph.labels[this._index(c.x, c.y, graph.width)])))
+            .filter(l => l >= 0).sort((a,b) => a-b);
+        if (!labels.length) return { readiness: 'settled', value: undefined };
+        const id = `${graph.id}:query:${labels.join(',')}:${condition}`;
+        const old = this._queries.get(id);
+        if (old) { old.stamp = ++this._stamp; return { readiness: 'settled', value: old.value as T }; }
+        const result = compute();
+        if (result.readiness === 'pending') return result;
+        const value = result.value;
+        const bytes = id.length * 2 + 256;
+        if (bytes <= this._budget.bytes && this._budget.entries > 0) {
+            if (this._makeRoom(bytes)) {
+                this._queries.set(id, { id, value, stamp: ++this._stamp }); this._recordPeak();
+            }
+        }
+        return result;
+    }
+
+    // Compatibility helper for non-diagnostic callers. It intentionally maps only pending to undefined.
+    sharedQuery<T>(from: FlowPoint, body: FlowBody, area: FlowArea, condition: string, compute: () => T): T | undefined {
+        const result = this.sharedQueryState(from, body, area, condition,
+            () => ({ readiness: 'settled', value: compute() }));
+        return result.readiness === 'settled' ? result.value : undefined;
+    }
+
+    private _canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
+        return this.reachability(from, target, body, area) === 'reachable';
     }
 
     private _areaIds = new WeakMap<FlowArea, number>();
@@ -815,7 +838,7 @@ export class FlowField {
         const cached = this._areaKeys.get(area);
         if (cached?.version === area.obstacleVersion) return cached.key;
         if (!this._areaIds.has(area)) this._areaIds.set(area, ++this._nextAreaId);
-        const key = `${this._areaIds.get(area)}:${area.obstacleVersion}:${JSON.stringify([area.bounds, area.walkablePolygons, area.castlePolygon, area.portals])}`;
+        const key = `${this._areaIds.get(area)}:${area.obstacleVersion}:${JSON.stringify([area.bounds, area.walkablePolygons])}`;
         this._areaKeys.set(area, { version: area.obstacleVersion, key });
         return key;
     }
@@ -834,65 +857,236 @@ export class FlowField {
         return cells;
     }
 
+    // Requests only enqueue work. EnemyNavigation advances this queue once per frame.
+    advanceJobs(maxWork: number): number {
+        const allowance = Math.max(0, Math.floor(maxWork));
+        let used = 0;
+        if (allowance > 0 && this._jobOrder.length) this.debugJobStats.slices++;
+        while (used < allowance && this._jobOrder.length) {
+            if (this._jobCursor >= this._jobOrder.length) this._jobCursor = 0;
+            const key = this._jobOrder[this._jobCursor];
+            const job = this._jobs.get(key);
+            if (!job) {
+                this._jobOrder.splice(this._jobCursor, 1);
+                continue;
+            }
+            const finished = job.kind === 'graph' ? this._advanceGraph(job) : this._advanceField(job);
+            used++;
+            if (finished) {
+                this._jobs.delete(key);
+                this._jobOrder.splice(this._jobCursor, 1);
+                this.debugJobStats.completed++;
+            } else {
+                this._jobCursor = (this._jobCursor + 1) % this._jobOrder.length;
+            }
+        }
+        this.debugJobStats.lastSliceWork = used;
+        this.debugJobStats.totalWork += used;
+        this._recordPeak();
+        return used;
+    }
+
     private _graphFor(body: FlowBody, area: FlowArea): Connectivity | null {
         const id = `${this._bodyKey(body)}:${this._areaKey(area)}`;
         const old = this._graphs.get(id);
         if (old) { old.stamp = ++this._stamp; this.debugStats.hits++; return old; }
-        const width = this._gridWidth(area.bounds), height = this._gridHeight(area.bounds);
-        const count = width * height;
-        // Admission bounds both persistent arrays and the temporary flood queue.
-        if (count > this._budget.cells || count * 13 + id.length * 2 + 128 > this._budget.bytes || this._budget.entries < 2) return null;
-        this.debugStats.misses++;
-        const labels = new Int32Array(count); labels.fill(-1);
-        const edges = new Uint8Array(count);
-        const queue = new Int32Array(count);
-        for (let i = 0; i < count; i++) {
-            const c = { x: i % width, y: Math.floor(i / width) };
-            if (!this.pointWalkable(this.cellToWorld(c, area.bounds), body, area)) labels[i] = -2;
-        }
-        for (let i = 0; i < count; i++) {
-            if (labels[i] === -2) continue;
-            const c = { x: i % width, y: Math.floor(i / width) };
-            for (const e of [0, 2]) {
-                const [dx, dy] = ORTHO[e]; const n = { x: c.x + dx, y: c.y + dy };
-                const j = this._index(n.x, n.y, width);
-                if (!this._insideCell(n, width, height) || labels[j] === -2) continue;
-                if (!this.lineClear(this.cellToWorld(c, area.bounds), this.cellToWorld(n, area.bounds), body, area)) continue;
-                edges[i] |= 1 << e; edges[j] |= 1 << (e + 1);
-            }
-        }
-        let component = 0;
-        for (let i = 0; i < count; i++) {
-            if (labels[i] !== -1) continue;
-            let read = 0, end = 1; queue[0] = i; labels[i] = component;
-            while (read < end) {
-                const j = queue[read++]; this.debugStats.visitedCells++;
-                for (let e = 0; e < 4; e++) {
-                    if (!(edges[j] & (1 << e))) continue;
-                    const k = j + ORTHO[e][0] + ORTHO[e][1] * width;
-                    if (labels[k] !== -1) continue;
-                    labels[k] = component; queue[end++] = k;
-                }
-            }
-            component++;
-        }
-        const graph = { id, width, height, labels, edges, stamp: ++this._stamp };
-        this._makeRoom(count * 5 + id.length * 2 + 128);
-        this._graphs.set(id, graph); this._graphBuildCount++; this._recordPeak();
-        return graph;
+        this._enqueueGraph(id, body, area);
+        return null;
     }
 
-    private _makeRoom(bytes: number): void {
+    private _enqueueGraph(id: string, body: FlowBody, area: FlowArea): void {
+        const key = `graph:${id}`;
+        if (this._jobs.has(key)) {
+            this.debugJobStats.coalesced++;
+            return;
+        }
+        const width = this._gridWidth(area.bounds), height = this._gridHeight(area.bounds);
+        const count = width * height;
+        // Admission includes private occupancy, edge and component queue arrays.
+        const bytes = count * 9 + id.length * 2 + 128;
+        if (count > this._budget.cells || bytes > this._budget.bytes || this._budget.entries < 1 ||
+            !this._makeRoom(bytes, key)) {
+            this.debugJobStats.refused++;
+            return;
+        }
+        this.debugStats.misses++;
+        const snapshot = this._snapshotArea(area);
+        this._jobs.set(key, { kind: 'graph', id, body: { ...body }, area: snapshot, width, height,
+            labels: new Int32Array(count), edges: new Uint8Array(count), queue: new Int32Array(count),
+            phase: 'occupancy', cursor: 0, component: 0, read: 0, end: 0, stamp: ++this._stamp,
+            fastWalkableRegion: this._hasConvexWalkableRegion(snapshot) });
+        this._jobOrder.push(key);
+        this.debugJobStats.queued++;
+    }
+
+    private _enqueueField(id: string, target: FlowPoint, targetCell: FlowCell, body: FlowBody, area: FlowArea,
+        width: number, height: number): void {
+        const key = `field:${id}`;
+        if (this._jobs.has(key)) {
+            this.debugJobStats.coalesced++;
+            return;
+        }
+        const count = width * height;
+        // Occupancy, edges and BFS are private to this field until the complete distance array publishes.
+        const bytes = count * 10 + id.length * 2 + 128;
+        if (count > this._budget.cells || bytes > this._budget.bytes || !this._makeRoom(bytes, key)) {
+            this.debugJobStats.refused++;
+            return;
+        }
+        const snapshot = this._snapshotArea(area);
+        this._jobs.set(key, { kind: 'field', id, body: { ...body }, area: snapshot,
+            target: { ...target }, targetCell: { ...targetCell }, width, height,
+            distances: new Int32Array(count), walkable: new Uint8Array(count), edges: new Uint8Array(count),
+            queue: new Int32Array(count), phase: 'occupancy', cursor: 0,
+            read: 0, end: 0, stamp: ++this._stamp, fastWalkableRegion: this._hasConvexWalkableRegion(snapshot) });
+        this._jobOrder.push(key);
+        this.debugJobStats.queued++;
+    }
+
+    private _advanceGraph(job: GraphJob): boolean {
+        const count = job.width * job.height;
+        if (job.phase === 'occupancy') {
+            const i = job.cursor++;
+            const cell = { x: i % job.width, y: Math.floor(i / job.width) };
+            job.labels[i] = this.pointWalkable(this.cellToWorld(cell, job.area.bounds), job.body, job.area) ? -1 : -2;
+            if (job.cursor < count) return false;
+            job.phase = 'edges'; job.cursor = 0;
+            return false;
+        }
+        if (job.phase === 'edges') {
+            const i = job.cursor++;
+            if (job.labels[i] !== -2) {
+                const cell = { x: i % job.width, y: Math.floor(i / job.width) };
+                for (const edge of [0, 2]) {
+                    const [dx, dy] = ORTHO[edge]; const next = { x: cell.x + dx, y: cell.y + dy };
+                    if (!this._insideCell(next, job.width, job.height)) continue;
+                    const ni = this._index(next.x, next.y, job.width);
+                    const x = job.area.bounds.minX + (cell.x + 0.5) * this.cellSize;
+                    const y = job.area.bounds.minY + (cell.y + 0.5) * this.cellSize;
+                    const nx = job.area.bounds.minX + (next.x + 0.5) * this.cellSize;
+                    const ny = job.area.bounds.minY + (next.y + 0.5) * this.cellSize;
+                    if (job.labels[ni] === -2 || !this._gridEdgeClear(x, y, nx, ny, job.body, job.area,
+                        job.fastWalkableRegion)) continue;
+                    job.edges[i] |= 1 << edge; job.edges[ni] |= 1 << (edge + 1);
+                }
+            }
+            if (job.cursor < count) return false;
+            job.phase = 'components'; job.cursor = 0;
+            return false;
+        }
+        if (job.read < job.end) {
+            const i = job.queue[job.read++]; this.debugStats.visitedCells++;
+            for (let edge = 0; edge < ORTHO.length; edge++) {
+                if (!(job.edges[i] & (1 << edge))) continue;
+                const next = i + ORTHO[edge][0] + ORTHO[edge][1] * job.width;
+                if (job.labels[next] !== -1) continue;
+                job.labels[next] = job.component; job.queue[job.end++] = next;
+            }
+            return false;
+        }
+        if (job.end > 0) {
+            // The completed queue owns one component label. Advance only before
+            // seeding the next disconnected component.
+            job.component++;
+            job.read = 0;
+            job.end = 0;
+        }
+        if (job.cursor < count) {
+            if (job.labels[job.cursor] !== -1) {
+                job.cursor++;
+                return false;
+            }
+            // Keep one label for the whole queue. Incrementing here made the seed differ
+            // from its neighbours and let the next seed alias the previous component.
+            job.queue[0] = job.cursor; job.labels[job.cursor] = job.component; job.cursor++; job.read = 0; job.end = 1;
+            return false;
+        }
+        this._graphs.set(job.id, { id: job.id, width: job.width, height: job.height, labels: job.labels,
+            edges: job.edges, stamp: ++this._stamp });
+        this._graphBuildCount++;
+        return true;
+    }
+
+    private _advanceField(job: FieldJob): boolean {
+        const count = job.width * job.height;
+        if (job.phase === 'occupancy') {
+            const i = job.cursor++;
+            const cell = { x: i % job.width, y: Math.floor(i / job.width) };
+            job.walkable[i] = this.pointWalkable(this.cellToWorld(cell, job.area.bounds), job.body, job.area) ? 1 : 0;
+            job.distances[i] = -1;
+            if (job.cursor < count) return false;
+            job.phase = 'edges'; job.cursor = 0;
+            return false;
+        }
+        if (job.phase === 'edges') {
+            const i = job.cursor++;
+            if (job.walkable[i]) {
+                const cell = { x: i % job.width, y: Math.floor(i / job.width) };
+                for (const edge of [0, 2]) {
+                    const [dx, dy] = ORTHO[edge];
+                    const next = { x: cell.x + dx, y: cell.y + dy };
+                    if (!this._insideCell(next, job.width, job.height)) continue;
+                    const ni = this._index(next.x, next.y, job.width);
+                    const x = job.area.bounds.minX + (cell.x + 0.5) * this.cellSize;
+                    const y = job.area.bounds.minY + (cell.y + 0.5) * this.cellSize;
+                    const nx = job.area.bounds.minX + (next.x + 0.5) * this.cellSize;
+                    const ny = job.area.bounds.minY + (next.y + 0.5) * this.cellSize;
+                    if (!job.walkable[ni] || !this._gridEdgeClear(x, y, nx, ny, job.body, job.area,
+                        job.fastWalkableRegion)) continue;
+                    job.edges[i] |= 1 << edge; job.edges[ni] |= 1 << (edge + 1);
+                }
+            }
+            if (job.cursor < count) return false;
+            if (!this._insideCell(job.targetCell, job.width, job.height)) return true;
+            const start = this._index(job.targetCell.x, job.targetCell.y, job.width);
+            if (!job.walkable[start]) return true;
+            job.distances[start] = 0; job.queue[0] = start; job.read = 0; job.end = 1; job.phase = 'bfs';
+            return false;
+        }
+        if (job.read < job.end) {
+            const i = job.queue[job.read++];
+            const base = job.distances[i];
+            for (let edge = 0; edge < ORTHO.length; edge++) {
+                if (!(job.edges[i] & (1 << edge))) continue;
+                const next = i + ORTHO[edge][0] + ORTHO[edge][1] * job.width;
+                if (job.distances[next] >= 0) continue;
+                job.distances[next] = base + 1; job.queue[job.end++] = next;
+            }
+            return false;
+        }
+        this._cache.set(job.id, { id: job.id, targetCell: job.targetCell, distances: job.distances,
+            width: job.width, height: job.height, stamp: ++this._stamp, refs: 0 });
+        this._buildCount++;
+        return true;
+    }
+
+    private _snapshotArea(area: FlowArea): FlowArea {
+        return { bounds: { ...area.bounds }, obstacles: area.obstacles.map(r => ({ ...r })), obstacleVersion: area.obstacleVersion,
+            walkablePolygons: area.walkablePolygons?.map(poly => poly.map(p => ({ ...p }))),
+            diagnosticOf: area.diagnosticOf ? this._snapshotArea(area.diagnosticOf) : undefined,
+            ignoredObstacle: area.ignoredObstacle ? { ...area.ignoredObstacle } : undefined };
+    }
+
+    private _makeRoom(bytes: number, preserve = ''): boolean {
+        if (bytes > this._budget.bytes || this._budget.entries < 1) return false;
         while (this.debugEntries && (this.debugEntries >= this._budget.entries || this.debugBytes + bytes > this._budget.bytes)) {
             let key = '', stamp = Infinity, kind = 0;
             for (const [id, f] of this._cache) if (f.stamp < stamp) { key = id; stamp = f.stamp; kind = 0; }
             for (const [id, g] of this._graphs) if (g.stamp < stamp) { key = id; stamp = g.stamp; kind = 1; }
             for (const [id, a] of this._approaches) if (a.stamp < stamp) { key = id; stamp = a.stamp; kind = 2; }
             for (const [id, q] of this._queries) if (q.stamp < stamp) { key = id; stamp = q.stamp; kind = 3; }
+            for (const [id, job] of this._jobs) if (id !== preserve && job.stamp < stamp) { key = id; stamp = job.stamp; kind = 4; }
+            if (!key) return false;
             // Unit references are identifiers, not array ownership. Eviction forces a fresh query.
             if (kind === 1) this._graphs.delete(key); else if (kind === 2) this._approaches.delete(key);
-            else if (kind === 3) this._queries.delete(key); else this._cache.delete(key);
+            else if (kind === 3) this._queries.delete(key); else if (kind === 4) {
+                this._jobs.delete(key);
+                const index = this._jobOrder.indexOf(key);
+                if (index >= 0) this._jobOrder.splice(index, 1);
+                this.debugJobStats.cancelled++;
+            } else this._cache.delete(key);
         }
+        return true;
     }
 
     private _recordPeak(): void {
@@ -906,9 +1100,6 @@ export class FlowField {
         body: FlowBody,
         area: FlowArea,
     ): boolean {
-        if (!this._segmentRegionAllowed(from, target, area, body)) {
-            return false;
-        }
         const dx = target.x - from.x;
         const dy = target.y - from.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -938,101 +1129,4 @@ function segmentEntersRect(a: FlowPoint, b: FlowPoint, r: FlowRect): boolean {
         if (low >= high) return false;
     }
     return low < high;
-}
-
-function segmentsIntersect(a: FlowPoint, b: FlowPoint, c: FlowPoint, d: FlowPoint): boolean {
-    const ab1 = orient(a, b, c);
-    const ab2 = orient(a, b, d);
-    const cd1 = orient(c, d, a);
-    const cd2 = orient(c, d, b);
-    if (ab1 === 0 && onSegment(a, c, b)) {
-        return true;
-    }
-    if (ab2 === 0 && onSegment(a, d, b)) {
-        return true;
-    }
-    if (cd1 === 0 && onSegment(c, a, d)) {
-        return true;
-    }
-    if (cd2 === 0 && onSegment(c, b, d)) {
-        return true;
-    }
-    return (ab1 > 0) !== (ab2 > 0) && (cd1 > 0) !== (cd2 > 0);
-}
-
-function orient(a: FlowPoint, b: FlowPoint, c: FlowPoint): number {
-    const v = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-    if (Math.abs(v) < 0.000001) {
-        return 0;
-    }
-    return v > 0 ? 1 : -1;
-}
-
-function onSegment(a: FlowPoint, p: FlowPoint, b: FlowPoint): boolean {
-    return (
-        p.x >= Math.min(a.x, b.x) - 0.000001 &&
-        p.x <= Math.max(a.x, b.x) + 0.000001 &&
-        p.y >= Math.min(a.y, b.y) - 0.000001 &&
-        p.y <= Math.max(a.y, b.y) + 0.000001
-    );
-}
-
-function segmentIntersectsPolygon(a: FlowPoint, b: FlowPoint, polygon: FlowPoint[]): boolean {
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        if (segmentsIntersect(a, b, polygon[j], polygon[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function segmentPolygonCrossings(a: FlowPoint, b: FlowPoint, polygon: FlowPoint[]): FlowPoint[] {
-    const out: FlowPoint[] = [];
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const hit = segmentIntersectionPoint(a, b, polygon[j], polygon[i]);
-        if (!hit) {
-            continue;
-        }
-        if (!out.some((p) => Math.abs(p.x - hit.x) < 0.0001 && Math.abs(p.y - hit.y) < 0.0001)) {
-            out.push(hit);
-        }
-    }
-    return out;
-}
-
-function segmentIntersectionPoint(
-    a: FlowPoint,
-    b: FlowPoint,
-    c: FlowPoint,
-    d: FlowPoint,
-): FlowPoint | null {
-    const r = { x: b.x - a.x, y: b.y - a.y };
-    const s = { x: d.x - c.x, y: d.y - c.y };
-    const denom = r.x * s.y - r.y * s.x;
-    if (Math.abs(denom) < 0.000001) {
-        return segmentsIntersect(a, b, c, d) ? c : null;
-    }
-    const u = ((c.x - a.x) * r.y - (c.y - a.y) * r.x) / denom;
-    const t = ((c.x - a.x) * s.y - (c.y - a.y) * s.x) / denom;
-    if (t < -0.000001 || t > 1.000001 || u < -0.000001 || u > 1.000001) {
-        return null;
-    }
-    return { x: a.x + t * r.x, y: a.y + t * r.y };
-}
-
-function distancePointToSegment(p: FlowPoint, a: FlowPoint, b: FlowPoint): number {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const lenSq = dx * dx + dy * dy;
-    if (lenSq < 0.000001) {
-        const px = p.x - a.x;
-        const py = p.y - a.y;
-        return Math.sqrt(px * px + py * py);
-    }
-    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq));
-    const x = a.x + dx * t;
-    const y = a.y + dy * t;
-    const px = p.x - x;
-    const py = p.y - y;
-    return Math.sqrt(px * px + py * py);
 }
