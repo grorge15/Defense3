@@ -56,7 +56,6 @@ export type FlowDirectionResult = {
 
 export type FlowReachability = 'pending' | 'reachable' | 'unreachable';
 export type FlowQueryResult<T> = { readiness: 'pending' } | { readiness: 'settled'; value: T };
-export type FlowFieldState = { fieldId: string; readiness: 'pending' | 'settled' | 'unreachable' };
 
 type FlowCell = {
     x: number;
@@ -241,14 +240,6 @@ export class FlowField {
         field.refs = Math.max(0, field.refs - 1);
     }
 
-    retain(fieldId: string): boolean {
-        const field = this._cache.get(fieldId);
-        if (!field) return false;
-        field.refs += 1;
-        field.stamp = ++this._stamp;
-        return true;
-    }
-
     prune(maxAge = 600): void {
         const minStamp = this._stamp - Math.max(1, maxAge);
         for (const [key, field] of this._cache) {
@@ -342,33 +333,6 @@ export class FlowField {
         const targetCell = this.worldToCell(target, area.bounds);
         const bodyKey = this._bodyKey(body);
         return `${bodyKey}:${this._areaKey(area)}:${targetCell.x},${targetCell.y}`;
-    }
-
-    fieldStateFor(target: FlowPoint, body: FlowBody, area: FlowArea): FlowFieldState {
-        const resolved = this._fieldTarget(target, body, area);
-        if (!resolved) return { fieldId: '', readiness: 'unreachable' };
-        const cached = this._cache.get(resolved.id);
-        if (cached) {
-            cached.stamp = ++this._stamp;
-            return { fieldId: cached.id, readiness: 'settled' };
-        }
-        this._enqueueField(resolved.id, resolved.target, resolved.targetCell, body, area, resolved.width, resolved.height);
-        return { fieldId: resolved.id, readiness: this._jobs.has(`field:${resolved.id}`) ? 'pending' : 'unreachable' };
-    }
-
-    settledDirection(
-        from: FlowPoint,
-        fieldId: string,
-        body: FlowBody,
-        area: FlowArea,
-    ): FlowDirectionResult | null {
-        const prefix = `${this._bodyKey(body)}:${this._areaKey(area)}:`;
-        const field = this._cache.get(fieldId);
-        if (!field || !fieldId.startsWith(prefix)) return null;
-        this._stamp += 1;
-        field.stamp = this._stamp;
-        if (!this.pointWalkable(from, body, area)) return this._emptyResult(field.id, from, true);
-        return this._directionFromField(from, field, body, area);
     }
 
     worldToCell(point: FlowPoint, bounds: FlowBounds): FlowCell {
@@ -644,13 +608,12 @@ export class FlowField {
     }
 
     private _fieldFor(target: FlowPoint, body: FlowBody, area: FlowArea): Field | null {
-        const state = this.fieldStateFor(target, body, area);
-        if (state.readiness !== 'settled') return null;
-        this.debugStats.hits++;
-        return this._cache.get(state.fieldId) ?? null;
-    }
-
-    private _fieldTarget(target: FlowPoint, body: FlowBody, area: FlowArea): { id: string; target: FlowPoint; targetCell: FlowCell; width: number; height: number } | null {
+        const id = this.fieldIdFor(target, body, area);
+        const cached = this._cache.get(id);
+        if (cached) {
+            this.debugStats.hits++;
+            return cached;
+        }
         const width = this._gridWidth(area.bounds);
         const height = this._gridHeight(area.bounds);
         const targetPoint = this.nearestWalkable(target, body, area) ?? target;
@@ -662,36 +625,8 @@ export class FlowField {
             !this.pointWalkable(this.cellToWorld(targetCell, area.bounds), body, area)) {
             return null;
         }
-        return { id: `${this._bodyKey(body)}:${this._areaKey(area)}:${targetCell.x},${targetCell.y}`,
-            target: targetPoint, targetCell, width, height };
-    }
-
-    private _directionFromField(from: FlowPoint, field: Field, body: FlowBody, area: FlowArea): FlowDirectionResult {
-        const attachments = this._attachments(from, body, area);
-        attachments.sort((a, b) => field.distances[this._index(a.x, a.y, field.width)] - field.distances[this._index(b.x, b.y, field.width)]);
-        const fromCell = attachments.find(c => field.distances[this._index(c.x, c.y, field.width)] >= 0)
-            ?? this.worldToCell(from, area.bounds);
-        const fromIdx = this._index(fromCell.x, fromCell.y, field.width);
-        if (!this._insideCell(fromCell, field.width, field.height) || field.distances[fromIdx] < 0) {
-            return this._emptyResult(field.id, from, true);
-        }
-        if (field.distances[fromIdx] === 0) return this._emptyResult(field.id, from, false, true);
-        let best = this._bestDescendingCell(fromCell, field, area, body);
-        if (!best) return this._emptyResult(field.id, from, true);
-        for (let i = 1; i < this.lookaheadCells; i++) {
-            const next = this._bestDescendingCell(best, field, area, body);
-            if (!next) break;
-            const point = this.cellToWorld(next, area.bounds);
-            if (!this.lineClear(from, point, body, area)) break;
-            best = next;
-        }
-        const waypoint = this.cellToWorld(best, area.bounds);
-        if (!this.lineClear(from, waypoint, body, area)) {
-            const access = this.cellToWorld(fromCell, area.bounds);
-            return this.lineClear(from, access, body, area) ? this._dirTo(field.id, from, access, false)
-                : this._emptyResult(field.id, from, true);
-        }
-        return this._dirTo(field.id, from, waypoint, false);
+        this._enqueueField(id, targetPoint, targetCell, body, area, width, height);
+        return null;
     }
 
 

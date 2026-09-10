@@ -22,14 +22,14 @@ The system SHALL support editor-facing obstacle states Ignore, Hard, and Destruc
 
 ### Requirement: Destructible obstruction pursuit
 
-The system SHALL prefer a settled normal route over demolition and SHALL select at most one relevant Destructible obstruction per decision only when removing it enables the original objective. It MUST NOT traverse Hard obstacles, and its selected current-geometry attack surface MUST be reachable. The single-Log limit SHALL NOT make unrelated living Destructible Building/Barrier objects suppress evaluation of that Log.
+The system SHALL select pursuit routes using Hard geometry and walkable-ground constraints while omitting only eligible supported Destructible obstacles from the planning view. It SHALL select the first eligible Destructible that physically blocks the selected next route leg, approach a reachable current-geometry attack surface, damage it, and resume the original objective after its destruction. It MUST NOT traverse or attack Hard obstacles. The single-Log limit SHALL NOT make unrelated living Destructible Building/Barrier objects suppress evaluation of that Log.
 
-#### Scenario: An alternate gap avoids demolition
-- **WHEN** a normal route exists around one or more Destructible obstacles
-- **THEN** the enemy pursues the original target and does not attack those obstacles
+#### Scenario: An alternate physical gap exists
+- **WHEN** a selected Hard-safe route intersects an eligible Destructible obstacle and a physical detour around it also exists
+- **THEN** the enemy preserves the selected route, reaches a legal outside attack surface, damages that obstruction, and resumes the original target after its destruction
 
-#### Scenario: A single destructible obstruction blocks the route
-- **WHEN** no normal route exists and removing one reachable Destructible obstruction enables the original target
+#### Scenario: A single destructible obstruction blocks the selected route
+- **WHEN** the next leg of the selected Hard-safe route is physically blocked by one reachable Destructible obstruction
 - **THEN** the enemy reaches a legal outside attack surface, damages that obstruction, and resumes the original target after its destruction
 
 #### Scenario: Unrelated living damageables coexist with the blocking Log
@@ -38,12 +38,14 @@ The system SHALL prefer a settled normal route over demolition and SHALL select 
 
 ### Requirement: Bounded shared construction is preserved
 
-The system SHALL retain revision-current, shared bounded navigation construction for normal and destructible-obstruction decisions.
+The system SHALL retain revision-current, shared bounded navigation construction for Hard-safe planned routes, full-geometry movement validation, and destructible-obstruction decisions.
 
 #### Scenario: Cold Minion and Boss requests compete
 - **WHEN** ordinary-enemy and Boss bodies request cold normal or demolition routing after a geometry revision
 - **THEN** identical work coalesces, body constraints remain distinct, work advances within the configured per-frame bound, and no synchronous full navigation or per-obstruction graph runs in a caller request
 
-#### Scenario: Dynamic geometry changes during obstruction pursuit
-- **WHEN** a target moves or an obstacle is inserted, removed, reclassified, or destroyed while an enemy is pursuing
+#### Scenario: Dynamic target or geometry changes during obstruction pursuit
+- **WHEN** a target moves while the current geometry is unchanged
+- **THEN** the enemy may retain only a bounded settled route that remains safe against that current geometry while it coalesces a replacement for the moved target
+- **AND WHEN** an obstacle is inserted, removed, reclassified, or destroyed while an enemy is pursuing
 - **THEN** obsolete pending and settled decisions are discarded, unsafe movement is not returned, and the enemy reevaluates its unchanged original objective against current geometry

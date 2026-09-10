@@ -49,11 +49,7 @@ type RouteTarget = {
 };
 
 type UnitRouteState = {
-    activeFieldId: string;
-    activeTarget: FlowPoint | null;
-    pendingFieldId: string;
-    replacementReadiness: 'idle' | 'pending' | 'unreachable';
-    target: Node | null;
+    fieldId: string;
 };
 
 type ObstacleSnapshot = {
@@ -137,7 +133,6 @@ export class EnemyNavigation {
     private readonly _self = new Vec3();
     private readonly _target = new Vec3();
     private readonly _obstacles: ObstacleSnapshot = { version: 1, rects: [] };
-    private readonly _planningObstacles: FlowRect[] = [];
     private readonly _tracked = new Set<NavigationCollider>();
     private readonly _watched = new Set<Node>();
     private readonly _geometryWatched = new Set<Node>();
@@ -145,7 +140,6 @@ export class EnemyNavigation {
     private readonly _kindByCollider = new Map<NavigationCollider, NavigationObstacleKind | 'legacy'>();
     private _candidateRevision = -1;
     private _candidateSnapshot: Array<{ node: Node; rects: FlowRect[]; key: string }> = [];
-    private readonly _selectedBlockerCache = new Map<string, BlockingObstacleRoute | null>();
     private readonly _fixedByCollider = new Map<NavigationCollider, Log>();
     private _contactLog: Log | null = null;
     private _discovered = false;
@@ -158,7 +152,7 @@ export class EnemyNavigation {
     private _topology: number[] = [];
     readonly debugStats = { fullSceneScan: 0, trackedColliderChecks: 0, signatureBuild: 0,
         invalidateRequests: 0, geometryCheckRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0,
-        selectedCacheHits: 0, selectedCacheMisses: 0, schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0 };
+        schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0 };
     private readonly _area: FlowArea = {
         bounds: {
             minX: GameConfig.enemyNavDefaultMinX,
@@ -167,16 +161,6 @@ export class EnemyNavigation {
             maxY: GameConfig.enemyNavDefaultMaxY,
         },
         obstacles: this._obstacles.rects,
-        obstacleVersion: this._obstacles.version,
-    };
-    private readonly _planningArea: FlowArea = {
-        bounds: {
-            minX: GameConfig.enemyNavDefaultMinX,
-            minY: GameConfig.enemyNavDefaultMinY,
-            maxX: GameConfig.enemyNavDefaultMaxX,
-            maxY: GameConfig.enemyNavDefaultMaxY,
-        },
-        obstacles: this._planningObstacles,
         obstacleVersion: this._obstacles.version,
     };
     private _boundsMin: Node | null = null;
@@ -216,7 +200,6 @@ export class EnemyNavigation {
         for (const node of this._watched) this._unwatch(node);
         this._watched.clear(); this._tracked.clear(); this._rectByCollider.clear(); this._kindByCollider.clear(); this._fixedByCollider.clear();
         this._candidateSnapshot = [];
-        this._selectedBlockerCache.clear();
         this._contactLog = null;
         for (const node of this._geometryWatched) {
             node.off?.('transform-changed', this._markGeometryForCheck, this);
@@ -265,7 +248,9 @@ export class EnemyNavigation {
             return;
         }
         const state = this._unitState.get(unit);
-        if (state?.activeFieldId) this._field.release(state.activeFieldId);
+        if (state?.fieldId) {
+            this._field.release(state.fieldId);
+        }
         this._unitState.delete(unit);
         this._registeredUnits.delete(unit);
         const pos = this._unitPositions.get(unit);
@@ -337,8 +322,10 @@ export class EnemyNavigation {
                 approachMs: this._diagnosticQueryMs, lastGeometry: this._diagnosticChange }));
             this._diagnosticQueries = 0; this._diagnosticQueryMs = 0;
         }
-        const state = this._routeState(unit, request.target);
-        if (!routeTarget) return this._retainedVelocity(state, self, finalTarget, request, out);
+        if (!routeTarget) {
+            this._releaseField(unit);
+            return out;
+        }
 
         const stop = request.stopDistance ?? 0;
         const dx = routeTarget.point.x - self.x;
@@ -348,62 +335,30 @@ export class EnemyNavigation {
             return out;
         }
 
-        const direct = this._field.lineClear(self, routeTarget.point, request.body, this._planningArea);
-        if (direct) {
-            this._releaseField(unit);
-            const physical = this._field.lineClear(self, routeTarget.point, request.body, this._area);
-            if (!physical) return out;
-            const directResult = this._field.direction(self, routeTarget.point, request.body, this._planningArea);
-            if (directResult.blocked || directResult.reached) return out;
-            out.set(directResult.x * request.speed, directResult.y * request.speed);
-            this._applyLocalAvoidance(unit, self, request.body, request.speed, out);
-            this._constrainVelocity(self, request.body, request.dt, out);
+        let result = this._field.direction(self, routeTarget.point, request.body, this._area, true);
+        if (result.blocked && routeTarget.final && this._field.debugPendingJobs === 0) {
+            const approach = this._reachableApproach(self, finalTarget, request.body, true);
+            if (approach) {
+                this._field.release(result.fieldId);
+                result = this._field.direction(self, approach.point, request.body, this._area, true);
+            }
+        }
+        const state = this._unitState.get(unit);
+        if (state) {
+            if (state.fieldId && state.fieldId !== result.fieldId) {
+                this._field.release(state.fieldId);
+            }
+            if (state.fieldId === result.fieldId) {
+                this._field.release(result.fieldId);
+            } else {
+                state.fieldId = result.fieldId;
+            }
+        } else {
+            this._field.release(result.fieldId);
+        }
+        if (result.blocked || result.reached) {
             return out;
         }
-
-        const wantedId = this._field.fieldIdFor(routeTarget.point, request.body, this._planningArea);
-        let result: ReturnType<FlowField['settledDirection']> = null;
-        if (state.pendingFieldId) {
-            const pending = this._field.settledDirection(self, state.pendingFieldId, request.body, this._planningArea);
-            if (pending) {
-                const completedId = state.pendingFieldId;
-                state.pendingFieldId = '';
-                state.replacementReadiness = 'idle';
-                if (completedId === wantedId) result = pending;
-            }
-        }
-        if (!result && !state.pendingFieldId) {
-            const replacement = this._field.fieldStateFor(routeTarget.point, request.body, this._planningArea);
-            if (replacement.readiness === 'settled') {
-                result = this._field.settledDirection(self, replacement.fieldId, request.body, this._planningArea);
-            } else {
-                state.pendingFieldId = replacement.fieldId;
-                state.replacementReadiness = replacement.readiness;
-            }
-        }
-        if (result?.blocked && routeTarget.final && !state.pendingFieldId && this._field.debugPendingJobs === 0) {
-            const approach = this._reachableApproach(self, finalTarget, request.body, true, this._planningArea);
-            if (approach) {
-                if (this._field.lineClear(self, approach.point, request.body, this._planningArea)) {
-                    result = this._field.direction(self, approach.point, request.body, this._planningArea);
-                } else {
-                    const fallback = this._field.fieldStateFor(approach.point, request.body, this._planningArea);
-                    if (fallback.readiness === 'settled') {
-                        result = this._field.settledDirection(self, fallback.fieldId, request.body, this._planningArea);
-                    } else {
-                        state.pendingFieldId = fallback.fieldId;
-                        state.replacementReadiness = fallback.readiness;
-                    }
-                }
-            }
-        }
-        if (result && !result.blocked && !result.reached) {
-            this._setActiveField(state, result.fieldId, finalTarget);
-            state.replacementReadiness = 'idle';
-        } else if (state.replacementReadiness === 'pending') {
-            return this._retainedVelocity(state, self, finalTarget, request, out);
-        }
-        if (!result || result.blocked || result.reached || !this._field.lineClear(self, result.waypoint, request.body, this._area)) return out;
 
         out.set(result.x * request.speed, result.y * request.speed);
         this._applyLocalAvoidance(unit, self, request.body, request.speed, out);
@@ -416,37 +371,41 @@ export class EnemyNavigation {
         if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured()) return null;
         const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
         if (!this._field.pointWalkable(from, body, this._area)) return null;
-        const selected = this._field.direction(from, target, body, this._planningArea);
-        if (selected.blocked || selected.reached) return null;
-        const key = `selected-blocker:${request.role}:${range}:${request.target.uuid}:${selected.fieldId || 'direct'}:` +
-            `${selected.waypoint.x},${selected.waypoint.y}:v${this._obstacles.version}`;
-        const selectFirst = (): FlowQueryResult<BlockingObstacleRoute | null> => {
-            this.debugStats.blockingScans++;
-            const first = this._firstPhysicalBlocker(from, selected.waypoint, body);
-            if (!first || first.node === request.target || !this._isDestructibleNode(first.node)) {
-                return { readiness: 'settled' as const, value: null };
+        const targetBox = request.target.getComponent(BoxCollider2D);
+        const targetRect = targetBox ? this._rectByCollider.get(targetBox) : undefined;
+        const reachesTarget = (area: FlowArea): FlowQueryResult<boolean> => {
+            if (targetRect) {
+                const surface = this._surface(from, targetRect, body, area, range, true);
+                return surface.readiness === 'pending' ? surface : { readiness: 'settled', value: !!surface.value };
             }
-            const surface = this._surface(from, first.rect, body, this._area, range);
-            return surface.readiness === 'pending' ? surface : { readiness: 'settled' as const,
-                value: surface.value ? { target: first.node, point: surface.value } : null };
+            const reachability = this._field.reachability(from, target, body, area);
+            return reachability === 'pending' ? { readiness: 'pending' } :
+                { readiness: 'settled', value: reachability === 'reachable' };
         };
-        if (!selected.fieldId) {
-            const cell = this._field.worldToCell(from, this._area.bounds);
-            const directKey = `${key}:${cell.x},${cell.y}`;
-            const cached = this._selectedBlockerCache.get(directKey);
-            if (cached !== undefined) { this.debugStats.selectedCacheHits++; return cached; }
-            this.debugStats.selectedCacheMisses++;
-            const direct = selectFirst();
-            if (direct.readiness !== 'settled') return null;
-            const limit = GameConfig.enemyFlowCacheEntries ?? 32;
-            if (this._selectedBlockerCache.size >= limit) {
-                const oldest = this._selectedBlockerCache.keys().next().value;
-                if (oldest !== undefined) this._selectedBlockerCache.delete(oldest);
+        if (!targetRect && this._field.lineClear(from, target, body, this._area)) return null;
+        const key = `blocking:${request.role}:${range}:${request.target.uuid}:${target.x},${target.y}:` +
+            `${targetRect ? JSON.stringify(targetRect) : 'point'}:v${this._obstacles.version}`;
+        const query = this._field.sharedQueryState(from, body, this._area, key, () => {
+            const normal = reachesTarget(this._area);
+            if (normal.readiness === 'pending' || normal.value) return normal.readiness === 'pending' ? normal :
+                { readiness: 'settled', value: null };
+            const diagnostics = this._destructibleCandidates().filter(candidate => candidate.node !== request.target).map(candidate => ({ candidate, area: { ...this._area,
+                obstacles: this._area.obstacles.filter(rect => candidate.rects.indexOf(rect) < 0),
+                diagnosticOf: this._area, ignoredObstacle: candidate.rects[0] } }));
+            this.debugStats.blockingScans++;
+            let pending = false;
+            for (const diagnostic of diagnostics) {
+                const opened = reachesTarget(diagnostic.area);
+                if (opened.readiness === 'pending') return opened;
+                if (!opened.value) continue;
+                for (const rect of diagnostic.candidate.rects) {
+                    const surface = this._surface(from, rect, body, this._area, range);
+                    if (surface.readiness === 'pending') return surface;
+                    if (surface.value) return { readiness: 'settled', value: { target: diagnostic.candidate.node, point: surface.value } };
+                }
             }
-            this._selectedBlockerCache.set(directKey, direct.value);
-            return direct.value;
-        }
-        const query = this._field.sharedQueryState(from, body, this._area, key, selectFirst);
+            return pending ? { readiness: 'pending' } : { readiness: 'settled', value: null };
+        });
         return query.readiness === 'settled' ? query.value ?? null : null;
     }
 
@@ -654,12 +613,17 @@ export class EnemyNavigation {
         finalTarget: FlowPoint,
     ): RouteTarget | null {
         if (!this._hasGroundConfigured()) return null;
-        return this._approachTarget(self, finalTarget, request.body, this._planningArea);
+        let state = this._unitState.get(request.unit);
+        if (!state) {
+            state = { fieldId: '' };
+            this._unitState.set(request.unit, state);
+        }
+        return this._approachTarget(self, finalTarget, request.body);
     }
 
-    private _approachTarget(self: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): RouteTarget | null {
-        if (this._field.pointWalkable(target, body, area)) return { point: target, final: true };
-        return this._reachableApproach(self, target, body, false, area);
+    private _approachTarget(self: FlowPoint, target: FlowPoint, body: FlowBody): RouteTarget | null {
+        if (this._field.pointWalkable(target, body, this._area)) return { point: target, final: true };
+        return this._reachableApproach(self, target, body);
     }
 
     private _reachableApproach(
@@ -667,13 +631,12 @@ export class EnemyNavigation {
         target: FlowPoint,
         body: FlowBody,
         allowBlockedTargetApproach = false,
-        area: FlowArea = this._area,
     ): RouteTarget | null {
         const point = this._field.nearestReachableWalkable(
             self,
             target,
             body,
-            area,
+            this._area,
             GameConfig.enemyFlowTargetSearchCells,
             allowBlockedTargetApproach,
         );
@@ -701,19 +664,6 @@ export class EnemyNavigation {
         this._area.portals = undefined;
         this._area.obstacleVersion = this._obstacles.version;
         this._area.obstacles = this._obstacles.rects;
-    }
-
-    private _refreshPlanningArea(): void {
-        this._planningArea.bounds.minX = this._area.bounds.minX;
-        this._planningArea.bounds.minY = this._area.bounds.minY;
-        this._planningArea.bounds.maxX = this._area.bounds.maxX;
-        this._planningArea.bounds.maxY = this._area.bounds.maxY;
-        this._planningArea.walkablePolygons = this._area.walkablePolygons;
-        this._planningObstacles.length = 0;
-        for (const [collider, rect] of this._rectByCollider) {
-            if (!this._isDestructibleNode(collider.node)) this._planningObstacles.push(rect);
-        }
-        this._planningArea.obstacleVersion = this._obstacles.version;
     }
 
     private _refreshObstacles(): void {
@@ -770,14 +720,9 @@ export class EnemyNavigation {
             this._obstacles.rects = Array.from(this._rectByCollider.values());
             this._obstacles.version++; this.debugStats.effectiveCommits++;
             this._candidateRevision = -1;
-            this._selectedBlockerCache.clear();
             this._area.obstacles = this._obstacles.rects; this._area.obstacleVersion = this._obstacles.version;
-            this._refreshPlanningArea();
             this._field.invalidate();
-            for (const state of this._unitState.values()) {
-                state.activeFieldId = ''; state.activeTarget = null; state.pendingFieldId = '';
-                state.replacementReadiness = 'idle';
-            }
+            for (const state of this._unitState.values()) state.fieldId = '';
         }
         this._dirty = false;
     }
@@ -970,64 +915,7 @@ export class EnemyNavigation {
 
     private _releaseField(unit: Node): void {
         const state = this._unitState.get(unit);
-        if (!state) return;
-        if (state.activeFieldId) this._field.release(state.activeFieldId);
-        state.activeFieldId = ''; state.activeTarget = null; state.pendingFieldId = '';
-        state.replacementReadiness = 'idle';
-    }
-
-    private _routeState(unit: Node, target: Node): UnitRouteState {
-        let state = this._unitState.get(unit);
-        if (!state) {
-            state = { activeFieldId: '', activeTarget: null, pendingFieldId: '', replacementReadiness: 'idle', target };
-            this._unitState.set(unit, state);
-        } else if (state.target !== target) {
-            this._releaseField(unit);
-            state.target = target;
-        }
-        return state;
-    }
-
-    private _setActiveField(state: UnitRouteState, fieldId: string, target: FlowPoint): void {
-        if (state.activeFieldId !== fieldId) {
-            if (!this._field.retain(fieldId)) return;
-            if (state.activeFieldId) this._field.release(state.activeFieldId);
-            state.activeFieldId = fieldId;
-        }
-        state.activeTarget = { ...target };
-    }
-
-    private _retainedVelocity(
-        state: UnitRouteState,
-        self: FlowPoint,
-        finalTarget: FlowPoint,
-        request: EnemyMoveRequest,
-        out: Vec2,
-    ): Vec2 {
-        if (!state.activeFieldId || !state.activeTarget || state.replacementReadiness !== 'pending') return out;
-        const maxDrift = this._field.cellSize * this._field.lookaheadCells;
-        if (Math.hypot(finalTarget.x - state.activeTarget.x, finalTarget.y - state.activeTarget.y) > maxDrift) return out;
-        const retained = this._field.settledDirection(self, state.activeFieldId, request.body, this._planningArea);
-        if (!retained || retained.blocked || retained.reached ||
-            !this._field.lineClear(self, retained.waypoint, request.body, this._area)) return out;
-        out.set(retained.x * request.speed, retained.y * request.speed);
-        this._applyLocalAvoidance(request.unit, self, request.body, request.speed, out);
-        this._constrainVelocity(self, request.body, request.dt, out);
-        return out;
-    }
-
-    private _firstPhysicalBlocker(
-        from: FlowPoint,
-        to: FlowPoint,
-        body: FlowBody,
-    ): { node: Node; rect: FlowRect; entry: number } | null {
-        let first: { node: Node; rect: FlowRect; entry: number } | null = null;
-        for (const [collider, rect] of this._rectByCollider) {
-            const entry = segmentRectEntry(from, to, rect, body);
-            if (entry === null || (first && entry >= first.entry)) continue;
-            first = { node: collider.node, rect, entry };
-        }
-        return first;
+        if (state?.fieldId) { this._field.release(state.fieldId); state.fieldId = ''; }
     }
 
     constrainFinalVelocity(unit: Node, body: FlowBody, dt: number, speed: number, out: Vec2): void {
@@ -1107,33 +995,6 @@ function distSqPoint(a: FlowPoint, b: FlowPoint): number {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     return dx * dx + dy * dy;
-}
-
-function segmentRectEntry(from: FlowPoint, to: FlowPoint, rect: FlowRect, body: FlowBody): number | null {
-    const halfW = Math.max(0, body.width) * 0.5;
-    const halfH = Math.max(0, body.height) * 0.5;
-    const offsetX = body.offsetX ?? 0;
-    const offsetY = body.offsetY ?? 0;
-    const minX = rect.xMin - halfW - offsetX;
-    const maxX = rect.xMax + halfW - offsetX;
-    const minY = rect.yMin - halfH - offsetY;
-    const maxY = rect.yMax + halfH - offsetY;
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    let enter = 0;
-    let exit = 1;
-    for (const [origin, delta, min, max] of [[from.x, dx, minX, maxX], [from.y, dy, minY, maxY]] as const) {
-        if (Math.abs(delta) < 0.000001) {
-            if (origin < min || origin > max) return null;
-            continue;
-        }
-        const a = (min - origin) / delta;
-        const b = (max - origin) / delta;
-        enter = Math.max(enter, Math.min(a, b));
-        exit = Math.min(exit, Math.max(a, b));
-        if (enter > exit) return null;
-    }
-    return enter >= 0 && enter <= 1 ? enter : null;
 }
 
 function round(value: number): number {

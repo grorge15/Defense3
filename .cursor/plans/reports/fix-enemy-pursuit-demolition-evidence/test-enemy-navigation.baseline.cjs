@@ -1419,7 +1419,7 @@ function serviceFixture() {
     return { scene, service, cc, Log, addBox, min, max, ground, outside, inside };
 }
 
-should('AC-SELECTED-ROUTE: direct selected Log is available without a physical-detour graph', () => {
+should('AC-TRISTATE: blockingLog retries a pending diagnostic and caches only its settled diversion', () => {
     const h = serviceFixture();
     const unit = h.scene.add(eventNode('tri-unit', -60, 0));
     const target = h.scene.add(eventNode('tri-target', 100, 0));
@@ -1430,12 +1430,15 @@ should('AC-SELECTED-ROUTE: direct selected Log is available without a physical-d
     log.box = box; logNode.components.set(h.cc.BoxCollider2D, box);
     const request = { unit, target, role: 'minion', speed: 10, dt: 1, body: body(10) };
     currentFrame++;
+    assert.strictEqual(h.service.blockingLog(request, 20), null, 'main connectivity is pending');
+    settleService(h.service);
+    currentFrame++;
     const route = h.service.blockingLog(request, 20);
-    assert.ok(route && route.log === log, 'selected direct leg must expose the fixed Log');
+    assert.ok(route && route.log === log, 'same revision must recover the fixed-log diversion');
     const graphs = h.service._field.debugGraphBuildCount;
     currentFrame++;
     assert.ok(h.service.blockingLog(request, 20));
-    assert.strictEqual(graphs, 0, 'direct selected leg must not build a physical-detour graph');
+    assert.strictEqual(h.service._field.debugGraphBuildCount, graphs, 'settled diversion is share-cached');
     box.enabled = false;
     h.service.invalidate();
     h.service.blockingLog(request, 20);
@@ -1657,43 +1660,13 @@ should('AC-REF: service releases a detour field when switching to direct or inva
     h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
     settleService(h.service);
     h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
-    const id = h.service._unitState.get(unit).activeFieldId;
+    const id = h.service._unitState.get(unit).fieldId;
     assert.ok(id); assert.strictEqual(h.service._field.debugRefCount(id), 1);
     unit.set(80, 0); currentFrame++;
     h.service.nextVelocity({ unit, target, role: 'minion', speed: 2, dt: 1, body: body(4) });
-    assert.strictEqual(h.service._unitState.get(unit).activeFieldId, '');
+    assert.strictEqual(h.service._unitState.get(unit).fieldId, '');
     assert.strictEqual(h.service._field.debugRefCount(id), 0);
     h.service.releaseUnit(unit); assert.strictEqual(h.service._unitState.size, 0); h.service.destroy();
-});
-
-should('AC-CONTINUITY: retained settled route stays safe while a moving target replacement is pending', () => {
-    const h = serviceFixture();
-    const wall = h.addBox('airWall-moving-target', { xMin: 20, xMax: 40, yMin: -100, yMax: 100 });
-    const unit = h.scene.add(eventNode('continuity-unit', -80, 0));
-    const target = h.scene.add(eventNode('continuity-target', 120, 0));
-    const request = { unit, target, role: 'minion', speed: 20, dt: 1 / 60, body: body(10) };
-    currentFrame++; h.service.nextVelocity(request, outVec()); settleService(h.service);
-    currentFrame++;
-    assert.ok(Math.hypot(h.service.nextVelocity(request, outVec()).x, h.service.nextVelocity(request, outVec()).y) > 0);
-    const state = h.service._unitState.get(unit);
-    assert.ok(state.activeFieldId && h.service._field.debugRefCount(state.activeFieldId) === 1);
-    let pendingFrames = 0;
-    for (let frame = 1; frame <= 8; frame++) {
-        target.set(120 + frame * 30, 0); currentFrame++;
-        const velocity = h.service.nextVelocity(request, outVec());
-        if (state.replacementReadiness === 'pending') {
-            pendingFrames++;
-            assert.ok(Math.hypot(velocity.x, velocity.y) > 0, 'retained safe route stopped while replacement was pending');
-        }
-        assert.ok(h.service.debugStats.schedulerLastWork <= 4096);
-        assert.ok(h.service._field.debugEntries <= 32 && h.service._field.debugBytes <= 8388608);
-    }
-    assert.ok(pendingFrames > 0, 'moving target must exercise a coalesced pending replacement');
-    wall.enabled = false; h.service.invalidate(); currentFrame++; h.service.nextVelocity(request, outVec());
-    assert.strictEqual(state.activeFieldId, '', 'geometry revision must clear retained field ownership');
-    target.activeInHierarchy = false; currentFrame++; h.service.nextVelocity(request, outVec());
-    assert.strictEqual(state.activeFieldId, '', 'invalid target must not retain a stale field');
-    h.service.releaseUnit(unit); h.service.destroy();
 });
 
 if (process.env.NAV_HARNESS_ONLY !== '1' && !process.exitCode) console.log('enemy navigation core tests passed');

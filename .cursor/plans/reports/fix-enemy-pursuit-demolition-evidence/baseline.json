@@ -1,0 +1,49 @@
+{
+  "commit": "8f55b7bacb11871fbba2ad904fe8f36502bbf4bd",
+  "status": [
+    "M  assets/resources/prefabs/character/pref_hero_01.prefab",
+    "M  assets/resources/prefabs/character/pref_hero_02.prefab",
+    " M openspec/changes/enemy-break-blocking-log/proposal.md",
+    " M openspec/changes/enemy-break-blocking-log/specs/enemy-break-blocking-log/spec.md",
+    " M openspec/changes/enemy-unified-navigation/proposal.md",
+    " M openspec/changes/enemy-unified-navigation/specs/enemy-unified-navigation/spec.md",
+    "?? .cursor/plans/fix-enemy-pursuit-demolition.md",
+    "?? .cursor/plans/reports/fix-enemy-pursuit-demolition-evidence/",
+    "?? openspec/changes/fix-enemy-pursuit-demolition/"
+  ],
+  "protectedHeroPrefabs": [
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\prefabs\\character\\pref_hero_01.prefab",
+      "Hash": "C1576385562CC6DD840397F17BBD0F44833A6BDEBA878749C6E219E71DA2CE8D"
+    },
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\assets\\resources\\prefabs\\character\\pref_hero_02.prefab",
+      "Hash": "7368144775E59D2D76DB11CF10936D2548173732688941E0E06C31FDDD02A478"
+    }
+  ],
+  "sources": [
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\assets\\scripts\\core\\FlowField.ts",
+      "Hash": "DFB5B4B2D777D7B2F067115B84A277880E2C2C28CFA829FFD1A428691DBA7A01"
+    },
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\assets\\scripts\\core\\EnemyNavigation.ts",
+      "Hash": "87A15604A0A88BF0D4E6532827C2818A58FF61805B34E1C7924C174F438E4A62"
+    },
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-navigation.cjs",
+      "Hash": "3420C7DC138FD2760CEFA78753EA518F8B304298CD68C76B15C0011D1B314D29"
+    },
+    {
+      "Path": "C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs",
+      "Hash": "2A891A1B0A05886AA83C749594ABB874FF4C7CB18F45C89DD97E2229ABDBC1F3"
+    }
+  ],
+  "acceptedLimits": {
+    "cellSize": 30,
+    "maxCells": 262144,
+    "cacheEntries": 32,
+    "cacheBytes": 8388608,
+    "workUnitsPerFrame": 4096
+  }
+}

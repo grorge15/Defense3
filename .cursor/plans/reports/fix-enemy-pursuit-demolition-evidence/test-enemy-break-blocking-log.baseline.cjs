@@ -127,13 +127,13 @@ function advanceToAttack(f,e) {
 }
 function recovery(e){return e._scheduled.filter(s=>s.delay===(e instanceof EnemyMinion ? .8 : 1.2)).at(-1).cb;}
 
-test('AC-SELECTED-ROUTE: a direct Hard-safe leg selects its Log even when the physical map has a gap',()=>{
+test('AC-UNIFIED: a collider gap is usable without castle or entrance configuration',()=>{
     const f=fixture({logRect:{xMin:-117.5,xMax:10,yMin:-9.5,yMax:9.5}});
-    assert.strictEqual(blocking(f)?.target,f.log.n);assert.strictEqual(magnitude(normal(f)),0);
+    assert.strictEqual(blocking(f),null);assert(magnitude(normal(f))>0);
     assert(!f.nav._area.castlePolygon);assert(!f.nav._area.portals);f.nav.destroy();
 });
 test('AC-NEGATIVE: a full hard seal cannot be traversed or demolished',()=>{
-    const f=fixture();mark(f.log.n,Kind.Hard);assert.strictEqual(blocking(f),null);
+    const f=fixture();mark(f.log.n,Kind.Hard);assert.strictEqual(blocking(f),null);assert.strictEqual(magnitude(normal(f)),0);
     assert(!f.nav.canAttackObstacle(f.unit,f.log.n,f.body,300));f.nav.destroy();
 });
 test('AC-NONLOG: an additional hard divider makes destroying the log pointless',()=>{
@@ -142,7 +142,7 @@ test('AC-NONLOG: an additional hard divider makes destroying the log pointless',
 });
 test('AC-CLASSIFY: unsupported Destructible stays solid; Ignore overrides compatibility',()=>{
     const f=fixture();f.log.n.components.delete(Log);mark(f.log.n,Kind.Destructible);
-    assert.strictEqual(blocking(f),null);assert(!f.nav.canAttackObstacle(f.unit,f.log.n,f.body,300));
+    assert.strictEqual(blocking(f),null);assert.strictEqual(magnitude(normal(f)),0);
     mark(f.log.n,Kind.Ignore);h.advanceFrame();assert.strictEqual(blocking(f),null);assert(magnitude(normal(f))>0);f.nav.destroy();
 });
 test('AC-CANDIDATES: unrelated living Building and Barrier do not suppress blocking Log',()=>{
@@ -178,13 +178,11 @@ for(const Type of [EnemyMinion,EnemyBoss]) {
         assert.strictEqual(e._blockingObstacle,null);assert(pos(f.unit).y>before.y);
         assert.strictEqual(Type===EnemyMinion?e._target:e._lockedTarget,f.target);f.nav.destroy();return details;
     });
-    test(`AC-SELECTED-ROUTE: ${Type.name} demolishes an intersecting Log instead of taking the physical detour`,()=>{
-        const f=fixture({logRect:{xMin:-20,xMax:20,yMin:-9.5,yMax:9.5}});
-        f.nav._prepareFrame();
-        const physical=settled(f,()=>{f.nav._prepareFrame();return f.nav._field.direction(pos(f.unit),pos(f.target),f.body,f.nav._area);});
-        assert(physical.fieldId,'physical-only route must require a detour field around the Log');
-        const e=enemy(f,Type),details=advanceToAttack(f,e);
-        assert(details.moved>0);assert.strictEqual(e._blockingObstacle,f.log.n);f.nav.destroy();
+    test(`AC-ALTERNATE: ${Type.name} follows the existing gap without damaging Log`,()=>{
+        const f=fixture({logRect:{xMin:-117.5,xMax:-35,yMin:-9.5,yMax:9.5}}),e=enemy(f,Type),hp=f.log.c._hp;
+        const speed=Type===EnemyMinion?GameConfig.minionMoveSpeed:GameConfig.bossMoveSpeed;
+        for(let i=0;i<128+Math.ceil(600/(speed*.25));i++){step(f,e);assert.strictEqual(e._blockingObstacle,null);if(pos(f.unit).y>50)break;}
+        assert(pos(f.unit).y>50,'must actually cross the gap');assert.strictEqual(f.log.c._hp,hp);f.nav.destroy();
     });
     test(`AC-GENERATION: ${Type.name} old same-life hit/recovery cannot affect next attack`,()=>{
         const f=fixture(),e=enemy(f,Type);advanceToAttack(f,e);const oldHit=base.getHit(),oldRecovery=recovery(e);
@@ -246,16 +244,13 @@ test('AC-SHARED: 200 units x 300 stable frames reuse settled diagnostics without
     const before={...f.nav.debugStats,graphs:f.nav._field.debugGraphBuildCount,fields:f.nav._field.buildCount};
     for(let frame=0;frame<300;frame++){h.advanceFrame();for(const unit of units)assert(f.nav.blockingObstacle({...f.request,unit},32)?.target===f.log.n);}
     const after={...f.nav.debugStats,graphs:f.nav._field.debugGraphBuildCount,fields:f.nav._field.buildCount};
-    for(const key of ['fullSceneScan','graphs','fields'])assert.strictEqual(after[key],before[key],key);
-    assert(after.surfaceScans-before.surfaceScans<=2,'surface queries must be bounded by source flow cells');
-    assert(after.selectedCacheHits-before.selectedCacheHits>=59998,'selected-route cache must serve stable peers');
-    assert(after.selectedCacheMisses-before.selectedCacheMisses<=2,'only the two source flow cells may scan the selected leg');
-    sample(f,'shared');f.nav.destroy();assert.strictEqual(f.nav._field.debugBytes,0);return {before,after,cache:f.nav._selectedBlockerCache.size};
+    for(const key of ['fullSceneScan','blockingScans','surfaceScans','graphs','fields'])assert.strictEqual(after[key],before[key],key);
+    sample(f,'shared');f.nav.destroy();assert.strictEqual(f.nav._field.debugBytes,0);return {before,after};
 });
-test('AC-INVALIDATE: a Hard blocker inserted before the selected Log clears the direct-leg cache',()=>{
-    const f=fixture();assert.strictEqual(blocking(f)?.target,f.log.n);
-    const version=f.nav._area.obstacleVersion;f.box('airWall-new-building',{xMin:-300,xMax:300,yMin:-110,yMax:-90});
-    h.advanceFrame();assert.strictEqual(blocking(f),null);assert(f.nav._area.obstacleVersion>version);
-    assert(!f.nav._selectedBlockerCache.size);f.nav.destroy();
+test('AC-INVALIDATE: a building inserted while a graph is pending cancels obsolete work',()=>{
+    const f=fixture();assert.strictEqual(f.nav.blockingObstacle(f.request,32),null);assert(f.nav._field.debugPendingJobs>0);
+    const version=f.nav._area.obstacleVersion;f.box('airWall-new-building',{xMin:-300,xMax:300,yMin:90,yMax:110});
+    assert.strictEqual(blocking(f),null);assert(f.nav._area.obstacleVersion>version);assert(f.nav._field.debugJobStats.cancelled>0);
+    assert.strictEqual(magnitude(normal(f)),0);f.nav.destroy();
 });
 fs.writeFileSync(path.join(evidenceDir,'tests.json'),JSON.stringify({results,frameSamples},null,2));

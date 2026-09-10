@@ -1003,6 +1003,15 @@
 | **解决** | 生产者导航通知去重；候选 blocker 注册与相关变换/生命周期事件置脏；同帧通知合并到一次真实几何/拓扑提交，稳定帧只统一检查 blocker；共享占用/连通图、按连通标签筛选与有界缓存替代逐候选 BFS。真实变更仍更新，不等待动画结束。 |
 | **验证状态** | 300 帧×200 单位、10 个 blocker 仅新增 3000 次检查、全场扫描/签名新增零；重复无变化通知零提交。实际 bounds 无解冷查询仅一图零目标场，中位数仍约 291ms，保留冷启动卡顿风险；热 200 次约 8.19ms，移动体型/换目标格 200 次约 9.82ms。机器结果不等于 5–10 FPS 症状已恢复，须 Creator 重新编译最终代码后实玩验证。 |
 
+### v6（2026-09-10）：移动目标停步与可绕行 Log 不拆除
+
+| 项 | 说明 |
+|---|---|
+| **现象** | player 持续跨 flow cell 移动时，敌人会在 replacement field pending 期间停步；固定且可攻击的 Log 即使位于已选路线且物理图存在绕路，也会被绕开。 |
+| **原因** | 单位在每次目标格变化时释放已结算 field，并把 pending 当成零速度；旧拆障判断先证明完整物理图无路，因而让可绕行路线压制了路线上的 Log。 |
+| **解决** | `EnemyNavigation` 保留 current-geometry-safe settled field，合并一个 pending replacement 并在其完成前继续安全移动；规划 area 只保留 Hard，完整物理 area 仍用于 sweep、攻击面和碰撞。selected leg 的首个合格 Destructible 会成为临时目标，Hard 或无资格对象仍阻止拆除。 |
+| **验证状态** | TypeScript、三份 OpenSpec、核心导航与拆障 harness 均通过；construction benchmark 重试通过（slice p95 6.805ms，4096 work/frame）。未做 Creator 实玩。 |
+
 ---
 
 ## fix-root-sorting-order-auto-bind — 根节点 SortingOrder2D 不给子 Sprite 补 Sorting2D

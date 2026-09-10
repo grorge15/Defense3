@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Fixed blocking log diversion
-小怪和Boss SHALL 仅在原始有效目标无法通过合法路径到达有效追踪或攻击位置、且固定可攻击滚木确实阻断该路径时，将该滚木作为临时阻路目标；普通目标优先级不因此改变。
+小怪和Boss SHALL 在固定可攻击滚木位于所选 Hard-safe 追踪路线的当前执行路径上时，将该滚木作为临时阻路目标；普通目标优先级不因此改变。滚木在摧毁前仍保留真实碰撞，Hard 障碍继续决定合法路线。
 
 #### Scenario: Log blocks the only open entrance
 - **WHEN** 两侧入口已关闭、中间开放入口的通道或端点被固定可攻击滚木挡住，而移除该滚木后存在通向原目标的合法路径
@@ -15,9 +15,9 @@
 - **WHEN** 地面网格存在通向原目标的连通路径，但固定滚木阻断实际必须完成的入口通道，且没有其它开放可达入口
 - **THEN** 敌人按实际入口路线识别阻路滚木，不因网格连通而停在入口外；走到攻击表面期间持续完成这次必要拆除，摧毁后恢复原路线
 
-#### Scenario: Original objective remains reachable
-- **WHEN** 原目标可直接到达，或存在绕过滚木的合法替代路径或其它开放入口
-- **THEN** 敌人继续追踪原目标，不被沿途或附近的滚木抢走目标
+#### Scenario: A physical detour exists around the selected blocking log
+- **WHEN** 原目标的所选 Hard-safe 路线经过固定可攻击滚木，而完整物理障碍图中还存在绕过该滚木的合法替代路径或其它开放入口
+- **THEN** 敌人仍将该路线上的滚木作为临时目标并按合法攻击表面拆除，不改用该物理绕路
 
 #### Scenario: A replacement point is not a reachable objective
 - **WHEN** 导航找到原目标附近的可达替代位置，但从该位置仍不能合法接近或攻击原目标，且固定滚木是路径阻断原因

@@ -1,0 +1,292 @@
+{
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "testResults": [
+    {
+      "name": "AC-SHARED: 200 identical requests build one distance field and later reuse without rebuild",
+      "passed": true
+    },
+    {
+      "name": "AC-SHARED: body size and target cell isolate cache entries; obstacle invalidation rebuilds",
+      "passed": true
+    },
+    {
+      "name": "AC-COMPONENTS: full-height hard divider keeps disconnected labels distinct after settling",
+      "passed": true
+    },
+    {
+      "name": "AC-SHARED: retained fields are released by owner and pruned only after becoming stale",
+      "passed": true
+    },
+    {
+      "name": "AC-NAVSTALL: normal requests use bounded fair fields while connectivity stays diagnostic-only",
+      "passed": true
+    },
+    {
+      "name": "AC-TRISTATE: pending diagnostic queries retry on the same revision and cache only settled results",
+      "passed": true
+    },
+    {
+      "name": "AC-NAVSTALL: partial work is unpublished and invalidation cannot resurrect it",
+      "passed": true
+    },
+    {
+      "name": "AC-CONFIG: production flow grid and scheduler budget are centralized",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: shared field routes around wall gap and returns unreachable when sealed",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: diagonal descent cannot cut through blocked corner",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: body expansion makes narrow passage usable for small body only",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: body collider offset participates in bounds and obstacle checks",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: blocked building target resolves to reachable approach cell",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: target replacement is selected from current reachable component",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: walkable ground polygon constrains movement beyond bounds and obstacles",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: 20-cell lookahead is capped while still moving toward reachable far point",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: sweep stops before a thin wall under large frame delta",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: negative coordinates and bounds are respected",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: overlapping avoidance returns stable bounded separation",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: 32/50 minion hysteresis thresholds are explicit",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: boss target priority keeps soldier over structure over hero over player",
+      "passed": true
+    },
+    {
+      "name": "AC-UNIFIED: physical flow ignores former castle and portal metadata",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: same-cell target still moves until close threshold",
+      "passed": true
+    },
+    {
+      "name": "AC-CORE: nearestWalkable preserves already-walkable exact target",
+      "passed": true
+    },
+    {
+      "name": "AC-RUNTIME-CONTRACT: navigation world velocity converts once at the Box2D boundary",
+      "passed": true
+    },
+    {
+      "name": "AC-RUNTIME-CONTRACT: active polygon air walls enter the navigation obstacle snapshot",
+      "passed": true
+    },
+    {
+      "name": "AC-RUNTIME-CONTRACT: target-self overlap permits attack but another wall still blocks it",
+      "passed": true
+    },
+    {
+      "name": "AC-RUNTIME-CONTRACT: a sealed hard component produces a reachable boundary approach",
+      "passed": true
+    },
+    {
+      "name": "AC-SERVICE: nextVelocity refreshes obstacles and buckets once per frame for many units",
+      "passed": true
+    },
+    {
+      "name": "AC-SERVICE: 200 same-body entrance route requests reuse one retained field",
+      "passed": true
+    },
+    {
+      "name": "AC-READY-LATENCY: actual service frames publish both production body fields within the fixed cap",
+      "passed": true,
+      "details": {
+        "enqueueFrame": 11,
+        "minionReadyFrame": 32,
+        "bossReadyFrame": 33,
+        "schedulerWork": 93401
+      }
+    },
+    {
+      "name": "AC-UNIFIED: missing walkable ground fails closed, then requires no entrance configuration",
+      "passed": true
+    },
+    {
+      "name": "AC-SERVICE: releaseUnit removes stale peer from lifecycle avoidance",
+      "passed": true
+    },
+    {
+      "name": "AC-SERVICE: destroy unregisters scene service listeners and clears singleton",
+      "passed": true
+    },
+    {
+      "name": "AC-ACTUAL: EnemyMinion uses actual 32/50 hysteresis helper",
+      "passed": true
+    },
+    {
+      "name": "AC-ACTUAL: EnemyAI damage frame requires navigation line of sight",
+      "passed": true
+    },
+    {
+      "name": "AC-ACTUAL: EnemyBoss pickTarget keeps real priority and generation invalidates callbacks",
+      "passed": true
+    },
+    {
+      "name": "AC-ACTUAL: EnemySpawner stale pool callback does not respawn reused minion",
+      "passed": true
+    },
+    {
+      "name": "AC-FAST: clear direction and approach requests hold no fields or graphs, including arrival",
+      "passed": true
+    },
+    {
+      "name": "AC-UNREACHABLE: shared connected components replace 289 fields and reuse across 200 starts",
+      "passed": true
+    },
+    {
+      "name": "AC-LOG-CONTACT: blocked starts and epsilon contact use zero graphs and resume outside",
+      "passed": true
+    },
+    {
+      "name": "AC-CACHE: 10000 targets/body requests and 1000 revisions stay bounded even with retained IDs",
+      "passed": true,
+      "details": {
+        "queries": 10000,
+        "revisionChanges": 1000,
+        "budget": {
+          "entries": 8,
+          "bytes": 262144,
+          "cells": 4096
+        },
+        "stats": {
+          "visitedCells": 0,
+          "candidates": 0,
+          "hits": 0,
+          "misses": 0,
+          "peakBytes": 22704,
+          "peakEntries": 8,
+          "lineChecks": 100000,
+          "pointChecks": 468400,
+          "approachHits": 0
+        }
+      }
+    },
+    {
+      "name": "AC-CACHE-BYTES: byte pressure evicts retained fields before the entry limit",
+      "passed": true,
+      "details": {
+        "budget": {
+          "entries": 64,
+          "bytes": 8192,
+          "cells": 4096
+        },
+        "stats": {
+          "visitedCells": 0,
+          "candidates": 0,
+          "hits": 0,
+          "misses": 0,
+          "peakBytes": 5664,
+          "peakEntries": 2,
+          "lineChecks": 3000,
+          "pointChecks": 22500,
+          "approachHits": 0
+        }
+      }
+    },
+    {
+      "name": "AC-SELECTED-ROUTE: direct selected Log is available without a physical-detour graph",
+      "passed": true
+    },
+    {
+      "name": "AC-INVALIDATE: 300 stable frames x 200 units checks blockers once/frame, never enemy boxes",
+      "passed": true,
+      "details": {
+        "frames": 300,
+        "units": 200,
+        "blockerChecks": 3000,
+        "stats": {
+          "fullSceneScan": 1,
+          "trackedColliderChecks": 3010,
+          "signatureBuild": 0,
+          "invalidateRequests": 0,
+          "geometryCheckRequests": 0,
+          "effectiveCommits": 1,
+          "geometryChanges": 10,
+          "blockingScans": 0,
+          "surfaceScans": 0,
+          "selectedCacheHits": 0,
+          "selectedCacheMisses": 0,
+          "schedulerFrames": 301,
+          "schedulerWork": 0,
+          "schedulerLastWork": 0
+        }
+      }
+    },
+    {
+      "name": "AC-INVALIDATE: static physics transform notifications preserve pending shared flow work",
+      "passed": true
+    },
+    {
+      "name": "AC-INVALIDATE: structural, animation, topology and same-frame notified transactions commit exact snapshots",
+      "passed": true
+    },
+    {
+      "name": "AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real service and final safe speed",
+      "passed": true,
+      "details": {
+        "translatingFrames": 600,
+        "roles": [
+          "actual Minion",
+          "actual Boss"
+        ],
+        "log": "actual readonly Log isAttackable/getPhase",
+        "graphs": 1,
+        "fields": 3,
+        "stats": {
+          "visitedCells": 928,
+          "candidates": 999,
+          "hits": 1193,
+          "misses": 1,
+          "peakBytes": 23168,
+          "peakEntries": 8,
+          "lineChecks": 29967,
+          "pointChecks": 123798,
+          "approachHits": 592
+        }
+      }
+    },
+    {
+      "name": "AC-REF: service releases a detour field when switching to direct or invalid destination",
+      "passed": true
+    },
+    {
+      "name": "AC-CONTINUITY: retained settled route stays safe while a moving target replacement is pending",
+      "passed": true
+    }
+  ]
+}
