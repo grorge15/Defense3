@@ -1,0 +1,1 @@
+Change 'enemy-break-blocking-log' is valid

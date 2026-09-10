@@ -1,0 +1,1876 @@
+{
+  "phase": "after",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "f5ab38b4339431118902690695abe247e1e2f2507ba55c378e4d9bbf1d0bdad9",
+  "harnessHash": "0acc67aeb493682c3d5f626c8f7d8738cd3553d991e1b926dd82c02d7e75b8e9",
+  "sceneHash": "a9b4f61e9648d09be1c0878ee32e614eef92f2e2e280355ca3fe814802d686b7",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 11.082799999999963,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 10.824700000000007
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 5.137300000000039,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.973500000000399
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 5.2789000000000215,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.857199999999921
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 4.40319999999997,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.349799999999732
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 3.9599000000000046,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 3.9195000000004825
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 144.99479999999994,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 84940,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 84940,
+        "peakEntries": 2,
+        "lineChecks": 31093,
+        "pointChecks": 110102,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 143.7165,
+        "approachMs": 144.99079999999992
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 133.26819999999998,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 84940,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 84940,
+        "peakEntries": 2,
+        "lineChecks": 31093,
+        "pointChecks": 110102,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 132.6049999999999,
+        "approachMs": 133.26570000000004
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 131.1766,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 84940,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 84940,
+        "peakEntries": 2,
+        "lineChecks": 31093,
+        "pointChecks": 110102,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 130.62350000000004,
+        "approachMs": 131.17460000000005
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 129.79629999999997,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 84940,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 84940,
+        "peakEntries": 2,
+        "lineChecks": 31093,
+        "pointChecks": 110102,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 129.2557999999999,
+        "approachMs": 129.79430000000002
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 128.62670000000003,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 84940,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 84940,
+        "peakEntries": 2,
+        "lineChecks": 31093,
+        "pointChecks": 110102,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 128.07909999999993,
+        "approachMs": 128.62469999999996
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 0.4055000000000746,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.3306999999999789
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 0.31999999999993634,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.29789999999979955
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 0.3080999999999676,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.29909999999995307
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 0.2400000000000091,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.23499999999989996
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 0.23370000000022628,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.23000000000024556
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 0.011200000000144428,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.010399999999890497
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 0.0027000000000043656,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0020999999999276042
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 0.0025000000000545697,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0017000000000280124
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 0.003300000000081127,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0018000000000029104
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 0.002199999999902502,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0017000000000280124
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 8.919499999999971,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 8.871000000000777
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 4.770899999999983,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.727200000001176
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 5.3641999999999825,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 5.298299999997198
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 4.839899999999943,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.8100000000004
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 4.368400000000065,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 200,
+        "pointChecks": 6200,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 4.337700000002087
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 291.1413,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 179693,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 179693,
+        "peakEntries": 2,
+        "lineChecks": 67518,
+        "pointChecks": 238467,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 290.6005,
+        "approachMs": 291.1398999999999
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 290.73980000000006,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 179693,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 179693,
+        "peakEntries": 2,
+        "lineChecks": 67518,
+        "pointChecks": 238467,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 290.2040000000002,
+        "approachMs": 290.73800000000006
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 292.13369999999986,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 179693,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 179693,
+        "peakEntries": 2,
+        "lineChecks": 67518,
+        "pointChecks": 238467,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 291.5912000000001,
+        "approachMs": 292.13110000000006
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 290.8199999999997,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 179693,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 179693,
+        "peakEntries": 2,
+        "lineChecks": 67518,
+        "pointChecks": 238467,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 290.10779999999977,
+        "approachMs": 290.8180000000002
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 290.7071000000001,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 1,
+      "entries": 2,
+      "bytes": 179693,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 0,
+        "misses": 1,
+        "peakBytes": 179693,
+        "peakEntries": 2,
+        "lineChecks": 67518,
+        "pointChecks": 238467,
+        "approachHits": 0
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 290.1087000000002,
+        "approachMs": 290.7053000000001
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 0.11319999999977881,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.10800000000017462
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 0.10900000000037835,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.10619999999971697
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 0.11090000000012878,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.10809999999992215
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 0.1091999999998734,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.1066000000000713
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 0.10800000000017462,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 5,
+        "pointChecks": 155,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.10559999999986758
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 0.001900000000205182,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0014000000001033186
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 0.0016999999998006388,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0013000000003557943
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 0.0037000000002080924,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.002199999999902502
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 0.0024000000003070454,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0016000000000531145
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 0.0016999999998006388,
+      "builds": 0,
+      "cache": 0,
+      "graphs": 0,
+      "entries": 0,
+      "bytes": 0,
+      "stats": {
+        "visitedCells": 0,
+        "candidates": 0,
+        "hits": 0,
+        "misses": 0,
+        "peakBytes": 0,
+        "peakEntries": 0,
+        "lineChecks": 0,
+        "pointChecks": 1,
+        "approachHits": 0
+      },
+      "cpu": {
+        "approachMs": 0.0012000000001535227
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 0,
+      "coldMs": 116.79219999999987,
+      "ms": 9.201799999999821,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 116.4592000000016,
+        "approachMs": 125.89649999999892
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 1,
+      "coldMs": 113.75630000000001,
+      "ms": 9.369599999999991,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 113.41759999999704,
+        "approachMs": 123.04779999999664
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 2,
+      "coldMs": 109.87480000000005,
+      "ms": 8.713199999999688,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 109.53229999999894,
+        "approachMs": 118.49560000000156
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 3,
+      "coldMs": 109.9394000000002,
+      "ms": 8.7824999999998,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 109.57879999999795,
+        "approachMs": 118.67300000000114
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 4,
+      "coldMs": 109.69889999999987,
+      "ms": 8.5921000000003,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 109.31580000000167,
+        "approachMs": 118.24289999999746
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 0,
+      "coldMs": 118.47370000000001,
+      "ms": 10.880200000000059,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 117.9399000000003,
+        "approachMs": 128.72359999999844
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 1,
+      "coldMs": 111.45899999999983,
+      "ms": 9.948699999999917,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 111.1610999999989,
+        "approachMs": 121.07059999999956
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 2,
+      "coldMs": 111.23079999999982,
+      "ms": 9.908500000000004,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 111.0170999999973,
+        "approachMs": 120.81820000000153
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 3,
+      "coldMs": 110.41539999999986,
+      "ms": 10.080900000000383,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 110.19669999999905,
+        "approachMs": 120.16969999999628
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 4,
+      "coldMs": 110.82009999999991,
+      "ms": 9.991599999999835,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 110.60019999999986,
+        "approachMs": 120.48610000000235
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 0,
+      "coldMs": 237.7238000000002,
+      "ms": 8.194099999999708,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 237.50140000000647,
+        "approachMs": 245.86589999999342
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 1,
+      "coldMs": 237.8728999999994,
+      "ms": 8.174200000000383,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 237.63260000000264,
+        "approachMs": 245.99849999999515
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 2,
+      "coldMs": 239.1971999999996,
+      "ms": 8.354500000000371,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 238.96000000000095,
+        "approachMs": 247.50180000000182
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 3,
+      "coldMs": 239.02119999999923,
+      "ms": 8.362099999999373,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 238.78500000000167,
+        "approachMs": 247.3336000000072
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 4,
+      "coldMs": 237.53549999999996,
+      "ms": 8.157000000000153,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 237.30170000000817,
+        "approachMs": 245.6406999999972
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 0,
+      "coldMs": 239.27250000000004,
+      "ms": 9.65479999999934,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 239.0586000000103,
+        "approachMs": 248.59379999999237
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 1,
+      "coldMs": 238.8154999999997,
+      "ms": 9.819000000000415,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 238.607099999992,
+        "approachMs": 248.3001999999924
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 2,
+      "coldMs": 239.2442000000001,
+      "ms": 9.870300000000498,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 239.0449000000017,
+        "approachMs": 248.77660000000287
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 3,
+      "coldMs": 240.5034999999998,
+      "ms": 9.661000000000058,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 240.32670000000053,
+        "approachMs": 249.8406000000159
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 4,
+      "coldMs": 239.67680000000018,
+      "ms": 9.915500000000065,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 239.49909999999727,
+        "approachMs": 249.2599999999975
+      }
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "round": 0,
+      "ms": 22.338300000000345,
+      "stableMs": 22.338300000000345,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 8.05380000000605
+      }
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "round": 1,
+      "ms": 12.441399999999703,
+      "stableMs": 12.441399999999703,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 8.2425000000012
+      }
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "round": 2,
+      "ms": 11.782500000000255,
+      "stableMs": 11.782500000000255,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 7.148199999994176
+      }
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "round": 3,
+      "ms": 11.211300000000847,
+      "stableMs": 11.211300000000847,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 7.902699999988727
+      }
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "round": 4,
+      "ms": 11.557000000000698,
+      "stableMs": 11.557000000000698,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 7.426099999997859
+      }
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "medianMs": 5.137300000000039,
+      "p95Ms": 11.082799999999963
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 131.1766,
+      "p95Ms": 144.99479999999994
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "medianMs": 0.3080999999999676,
+      "p95Ms": 0.4055000000000746
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 0.0027000000000043656,
+      "p95Ms": 0.011200000000144428
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "medianMs": 8.7824999999998,
+      "p95Ms": 9.369599999999991
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "medianMs": 9.991599999999835,
+      "p95Ms": 10.880200000000059
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "medianMs": 4.839899999999943,
+      "p95Ms": 8.919499999999971
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 290.8199999999997,
+      "p95Ms": 292.13369999999986
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "medianMs": 0.1091999999998734,
+      "p95Ms": 0.11319999999977881
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 0.001900000000205182,
+      "p95Ms": 0.0037000000002080924
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "medianMs": 8.194099999999708,
+      "p95Ms": 8.362099999999373
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "medianMs": 9.819000000000415,
+      "p95Ms": 9.915500000000065
+    },
+    {
+      "bounds": "service",
+      "name": "STABLE-300-INVALIDATE-5",
+      "medianMs": 11.782500000000255,
+      "p95Ms": 22.338300000000345
+    }
+  ]
+}

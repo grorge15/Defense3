@@ -3,9 +3,31 @@ import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { EnemyNavigation } from '../core/EnemyNavigation';
 import { EnemyMinion } from './EnemyMinion';
 
 const { ccclass, property } = _decorator;
+
+@ccclass('EnemyEntranceBinding')
+export class EnemyEntranceBinding {
+    @property({ tooltip: 'Entrance id. 1 and 3 close after their wall completes; 2 stays open.' })
+    id = 2;
+
+    @property({ type: Node, tooltip: 'World marker on the exterior side of this stair.' })
+    outside: Node | null = null;
+
+    @property({ type: Node, tooltip: 'World marker on the castle/interior side of this stair.' })
+    inside: Node | null = null;
+
+    @property({ type: Node, tooltip: 'Optional wall plot root that closes this entrance when built.' })
+    closePlot: Node | null = null;
+
+    @property({ tooltip: 'Passage width in world units.' })
+    width = GameConfig.enemyEntranceWidth;
+
+    @property({ tooltip: 'Initial open state. Entrance 2 should remain open.' })
+    open = true;
+}
 
 /**
  * 远端刷怪：对象池 + 死亡 5s 后在原 SpawnPoint 重生；上限读 GameConfig.poolMaxEnemies。
@@ -27,6 +49,21 @@ export class EnemySpawner extends Component {
     @property({ type: Node, tooltip: '右侧刷怪点' })
     rightSpawnRoot: Node | null = null;
 
+    @property({ type: Node, tooltip: 'NavBounds min marker. Optional; defaults to GameConfig bounds.' })
+    navBoundsMin: Node | null = null;
+
+    @property({ type: Node, tooltip: 'NavBounds max marker. Optional; defaults to GameConfig bounds.' })
+    navBoundsMax: Node | null = null;
+
+    @property({ type: [Node], tooltip: 'CastleArea polygon markers in world XY order.' })
+    castleArea: Node[] = [];
+
+    @property({ type: [Node], tooltip: 'Walkable ground polygon markers in world XY order. Navigation fails closed when unset.' })
+    walkableGround: Node[] = [];
+
+    @property({ type: [EnemyEntranceBinding], tooltip: 'Three stair entrances; id 2 is permanently open.' })
+    entrances: EnemyEntranceBinding[] = [];
+
     private _timer = 0;
     private _alive = 0;
     /** 远端刷怪开局直接启用 */
@@ -37,8 +74,11 @@ export class EnemySpawner extends Component {
     private _rightSpawnRoot: Node | null = null;
     private readonly _pool: EnemyMinion[] = [];
     private readonly _spawnOrigin = new Map<EnemyMinion, Node>();
+    private readonly _spawnGeneration = new Map<EnemyMinion, number>();
+    private readonly _pendingRespawn = new Set<EnemyMinion>();
     private readonly _spawnCursor = new Map<string, number>();
     private readonly _spawnPoints: Node[] = [];
+    private _navigationConfigKey = '';
 
     private readonly _leftSpawnTick = (): void => {
         if (this._leftStopped || !this._leftSpawnRoot) {
@@ -63,12 +103,14 @@ export class EnemySpawner extends Component {
 
     start(): void {
         this._resolveTarget();
+        this._configureNavigation();
         this._activateFarSpawning();
     }
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         this.unscheduleAllCallbacks();
+        EnemyNavigation.get(this.node.scene)?.destroy();
     }
 
     setTarget(target: Node | null): void {
@@ -112,6 +154,8 @@ export class EnemySpawner extends Component {
             return false;
         }
         this._spawnOrigin.set(minion, point);
+        this._pendingRespawn.delete(minion);
+        this._spawnGeneration.set(minion, (this._spawnGeneration.get(minion) ?? 0) + 1);
         minion.node.setWorldPosition(point.worldPosition);
         minion.reset();
         minion.setForceChaseTarget(true);
@@ -145,15 +189,25 @@ export class EnemySpawner extends Component {
     }
 
     private _onMinionDied = (minion: EnemyMinion): void => {
+        if (this._pendingRespawn.has(minion)) {
+            return;
+        }
+        this._pendingRespawn.add(minion);
         this._alive = Math.max(0, this._alive - 1);
         const origin = this._spawnOrigin.get(minion) ?? this.spawnPoint;
+        const generation = this._spawnGeneration.get(minion) ?? 0;
         this.scheduleOnce(() => {
+            this._pendingRespawn.delete(minion);
             if (!minion?.isValid || !origin?.isValid) {
+                return;
+            }
+            if (minion.node.activeInHierarchy || this._spawnGeneration.get(minion) !== generation) {
                 return;
             }
             if (this._alive >= GameConfig.poolMaxEnemies) {
                 return;
             }
+            this._spawnGeneration.set(minion, generation + 1);
             minion.node.setWorldPosition(origin.worldPosition);
             minion.reset();
             minion.setForceChaseTarget(true);
@@ -234,6 +288,12 @@ export class EnemySpawner extends Component {
 
     private _onBuildComplete = (payload: { buildType?: string; spawnSide?: string }): void => {
         const side = payload?.spawnSide;
+        if (payload?.buildType === 'wall') {
+            EnemyNavigation.get(this.node.scene)?.syncClosedEntranceFromPlot(
+                (payload as { plotRoot?: Node }).plotRoot ?? null,
+                side,
+            );
+        }
         if (side === 'left' || side === 'right') {
             this.stopSide(side);
         }
@@ -257,5 +317,51 @@ export class EnemySpawner extends Component {
             minion.setForceChaseTarget(true);
             minion.setTarget(this.target);
         }
+    }
+
+    private _configureNavigation(): void {
+        const service = EnemyNavigation.get(this.node.scene);
+        if (!service) {
+            return;
+        }
+        const key = this._navigationConfigSignature();
+        if (key === this._navigationConfigKey) {
+            return;
+        }
+        this._navigationConfigKey = key;
+        service.configure({
+            boundsMin: this.navBoundsMin,
+            boundsMax: this.navBoundsMax,
+            castlePolygon: this.castleArea,
+            walkablePolygon: this.walkableGround,
+            entrances: this.entrances.map((e) => ({
+                id: e.id,
+                outside: e.outside,
+                inside: e.inside,
+                closePlot: e.closePlot,
+                width: e.width,
+                open: e.id === 2 ? true : e.open,
+            })),
+        });
+    }
+
+    private _navigationConfigSignature(): string {
+        const parts = [
+            this.navBoundsMin?.uuid ?? '',
+            this.navBoundsMax?.uuid ?? '',
+            ...this.castleArea.map((n) => n?.uuid ?? ''),
+            ...this.walkableGround.map((n) => n?.uuid ?? ''),
+            ...this.entrances.map((e) =>
+                [
+                    e.id,
+                    e.outside?.uuid ?? '',
+                    e.inside?.uuid ?? '',
+                    e.closePlot?.uuid ?? '',
+                    e.width,
+                    e.id === 2 ? true : e.open,
+                ].join(':'),
+            ),
+        ];
+        return parts.join('|');
     }
 }

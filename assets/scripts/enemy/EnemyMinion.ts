@@ -14,6 +14,8 @@ import {
 import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
+import { EnemyNavigation } from '../core/EnemyNavigation';
+import { FlowBody, stableFlowBody } from '../core/FlowField';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { VisualFacing } from '../core/VisualFacing';
@@ -25,8 +27,17 @@ import { EnemyAI } from './EnemyAI';
 
 const { ccclass, property } = _decorator;
 
-const PEER_SEPARATION = 36;
-const PLAYER_SEPARATION = 48;
+const PLAYER_SOFT_SEPARATION = 24;
+
+export function resolveMinionAttackHysteresis(inAttackHysteresis: boolean, distance: number): boolean {
+    if (distance <= GameConfig.enemyMinionAttackEnterRange) {
+        return true;
+    }
+    if (inAttackHysteresis && distance <= GameConfig.enemyMinionAttackExitRange) {
+        return true;
+    }
+    return false;
+}
 
 /**
  * 小怪：Dynamic + linearVelocity；非 sensor，与 Static airWall / 固定滚木物理碰撞。
@@ -53,14 +64,17 @@ export class EnemyMinion extends Component {
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
     private readonly _tmpPos = new Vec3();
-    private readonly _peerPos = new Vec3();
     private readonly _selfRect = new Rect();
     private readonly _logRect = new Rect();
     private _airWalls: BoxCollider2D[] = [];
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
+    private _blockingLog: Log | null = null;
+    private _lifeGeneration = 0;
+    private _attackGeneration = 0;
     private _forceChaseTarget = false;
+    private _inAttackHysteresis = false;
     private _currentLocomotionClip = '';
     private readonly _visualFacing = new VisualFacing();
 
@@ -96,6 +110,13 @@ export class EnemyMinion extends Component {
 
     setTarget(target: Node | null): void {
         this._ensureRuntimeRefs();
+        if (this._target !== target) {
+            this._blockingLog = null;
+            this._attackGeneration++;
+            this._isAttacking = false;
+            this._inAttackHysteresis = false;
+            EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
+        }
         this._target = target;
         this._ai?.setTarget(target);
     }
@@ -108,30 +129,37 @@ export class EnemyMinion extends Component {
         if (this._isDead || !this._ai || this._isAttacking) {
             return;
         }
-        // 与 update 中 meleeRange 一致，避免分离半径大于 attackRange 时出手失败
-        const range = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
-        if (!this._ai.beginAttack(range)) {
+        const range = GameConfig.enemyMinionAttackEnterRange;
+        const log = this._blockingLog, target = this._target;
+        if (!this._ai.beginAttack(range, log)) {
             return;
         }
         this._isAttacking = true;
-        this._visualFacing.faceByTarget(this.visualNode, this.node, this._target);
+        const life = this._lifeGeneration, attack = ++this._attackGeneration;
+        let hit = false;
+        const valid = (): boolean => this._lifeGeneration === life && this._attackGeneration === attack &&
+            !this._isDead && this.node.isValid && this.node.activeInHierarchy && this._target === target &&
+            !!target?.isValid && target.activeInHierarchy && !target.getComponent(Player)?.isDead;
+        const damage = (): void => {
+            if (hit || !valid()) return;
+            hit = true;
+            if (log) { if (this._blockingLog === log) this._ai?.applyLogDamage(log, range); }
+            else this._ai?.applyAttackDamage(range);
+        };
+        this._visualFacing.faceByTarget(this.visualNode, this.node, log?.node ?? target);
         if (this.visualNode) {
             // minion frame_012 → 0.4s
             playAttackWithFrameHit(
                 this.visualNode,
                 'attack',
-                () => {
-                    if (!this._isDead) {
-                        this._ai?.applyAttackDamage(range);
-                    }
-                },
+                damage,
                 0.45,
             );
         } else {
-            this._ai.applyAttackDamage(range);
+            damage();
         }
         this.scheduleOnce(() => {
-            this._isAttacking = false;
+            if (valid()) this._isAttacking = false;
         }, 0.8);
     }
 
@@ -156,11 +184,14 @@ export class EnemyMinion extends Component {
     }
 
     reset(): void {
+        this._lifeGeneration++;
+        this._blockingLog = null;
         this._ensureRuntimeRefs();
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.minionMaxHp;
         this._target = null;
         this._forceChaseTarget = false;
+        this._inAttackHysteresis = false;
         this._isDead = false;
         this._canMove = true;
         this._isAttacking = false;
@@ -168,6 +199,7 @@ export class EnemyMinion extends Component {
         this._log = null;
         this._ai?.reset();
         this._ai?.setTarget(null);
+        EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -194,13 +226,9 @@ export class EnemyMinion extends Component {
             return;
         }
 
-        const barrier = this._ai?.findNearestBarrier(this.attackRange) ?? null;
-        if (barrier && barrier.isAlive() && barrier.node.activeInHierarchy) {
-            this._halt(true);
-            return;
-        }
-
-        if (!this._target || !this._target.activeInHierarchy) {
+        if (!this._target?.isValid || !this._target.activeInHierarchy || this._target.getComponent(Player)?.isDead) {
+            this._blockingLog = null;
+            EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this._halt(false);
             return;
         }
@@ -212,33 +240,76 @@ export class EnemyMinion extends Component {
         const dy = this._targetPos.y - this._selfPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // 分离半径 48 曾大于 attackRange 40 → 永远摸不到攻击距；出手距至少覆盖分离
-        const meleeRange = Math.max(this.attackRange, PLAYER_SEPARATION + 8);
         if (!this._forceChaseTarget && dist > GameConfig.minionAggroRange) {
             this._halt(false);
             return;
         }
-        if (dist <= meleeRange) {
+        const size = this._bodySize();
+        const nav = EnemyNavigation.get(this.node.scene);
+        const request = { unit: this.node, target: this._target, role: 'minion' as const,
+            speed: GameConfig.minionMoveSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
+        if (this._isAttacking && this._blockingLog) { this._halt(false); return; }
+        const diversion = nav?.blockingLog(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
+        if (this._blockingLog !== (diversion?.log ?? null)) {
+            nav?.resetUnit(this.node);
+            this._inAttackHysteresis = false;
+        }
+        this._blockingLog = diversion?.log ?? null;
+        if (diversion && nav) {
+            if (nav.canAttackLog(this.node, diversion.log, size, GameConfig.enemyMinionAttackEnterRange)) {
+                this._halt(true); return;
+            }
+            nav.nextLogVelocity(request, diversion, this._velocity);
+            this._adjustVelocityAgainstLog();
+            nav.constrainFinalVelocity(this.node, size, _dt, GameConfig.minionMoveSpeed, this._velocity);
+            if (this._rb) this._rb.linearVelocity = this._velocity;
+            this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
+            this._updateLocomotionAnim(true);
+            return;
+        }
+        const shouldHoldForAttack = resolveMinionAttackHysteresis(this._inAttackHysteresis, dist);
+        this._inAttackHysteresis = shouldHoldForAttack;
+        if (dist <= GameConfig.enemyMinionAttackEnterRange) {
             this._halt(true);
             return;
         }
+        if (shouldHoldForAttack) {
+            this._halt(false);
+            return;
+        }
 
-        const size = AirWallAabb.bodySize(this.node);
-        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
-        AirWallAabb.steerDirection(
-            this._selfPos,
-            this._targetPos,
-            size.w,
-            size.h,
-            walls,
-            this._velocity,
-        );
-        this._velocity.x *= GameConfig.minionMoveSpeed;
-        this._velocity.y *= GameConfig.minionMoveSpeed;
+        if (nav) {
+            nav.nextVelocity(
+                {
+                    unit: this.node,
+                    target: this._target,
+                    role: 'minion',
+                    speed: GameConfig.minionMoveSpeed,
+                    dt: _dt,
+                    body: { width: size.w, height: size.h, offsetX: size.offsetX, offsetY: size.offsetY },
+                    stopDistance: GameConfig.enemyMinionAttackEnterRange,
+                },
+                this._velocity,
+            );
+        } else {
+            const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
+            AirWallAabb.steerDirection(
+                this._selfPos,
+                this._targetPos,
+                size.w,
+                size.h,
+                walls,
+                this._velocity,
+            );
+            this._velocity.x *= GameConfig.minionMoveSpeed;
+            this._velocity.y *= GameConfig.minionMoveSpeed;
+        }
 
-        this._biasVelocityAwayFromPeers();
         this._biasVelocityAwayFromPlayer();
         this._adjustVelocityAgainstLog();
+        // Preserve legal rolling-log carry speed, but never let post-processing bypass the map sweep.
+        const finalSpeed = Math.max(GameConfig.minionMoveSpeed, Math.hypot(this._velocity.x, this._velocity.y));
+        nav?.constrainFinalVelocity(this.node, size, _dt, finalSpeed, this._velocity);
 
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
@@ -251,6 +322,10 @@ export class EnemyMinion extends Component {
     private _adjustVelocityAgainstLog(): void {
         const log = this._resolveLog();
         if (!log || log.getPhase() === 'failed') {
+            return;
+        }
+        // Fixed logs are constrained by the physical body sweep, not the larger visual rectangle.
+        if (log.getPhase() === 'fixed' && EnemyNavigation.get(this.node.scene)) {
             return;
         }
 
@@ -293,7 +368,7 @@ export class EnemyMinion extends Component {
         const dx = this._selfPos.x - this._targetPos.x;
         const dy = this._selfPos.y - this._targetPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist >= PLAYER_SEPARATION) {
+        if (dist >= PLAYER_SOFT_SEPARATION) {
             return;
         }
         if (dist < 0.001) {
@@ -307,35 +382,6 @@ export class EnemyMinion extends Component {
         if (approach > 0) {
             this._velocity.x += nx * approach;
             this._velocity.y += ny * approach;
-        }
-    }
-
-    private _biasVelocityAwayFromPeers(): void {
-        const scene = this.node.scene;
-        if (!scene) {
-            return;
-        }
-        const peers = scene.getComponentsInChildren(EnemyMinion);
-        const speed = GameConfig.minionMoveSpeed;
-        for (const peer of peers) {
-            if (peer === this || !peer.isValid || peer._isDead || !peer.node.activeInHierarchy) {
-                continue;
-            }
-            peer.node.getWorldPosition(this._peerPos);
-            const dx = this._selfPos.x - this._peerPos.x;
-            const dy = this._selfPos.y - this._peerPos.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist >= PEER_SEPARATION) {
-                continue;
-            }
-            if (dist < 0.0001) {
-                this._velocity.x += speed * 0.5;
-                continue;
-            }
-            const push = ((PEER_SEPARATION - dist) / PEER_SEPARATION) * speed;
-            const inv = 1 / dist;
-            this._velocity.x += dx * inv * push;
-            this._velocity.y += dy * inv * push;
         }
     }
 
@@ -365,14 +411,7 @@ export class EnemyMinion extends Component {
     }
 
     private _resolveLog(): Log | null {
-        if (this._log?.isValid && this._log.node.activeInHierarchy) {
-            return this._log;
-        }
-        const scene = this.node.scene;
-        if (!scene) {
-            return null;
-        }
-        this._log = scene.getComponentInChildren(Log);
+        this._log = EnemyNavigation.get(this.node.scene)?.contactLog() ?? null;
         return this._log;
     }
 
@@ -412,6 +451,10 @@ export class EnemyMinion extends Component {
     }
 
     private _die(): void {
+        const life = ++this._lifeGeneration;
+        this._blockingLog = null;
+        this._isAttacking = false;
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
         this._isDead = true;
         this._canMove = false;
         this._velocity.set(0, 0);
@@ -431,9 +474,27 @@ export class EnemyMinion extends Component {
         coinSys?.dropAt(this._selfPos);
 
         this.scheduleOnce(() => {
+            if (this._lifeGeneration !== life || !this._isDead) return;
+            this._lifeGeneration++;
             this.node.active = false;
+            EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this.onReturnedToPool?.(this);
         }, 0.5);
+    }
+
+    onDestroy(): void {
+        this.onDisable();
+    }
+
+    onDisable(): void {
+        this._lifeGeneration++;
+        this._blockingLog = null;
+        this._isAttacking = false;
+        this._target = null;
+        this._ai?.setTarget(null);
+        this._ai?.reset();
+        this._halt(false);
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
     }
 
     private _updateLocomotionAnim(isMoving: boolean): void {
@@ -473,5 +534,28 @@ export class EnemyMinion extends Component {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+    }
+
+    private _bodySize(): FlowBody & { w: number; h: number } {
+        const box = this.node.getComponent(BoxCollider2D);
+        if (box) {
+            const physical = EnemyNavigation.bodyForCollider?.(box);
+            if (physical) return { ...physical, w: physical.width, h: physical.height };
+            const aabb = box.worldAABB;
+            const w = Math.abs(aabb.width);
+            const h = Math.abs(aabb.height);
+            if (w >= 1 && h >= 1) {
+                this.node.getWorldPosition(this._selfPos);
+                const stable = stableFlowBody({
+                    width: w,
+                    height: h,
+                    offsetX: (aabb.xMin + aabb.xMax) * 0.5 - this._selfPos.x,
+                    offsetY: (aabb.yMin + aabb.yMax) * 0.5 - this._selfPos.y,
+                });
+                return { ...stable, w: stable.width, h: stable.height };
+            }
+        }
+        const fallback = AirWallAabb.bodySize(this.node);
+        return { ...fallback, width: fallback.w, height: fallback.h, offsetX: 0, offsetY: 0 };
     }
 }

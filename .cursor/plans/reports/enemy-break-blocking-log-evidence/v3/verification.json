@@ -1,0 +1,29 @@
+{
+  "originalTestCallBodiesPreserved": true,
+  "originalStaticTestCalls": 23,
+  "dedicated": {
+    "passed": 39,
+    "total": 39
+  },
+  "regression": {
+    "passed": 44,
+    "total": 44
+  },
+  "gates": {
+    "dedicated": 0,
+    "regression": 0,
+    "tsc": 0,
+    "diffCheck": 0
+  },
+  "hashes": [
+    {
+      "file": "assets/scripts/core/EnemyNavigation.ts",
+      "sha256": "75d66f5460bdaaf55c6a3c8ba13b638923532246cfe8d487c227e43a54814831"
+    },
+    {
+      "file": ".cursor/scripts/test-enemy-break-blocking-log.cjs",
+      "sha256": "09b91b33af05923ec0f32a2d042e4f5d82762df5b0de73cd953285c31425f39d"
+    }
+  ],
+  "runtimeAcceptance": "Creator build exit 36; new build loaded Main and emitted LOCK OK without observed script errors. Full closed-side-stairs demolition live sequence remains unverified. See creator-verification.json."
+}

@@ -1,0 +1,67 @@
+{
+  "phase": "before",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "7de6085c3d32e941355f352bf49200f328e2358b0227f7cbd3830fd01c37c508",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "round": 0,
+      "stableMs": 19.347099999999955,
+      "stableScans": 300,
+      "duplicateVersionDelta": 5,
+      "diagnostics": null
+    },
+    {
+      "round": 1,
+      "stableMs": 21.87970000000007,
+      "stableScans": 300,
+      "duplicateVersionDelta": 5,
+      "diagnostics": null
+    },
+    {
+      "round": 2,
+      "stableMs": 10.9996000000001,
+      "stableScans": 300,
+      "duplicateVersionDelta": 5,
+      "diagnostics": null
+    },
+    {
+      "round": 3,
+      "stableMs": 11.63530000000003,
+      "stableScans": 300,
+      "duplicateVersionDelta": 5,
+      "diagnostics": null
+    },
+    {
+      "round": 4,
+      "stableMs": 10.671999999999912,
+      "stableScans": 300,
+      "duplicateVersionDelta": 5,
+      "diagnostics": null
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default"
+    },
+    {
+      "bounds": "scene"
+    }
+  ]
+}

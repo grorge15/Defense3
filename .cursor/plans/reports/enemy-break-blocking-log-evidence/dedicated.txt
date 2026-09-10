@@ -1,0 +1,31 @@
+ok - AC-ENTRY: endpoint obstruction selects a legal reachable surface and advances to damage range
+ok - AC-ALTERNATE: another legal entrance keeps the original target
+ok - AC-NONLOG: removing only the log cannot bypass a second sealed barrier
+ok - AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=true
+ok - AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=false
+ok - AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=true
+ok - AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=false
+ok - AC-BOSS-ORDINARY: normal-priority locked Log uses surface movement and deduplicated circle hit
+ok - AC-RESUME: EnemyMinion real destruction, HP event, collider removal and original pursuit
+ok - AC-DAMAGE: EnemyMinion no Visual single fallback and stale target before frame
+ok - AC-POOL: EnemyMinion old hit/recovery/death after disable/reset and new attack
+ok - AC-RESUME: EnemyBoss real destruction, HP event, collider removal and original pursuit
+ok - AC-DAMAGE: EnemyBoss no Visual single fallback and stale target before frame
+ok - AC-POOL: EnemyBoss old hit/recovery/death after disable/reset and new attack
+ok - AC-SAME: same-side inside/outside and nonnull replacement do not prove objective reachability
+ok - AC-SAME: Minion 32/50 early hold cannot suppress the blocking-log attack
+ok - AC-MOVING: real Log eligibility and cached fixed-to-moving transitions
+ok - AC-ALTERNATE/NONLOG: direct, same-side detour, no Log, illegal shortcut and missing config
+ok - AC-SURFACE: long log, offsets, alternate faces, thin non-log occlusion and large dt
+ok - AC-SHARED: 200 enemies x 300 frames positive/no-Log/non-Log negative counts
+ok - AC-SURFACE: contact stance blocked but a farther in-range stance can hit through a narrow slot
+ok - AC-ENTRY-FIXTURE: readonly Main.scene bindings and complete parent transforms
+ok - AC-CACHE: body/offset/region and exact same-cell terminal conditions are isolated
+ok - AC-CACHE: 10000 queries/1000 revisions, combined diagnostic/query LRU and byte pressure
+ok - AC-RESUME: EnemyMinion external destruction, moving objective and invalidation
+ok - AC-RESUME: EnemyBoss external destruction, moving objective and invalidation
+ok - AC-TARGET: Minion external assignment cancels old hit/recovery without polluting the next attack
+ok - AC-STRUCTURE: Boss original building is evaluated by its attack surface, not its occupied center
+ok - AC-SURFACE: physical rotation/scale/offset envelopes and exact contact epsilon
+ok - AC-ATTACK-GENERATION: EnemyMinion old same-life hit/recovery cannot affect next attack
+ok - AC-ATTACK-GENERATION: EnemyBoss old same-life hit/recovery cannot affect next attack

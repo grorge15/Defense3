@@ -1,0 +1,171 @@
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/v3/baseline/test-enemy-break-blocking-log.cjs b/.cursor/scripts/test-enemy-break-blocking-log.cjs
+index 4607003..2b1418a 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/v3/baseline/test-enemy-break-blocking-log.cjs
++++ b/.cursor/scripts/test-enemy-break-blocking-log.cjs
+@@ -7,6 +7,8 @@ const h = require('./test-enemy-navigation.cjs');
+ if (previous === undefined) delete process.env.NAV_HARNESS_ONLY;
+ else process.env.NAV_HARNESS_ONLY = previous;
+ const root = path.resolve(__dirname, '../..');
++const evidenceDir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/plans/reports/enemy-break-blocking-log-evidence');
++fs.mkdirSync(evidenceDir, {recursive:true});
+ const p = name => path.join(root, `assets/scripts/${name}.ts`);
+ const base = h.actualScriptMocks();
+ base.mocks[p('game/CoinSystem')] = { CoinSystem: class { static instance=null; } };
+@@ -77,15 +79,24 @@ test('AC-NONLOG: removing only the log cannot bypass a second sealed barrier', (
+     const f=fixture(); f.box('airWall-seal',{xMin:-200,xMax:200,yMin:80,yMax:100});
+     assert.strictEqual(f.nav.blockingLog(f.req,32),null); f.nav.destroy();
+ });
+-function enemy(f, Type, ordinaryLog=false, visual=true) {
++function enemy(f, Type, ordinaryLog=false, visual=true, prefab=null) {
+     const n=f.unit, b=new base.cc.BoxCollider2D(); b.node=n; b.enabled=true;
+-    b.size={width:f.body.width,height:f.body.height}; b.offset={x:f.body.offsetX||0,y:f.body.offsetY||0};
+-    n.worldScale={x:1,y:1,z:1}; n.worldRotation={x:0,y:0,z:0,w:1};
+-    Object.defineProperty(b,'worldAABB',{get(){ const at=pos(n); return new base.cc.Rect(at.x+b.offset.x-b.size.width/2,
+-        at.y+b.offset.y-b.size.height/2,b.size.width,b.size.height); }});
++    b.size=prefab?.size || {width:f.body.width,height:f.body.height};
++    b.offset=prefab?.offset || {x:f.body.offsetX||0,y:f.body.offsetY||0};
++    n.worldScale=prefab?.scale || {x:1,y:1,z:1}; n.worldRotation={x:0,y:0,z:0,w:1};
++    Object.defineProperty(b,'worldAABB',{get(){ const at=pos(n),body=EnemyNavigation.bodyForCollider(b);
++        return new base.cc.Rect(at.x+body.offsetX-body.width/2,at.y+body.offsetY-body.height/2,body.width,body.height); }});
+     n.components.set(base.cc.BoxCollider2D,b); n.components.set(base.cc.Collider2D,b);
+     n.addComponent(base.cc.RigidBody2D);
+-    const e=n.addComponent(Type); if(visual) e.visualNode=f.node('Visual',0,0);
++    const e=n.addComponent(Type);
++    if(visual) {
++        e.visualNode=prefab ? n.add(h.eventNode('Visual')) : f.node('Visual',0,0);
++        if(prefab) {
++            e.visualNode.worldScale={x:prefab.scale.x*prefab.visualScale.x,y:prefab.scale.y*prefab.visualScale.y,z:1};
++            const ui=e.visualNode.addComponent(base.cc.UITransform);
++            ui.contentSize=prefab.contentSize; ui.anchorPoint=prefab.anchorPoint;
++        }
++    }
+     e.onLoad();
+     if(Type===EnemyMinion) { e.setTarget(f.target); e.setForceChaseTarget(true); }
+     else { e._upsertTarget(f.target,'player'); if(ordinaryLog) e._upsertTarget(f.log.n,'log');
+@@ -274,7 +285,7 @@ test('AC-ENTRY-FIXTURE: readonly Main.scene bindings and complete parent transfo
+     f.nav._prepareFrame();
+     assert(f.nav._field.canReach(pos(f.unit),pos(f.target),f.body,f.nav._area));
+     geometry.verifiedMiddleReachable=true;
+-    fs.writeFileSync(path.join(root,'.cursor/plans/reports/enemy-break-blocking-log-evidence/scene-entrances.json'),JSON.stringify(geometry,null,2));
++    fs.writeFileSync(path.join(evidenceDir,'scene-entrances.json'),JSON.stringify(geometry,null,2));
+     f.nav.destroy();return geometry;
+ });
+ test('AC-CACHE: body/offset/region and exact same-cell terminal conditions are isolated',()=>{
+@@ -357,5 +368,115 @@ for(const Type of [EnemyMinion,EnemyBoss])test(`AC-ATTACK-GENERATION: ${Type.nam
+     assert.strictEqual(f.log.c._hp,hp);assert(e._isAttacking);base.getHit()();assert(f.log.c._hp<hp);
+     f.nav.destroy();
+ });
+-fs.mkdirSync(path.join(root,'.cursor/plans/reports/enemy-break-blocking-log-evidence'),{recursive:true});
+-fs.writeFileSync(path.join(root,'.cursor/plans/reports/enemy-break-blocking-log-evidence/tests.json'),JSON.stringify({results},null,2));
++function actualEntranceFixture(alternate=false) {
++    const geometry=JSON.parse(fs.readFileSync(path.join(evidenceDir,'scene-entrances.json'),'utf8'));
++    const f=fixture({body:{width:32.18,height:35.30,offsetX:2.56,offsetY:19.52},
++        rect:{xMin:-119.5,xMax:115.5,yMin:1639.397,yMax:1658.397}});
++    const marker=p=>f.node('v3-marker',p.x,p.y);
++    f.nav.configure({boundsMin:marker(geometry.boundsMin),boundsMax:marker(geometry.boundsMax),
++        castlePolygon:geometry.castle.map(marker),walkablePolygon:geometry.ground.map(marker),
++        entrances:geometry.entrances.map(e=>({...e,outside:marker(e.outside),inside:marker(e.inside),closePlot:null}))});
++    f.nav.setEntranceOpen(1,alternate); f.nav.setEntranceOpen(3,false);
++    f.unit.set(0,1900); f.target.set(0,1500); f.nav._prepareFrame();
++    return f;
++}
++test('V3-ROUTE: raw grid connectivity is not a usable entrance route',()=>{
++    const f=actualEntranceFixture();
++    assert(f.nav._field.canReach(pos(f.unit),pos(f.target),f.body,f.nav._area));
++    assert(!f.nav._entranceUsable(f.nav._entrances.get(2),f.body));
++    assert.strictEqual(Math.hypot(...Object.values(f.nav.nextVelocity(f.req,new base.cc.Vec2()))),0);
++    assert.strictEqual(f.nav.blockingLog(f.req,32)?.log,f.log.c);
++    f.nav.destroy();
++});
++test('V3-UPDATE: actual Minion crosses castle boundary, hits, destroys and resumes',()=>{
++    const f=actualEntranceFixture(),e=enemy(f,EnemyMinion); const start=pos(f.unit);
++    f.log.c._hp=GameConfig.minionAttackDamage;
++    let crossed=false,frames=0;
++    while(!e._isAttacking && frames++<3000) {
++        step(f,e,0.25);
++        if(f.nav.isInside(pos(f.unit))) { crossed=true; assert.strictEqual(e._blockingLog,f.log.c); }
++    }
++    assert(crossed,'must retain entry obligation after y=1700'); assert(e._isAttacking);
++    assert.strictEqual(e._target,f.target); const at=pos(f.unit);
++    assert(at.y<1700 && at.y>1560); assert(at.y<start.y);
++    base.getHit()(); assert.strictEqual(f.log.c._hp,0);
++    e._scheduled.find(s=>s.delay===0.8).cb(); step(f,e,0.25);
++    assert.strictEqual(e._blockingLog,null); assert(pos(f.unit).y<at.y);
++    f.nav.destroy(); return {frames,crossed,attackPosition:at};
++});
++test('V3-ALTERNATE: another usable entrance prevents demolition; non-Log seal does not cause it',()=>{
++    const f=actualEntranceFixture(true);
++    assert.strictEqual(f.nav.blockingLog(f.req,32),null);
++    assert(Math.hypot(f.nav.nextVelocity(f.req).x,f.nav.nextVelocity(f.req).y)>0);
++    f.nav.setEntranceOpen(1,false);
++    f.box('airWall-v3-seal',{xMin:-150,xMax:150,yMin:1580,yMax:1590});
++    h.advanceFrame(); assert.strictEqual(f.nav.blockingLog(f.req,32),null); f.nav.destroy();
++});
++test('V3-VISUAL: prefab Minion approaches from below using physical body despite overlapping Visual',()=>{
++    const data=JSON.parse(fs.readFileSync(path.join(root,'assets/resources/prefabs/character/enemy/pref_enemy_minion.prefab'),'utf8'));
++    const collider=data.find(c=>c.__type__==='cc.BoxCollider2D'),rootNode=data[collider.node.__id__];
++    const visual=data.find(c=>c.__type__==='cc.Node'&&c._name==='Visual');
++    const ui=visual._components.map(r=>data[r.__id__]).find(c=>c.__type__==='cc.UITransform');
++    const prefab={size:collider._size,offset:collider._offset,scale:rootNode._lscale,
++        visualScale:visual._lscale,contentSize:ui._contentSize,anchorPoint:ui._anchorPoint};
++    const f=actualEntranceFixture();f.unit.set(0,1500);f.target.set(0,1900);
++    const e=enemy(f,EnemyMinion,false,true,prefab); f.body=e._bodySize(); f.req.body=f.body;
++    let visualOverlapOutsideRange=false,frames=0;
++    while(!e._isAttacking&&frames++<1200) {
++        step(f,e,0.25);
++        const at=pos(f.unit),gap=f.log.b.worldAABB.yMin-(at.y+f.body.offsetY+f.body.height/2);
++        const visualTop=at.y+ui._contentSize.height*e.visualNode.worldScale.y*(1-ui._anchorPoint.y);
++        if(visualTop>f.log.b.worldAABB.yMin&&gap>32) {
++            visualOverlapOutsideRange=true; assert(e._rb.linearVelocity.y>0,'Visual must not truncate fixed-log approach');
++        }
++    }
++    assert(visualOverlapOutsideRange);assert(e._isAttacking);assert.strictEqual(e._blockingLog,f.log.c);
++    assert.strictEqual(e._target,f.target);const hp=f.log.c._hp;base.getHit()();
++    assert.strictEqual(f.log.c._hp,hp-GameConfig.minionAttackDamage);
++    f.nav.destroy();return {frames,body:f.body,prefab,attackPosition:pos(f.unit)};
++});
++test('V3-PHASE: same component and coordinates do not share same-side and transition results',()=>{
++    const f=actualEntranceFixture();f.unit.set(0,1690);
++    assert.strictEqual(f.nav.blockingLog(f.req,32),null);
++    const crossing=f.node('crossing',0,1690),req={...f.req,unit:crossing};
++    f.nav._unitState.set(crossing,{entranceId:2,phase:'transition',enteringInside:true,fieldId:''});
++    const route=f.nav.blockingLog(req,32);assert.strictEqual(route?.log,f.log.c);
++    assert.strictEqual(route.entry.enteringInside,true);assert(route.entry.transition);
++    assert.strictEqual(f.nav.blockingLog(f.req,32),null);
++    f.nav.nextLogVelocity(req,route);assert(f.nav._logEntries.has(crossing));
++    f.nav.resetUnit(crossing);assert(!f.nav._logEntries.has(crossing));
++    assert.strictEqual(f.nav.blockingLog(req,32),null);f.nav.destroy();
++});
++test('V3-REVERSE: Boss preserves exit direction and reaches a log hit',()=>{
++    const f=actualEntranceFixture();f.unit.set(0,1500);f.target.set(0,1900);
++    const e=enemy(f,EnemyBoss);f.nav._unitState.set(f.unit,
++        {entranceId:2,phase:'transition',enteringInside:false,fieldId:''});
++    const route=f.nav.blockingLog({...f.req,role:'boss'},56);
++    assert.strictEqual(route?.entry.enteringInside,false);
++    assert(advanceToAttack(f,e)>0);assert.strictEqual(e._blockingLog,f.log.c);
++    const hp=f.log.c._hp;base.getHit()();assert.strictEqual(f.log.c._hp,hp-GameConfig.bossAttackDamage);f.nav.destroy();
++});
++test('V3-OBLIGATION: alternate entrance, changed objective, release and destruction invalidate old entry state',()=>{
++    const f=actualEntranceFixture(),e=enemy(f,EnemyMinion);step(f,e,0.25);
++    assert(f.nav._logEntries.has(f.unit));f.unit.set(0,1690);
++    assert.strictEqual(f.nav.blockingLog(f.req,32)?.log,f.log.c);
++    f.nav.setEntranceOpen(1,true);assert.strictEqual(f.nav.blockingLog(f.req,32),null);
++    f.nav.setEntranceOpen(1,false);f.target.set(0,1900);
++    assert.strictEqual(f.nav.blockingLog(f.req,32)?.entry.enteringInside,false);
++    assert(!f.nav._logEntries.has(f.unit));
++    f.target.set(0,1500);f.unit.set(0,1900);step(f,e,0.25);assert(f.nav._logEntries.has(f.unit));
++    f.nav.releaseUnit(f.unit);assert(!f.nav._logEntries.has(f.unit));
++    step(f,e,0.25);f.log.c.takeDamage(GameConfig.logMaxHp);step(f,e,0.25);
++    assert.strictEqual(e._blockingLog,null);assert(!f.nav._logEntries.has(f.unit));f.nav.destroy();
++});
++test('V3-SHARED: actual entrance obstruction reuses queries and graphs for 200 units over 300 frames',()=>{
++    const f=actualEntranceFixture(),units=Array.from({length:200},(_,i)=>f.node(`v3-peer-${i}`,0,1900));
++    const query=()=>{for(const unit of units)assert.strictEqual(f.nav.blockingLog({...f.req,unit},32)?.log,f.log.c);};
++    query();const before={...f.nav.debugStats,graphs:f.nav._field.debugGraphBuildCount,fields:f.nav._field.buildCount};
++    for(let i=0;i<300;i++){h.advanceFrame();query();}
++    const after={...f.nav.debugStats,graphs:f.nav._field.debugGraphBuildCount,fields:f.nav._field.buildCount};
++    for(const key of ['fullSceneScan','blockingScans','surfaceScans','graphs','fields'])assert.strictEqual(after[key],before[key],key);
++    assert(f.nav._field.debugEntries<=32);assert(f.nav._field.debugBytes<=8388608);
++    f.nav.destroy();return {before,after};
++});
++fs.writeFileSync(path.join(evidenceDir,'tests.json'),JSON.stringify({results},null,2));

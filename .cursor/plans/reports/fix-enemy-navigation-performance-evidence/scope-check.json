@@ -1,0 +1,82 @@
+{
+  "head": "0eaa18dc4db4a06313aed088ccd16c594ffec3a5",
+  "status": " M assets/resources/prefabs/item/pref_item_bow.prefab\n M assets/resources/prefabs/ui/pref_ui_game_over.prefab\n M assets/resources/prefabs/ui/pref_ui_hero_select.prefab\n M assets/scripts/building/BuildSystem.ts\n M assets/scripts/building/HeroShrine.ts\n M assets/scripts/character/Hero.ts\n M assets/scripts/character/Soldier.ts\n M assets/scripts/core/GameConfig.ts\n M assets/scripts/core/GameEvents.ts\n M assets/scripts/enemy/EnemyAI.ts\n M assets/scripts/enemy/EnemyBoss.ts\n M assets/scripts/enemy/EnemyMinion.ts\n M assets/scripts/enemy/EnemySpawner.ts\n M assets/scripts/item/Log.ts\n M assets/scripts/projectile/Arrow.ts\n M assets/scripts/ui/HeroSelectUI.ts\n M bugs.md\n?? .cursor/plans/enemy-shared-flow-field.md\n?? .cursor/plans/fix-defense-combat-expand.md\n?? .cursor/plans/fix-enemy-navigation-performance.md\n?? .cursor/plans/fix-log-initial-hero-select-pause.md\n?? .cursor/plans/reports/enemy-shared-flow-field-report.md\n?? .cursor/plans/reports/fix-defense-combat-expand-report.md\n?? .cursor/plans/reports/fix-enemy-navigation-performance-evidence/\n?? .cursor/plans/reports/fix-enemy-navigation-performance-report.md\n?? .cursor/plans/reports/fix-log-initial-hero-select-pause-report.md\n?? .cursor/scripts/bench-enemy-navigation.cjs\n?? .cursor/scripts/test-enemy-navigation.cjs\n?? .cursor/scripts/test-log-hero-select-pause.cjs\n?? assets/resources/sprite/UI/img_button.png\n?? assets/resources/sprite/UI/img_button.png.meta\n?? assets/resources/sprite/UI/label_down.png\n?? assets/resources/sprite/UI/label_down.png.meta\n?? assets/scripts/core/EnemyNavigation.ts\n?? assets/scripts/core/EnemyNavigation.ts.meta\n?? assets/scripts/core/FlowField.ts\n?? assets/scripts/core/FlowField.ts.meta\n?? openspec/changes/enemy-shared-flow-field/\n?? openspec/changes/fix-defense-combat-expand/\n?? openspec/changes/fix-log-initial-hero-select-pause/\n",
+  "diffStat": " assets/resources/prefabs/item/pref_item_bow.prefab |   2 +-\n .../resources/prefabs/ui/pref_ui_game_over.prefab  | 178 ++++++++++++++++++---\n .../prefabs/ui/pref_ui_hero_select.prefab          |   4 +-\n assets/scripts/building/BuildSystem.ts             |  18 ++-\n assets/scripts/building/HeroShrine.ts              |  10 +-\n assets/scripts/character/Hero.ts                   |   4 +\n assets/scripts/character/Soldier.ts                |  35 ++--\n assets/scripts/core/GameConfig.ts                  |  26 +++\n assets/scripts/core/GameEvents.ts                  |   4 +\n assets/scripts/enemy/EnemyAI.ts                    |  75 +++++++--\n assets/scripts/enemy/EnemyBoss.ts                  | 117 +++++++++-----\n assets/scripts/enemy/EnemyMinion.ts                | 141 +++++++++-------\n assets/scripts/enemy/EnemySpawner.ts               | 106 ++++++++++++\n assets/scripts/item/Log.ts                         |  43 ++---\n assets/scripts/projectile/Arrow.ts                 |  20 ---\n assets/scripts/ui/HeroSelectUI.ts                  | 166 ++++++++++++-------\n bugs.md                                            | 153 ++++++++++++++++++\n 17 files changed, 844 insertions(+), 258 deletions(-)\n",
+  "diffCheck": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "changedSinceBaseline": [
+    "assets/scripts/core/FlowField.ts",
+    "assets/scripts/core/EnemyNavigation.ts",
+    "assets/scripts/core/GameConfig.ts",
+    "assets/scripts/building/BuildSystem.ts",
+    "assets/scripts/enemy/EnemySpawner.ts",
+    "assets/scripts/enemy/EnemyMinion.ts",
+    "assets/scripts/enemy/EnemyBoss.ts",
+    ".cursor/scripts/test-enemy-navigation.cjs",
+    "assets/scripts/item/Log.ts",
+    "bugs.md",
+    ".cursor/plans/fix-defense-combat-expand.md",
+    ".cursor/plans/fix-enemy-navigation-performance.md",
+    ".cursor/plans/reports/fix-enemy-navigation-performance-report.md",
+    ".cursor/scripts/bench-enemy-navigation.cjs"
+  ],
+  "unexpected": [],
+  "hashes": {
+    "assets/scripts/core/FlowField.ts": "f5ab38b4339431118902690695abe247e1e2f2507ba55c378e4d9bbf1d0bdad9",
+    "assets/scripts/core/EnemyNavigation.ts": "8cf93868540aa5076d11c925c144876bda17dfc53d5506e7c6e7fe5e2de62426",
+    "assets/scripts/core/GameConfig.ts": "b76eaea52de4e5ebfec1acda1b521a6a508ea3157b4bafd70fb7750e67da4a0d",
+    "assets/scripts/building/BuildSystem.ts": "731bd1c767a96477c98ec4f318e981491e7c16bbe5bdd5cd23a8a9a50ec77a97",
+    "assets/scripts/enemy/EnemySpawner.ts": "6c67e779a9c210b23b21a9643d0120e7a5957fa755cb285e9e301145616375b1",
+    "assets/scripts/enemy/EnemyMinion.ts": "0a876106ec7bc37ac01d3f6bbc842d57d9387fb9944d38860b668cb29fa2c641",
+    "assets/scripts/enemy/EnemyBoss.ts": "883f5a341ff697ec62bdc750e39df99d6a88db15a245844eb52fa9f9d990ee56",
+    ".cursor/scripts/test-enemy-navigation.cjs": "084151199617ac0cfcd34af88d6d020f100ae1c3ed8d69bc038dbb21607a6703",
+    ".cursor/scripts/bench-enemy-navigation.cjs": "0acc67aeb493682c3d5f626c8f7d8738cd3553d991e1b926dd82c02d7e75b8e9",
+    ".cursor/plans/fix-enemy-navigation-performance.md": "677d74f3f2e5fa9117c3a0ca1863d9bf5a38949c822cae3d96fe27f975d5830f",
+    ".cursor/plans/reports/fix-enemy-navigation-performance-report.md": "b70e256c9d91b67ccc9308195daffafb0750c11ffaa7ed3e7ce5443c0f95f4b5",
+    "bugs.md": "a2aa7688a9c228b63175379f50cd6d0dc158dcdacda951670404f30e8ac67bbb"
+  },
+  "sceneHash": "a9b4f61e9648d09be1c0878ee32e614eef92f2e2e280355ca3fe814802d686b7",
+  "logHash": "ebad0c60f16f6a2f35f8ac8df8bc1fda5b44abba459a75a693d2dcac18c8a330",
+  "observedExternalChanges": [
+    "assets/scripts/item/Log.ts",
+    ".cursor/plans/fix-defense-combat-expand.md"
+  ],
+  "externalAttribution": {
+    "assets/scripts/item/Log.ts": [
+      ".cursor/plans/reports/fix-defense-combat-expand-report.md",
+      ".cursor/plans/reports/fix-log-initial-hero-select-pause-report.md"
+    ],
+    ".cursor/plans/fix-defense-combat-expand.md": [
+      ".cursor/plans/reports/fix-defense-combat-expand-report.md"
+    ]
+  },
+  "sharedHunks": {
+    "GameConfig": "Only enemyFlowCacheEntries, enemyFlowCacheBytes, enemyFlowMaxCells, enemyNavDiagnostics are task-owned. Fixed-log and initial-length constants retained from parallel builds.",
+    "BuildSystem": "Only redundant direct navigation invalidation removal is task-owned; expansion hide changes retained from parallel build."
+  },
+  "scopePassed": true,
+  "machine": {
+    "tsc": "npx tsc --noEmit --pretty false: exit 0, empty output",
+    "logic": 44,
+    "bench": "node .cursor/scripts/bench-enemy-navigation.cjs: exit 0",
+    "node": "v22.17.0",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz"
+  },
+  "evidenceHashes": {
+    "after-extended.json": "f0a118b79800c970c71112f47e75b848bed6b364bc427f92cfc375b208ade0f0",
+    "after-service.json": "c8d1af627601759e9b9cb92d71c53fd5bfedb39fd70a60c1331ecbbbe6d3019d",
+    "after.json": "23ad8068e1a7d39e29328f22c2e2cde08dbf154e53f214c0890a66a20ab1316d",
+    "before-extended.json": "7ab6fa7a00252373ada70f19e621dbe7b4dcc65865d3f1ab6047a4c8c3550dab",
+    "before-replay.json": "c8767612acb99d9db280880f88b90886cdda2077ab35649a29a06b9281d8a4b5",
+    "before-service.json": "29e9d00eb4f4787aee8d26df578a8adff9d8421c8ac8bd39dbff077511630cb0",
+    "before.json": "932923903b9f42436f3e93c2966d9fd3a0e546a4e23a64d0d9dd9c2d4f3bcca6",
+    "body-postprocess-before.json": "ed59f41627436aadab29acc474073308bc26696a6e4bef7540e9ad16248a4c59",
+    "logic-results.json": "be8f22ee0627eb7d5e095611fb1673c702b084c6483f5a8b2e18c8481f01d65f",
+    "scope-first-observation.json": "96aa23020ff2ddef9947e36898bf42f6e91de4fe56d34f6a72ccca5d0825747a"
+  }
+}

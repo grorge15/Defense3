@@ -1,0 +1,150 @@
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/v3/baseline/EnemyNavigation.ts b/assets/scripts/core/EnemyNavigation.ts
+index a48c789..a813365 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/v3/baseline/EnemyNavigation.ts
++++ b/assets/scripts/core/EnemyNavigation.ts
+@@ -19,7 +19,8 @@ import { GameEvents } from './GameEvents';
+ 
+ export type EnemyNavRole = 'minion' | 'boss';
+ export type EnemyRegion = 'outside' | 'transition' | 'inside';
+-export type BlockingLogRoute = { log: Log; point: FlowPoint };
++type LogEntry = { entranceId: number; enteringInside: boolean; transition: boolean };
++export type BlockingLogRoute = { log: Log; point: FlowPoint; entry?: LogEntry };
+ 
+ export type EnemyEntranceConfig = {
+     id: number;
+@@ -98,6 +99,7 @@ export class EnemyNavigation {
+     );
+     private readonly _entrances = new Map<number, EnemyEntranceConfig>();
+     private readonly _unitState = new Map<Node, UnitRouteState>();
++    private _logEntries = new WeakMap<Node, { target: Node; log: Log; entry: LogEntry }>();
+     private readonly _registeredUnits = new Set<Node>();
+     private readonly _unitPositions = new Map<Node, FlowPoint>();
+     private readonly _buckets = new Map<string, Node[]>();
+@@ -169,6 +171,7 @@ export class EnemyNavigation {
+         this._field.clear();
+         this._entrances.clear();
+         this._unitState.clear();
++        this._logEntries = new WeakMap();
+         this._registeredUnits.clear();
+         this._unitPositions.clear();
+         this._buckets.clear();
+@@ -242,6 +245,7 @@ export class EnemyNavigation {
+             this._field.release(state.fieldId);
+         }
+         this._unitState.delete(unit);
++        this._logEntries.delete(unit);
+         this._registeredUnits.delete(unit);
+         const pos = this._unitPositions.get(unit);
+         if (pos) {
+@@ -387,15 +391,28 @@ export class EnemyNavigation {
+             !this._hasConfiguredEntrance() || (this._area.castlePolygon?.length ?? 0) < 3) return null;
+         const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
+         if (!this._field.pointWalkable(from, body, this._area)) return null;
++        const selfInside = this.isInside(from), targetInside = this.isInside(target);
++        const pending = this._logEntries.get(request.unit);
++        const state = this._unitState.get(request.unit);
++        let entry: LogEntry | null = null;
++        if (pending && pending.target === request.target && this._fixedLog(pending.log) &&
++            pending.entry.enteringInside === targetInside) {
++            entry = pending.entry;
++        } else {
++            this._logEntries.delete(request.unit);
++            if (state?.phase === 'transition') entry = { entranceId: state.entranceId,
++                enteringInside: state.enteringInside, transition: true };
++            else if (selfInside !== targetInside) entry = { entranceId: 0, enteringInside: targetInside, transition: false };
++        }
+         const targetBox = request.target.getComponent(BoxCollider2D);
+         const targetRect = targetBox ? this._rectByCollider.get(targetBox) : undefined;
+-        if (!targetRect && this._field.lineClear(from, target, body, this._area)) return null;
+-        const condition = `blocking:${request.role}:${range}:${target.x},${target.y}:${targetRect ? JSON.stringify(targetRect) : ''}`;
++        if (!entry && !targetRect && this._field.lineClear(from, target, body, this._area)) return null;
++        const condition = `blocking:${request.role}:${range}:${selfInside}:${targetInside}:${JSON.stringify(entry)}:` +
++            `${target.x},${target.y}:${targetRect ? JSON.stringify(targetRect) : ''}`;
+         return this._field.sharedQuery(from, body, this._area, condition, () => {
+-            const reachable = (area: FlowArea): boolean => targetRect
+-                ? !!this._surface(from, targetRect, body, area, range, true)
+-                : this._field.canReach(from, target, body, area);
+-            if (reachable(this._area)) return null;
++            const reachable = (area: FlowArea): number | null =>
++                this._objectiveEntrance(from, target, targetRect, body, area, range, entry);
++            if (reachable(this._area) !== null) return null;
+             this.debugStats.blockingScans++;
+             for (const [box, rect] of this._rectByCollider) {
+                 const log = box.node.getComponent(Log);
+@@ -403,14 +420,34 @@ export class EnemyNavigation {
+                 // Diagnostic view never enters direction(), avoidance or the final movement sweep.
+                 const diagnostic: FlowArea = { ...this._area, obstacles: this._area.obstacles.filter(r => r !== rect),
+                     diagnosticOf: this._area, ignoredObstacle: rect };
+-                if (!reachable(diagnostic)) continue;
++                const entranceId = reachable(diagnostic);
++                if (entranceId === null) continue;
+                 const point = this._surface(from, rect, body, this._area, range);
+-                if (point) return { log: log!, point };
++                if (point) return { log: log!, point, entry: entry ? { ...entry, entranceId,
++                    transition: entry.transition && entry.entranceId === entranceId } : undefined };
+             }
+             return null;
+         });
+     }
+ 
++    private _objectiveEntrance(from: FlowPoint, target: FlowPoint, targetRect: FlowRect | undefined,
++        body: FlowBody, area: FlowArea, range: number, entry: LogEntry | null): number | null {
++        const finish = (start: FlowPoint): boolean => targetRect
++            ? !!this._surface(start, targetRect, body, area, range, true)
++            : this._field.canReach(start, target, body, area);
++        if (!entry) return finish(from) ? 0 : null;
++        const current = this._entrances.get(entry.entranceId);
++        const continuing = entry.transition && current && this._entranceUsable(current, body, area);
++        for (const entrance of this._entrances.values()) {
++            if (continuing && entrance !== current) continue;
++            if (!this._entranceUsable(entrance, body, area)) continue;
++            const first = nodePoint(entry.enteringInside ? entrance.outside! : entrance.inside!);
++            const second = nodePoint(entry.enteringInside ? entrance.inside! : entrance.outside!);
++            if (this._field.canReach(from, continuing ? second : first, body, area) && finish(second)) return entrance.id;
++        }
++        return null;
++    }
++
+     logRoute(unit: Node, log: Log, body: FlowBody, range: number): BlockingLogRoute | null {
+         this._prepareFrame();
+         const rect = this._logRect(log);
+@@ -432,6 +469,17 @@ export class EnemyNavigation {
+         out.set(0, 0); this._prepareFrame(); this._releaseField(request.unit);
+         if (!this._logRect(route.log) || request.dt <= 0 || request.speed <= 0) return out;
+         const from = nodePoint(request.unit);
++        // Callers reset ordinary routing when selecting a diversion. Restore its entry obligation here,
++        // from the shared route value, without treating crossing the castle edge as completing the stairs.
++        if (route.entry && request.target) {
++            const entrance = this._entrances.get(route.entry.entranceId);
++            const first = route.entry.enteringInside ? entrance?.outside : entrance?.inside;
++            const reach = Math.max(GameConfig.pathWaypointReachDistance, request.body.width);
++            const transition = route.entry.transition || this.isInside(from) === route.entry.enteringInside ||
++                (!!first && distSqPoint(from, nodePoint(first)) <= reach * reach);
++            this._logEntries.set(request.unit, { target: request.target, log: route.log,
++                entry: { ...route.entry, transition } });
++        }
+         const result = this._field.direction(from, route.point, request.body, this._area);
+         if (result.blocked || result.reached) return out;
+         const speed = Math.min(request.speed, Math.hypot(route.point.x-from.x, route.point.y-from.y)/request.dt);
+@@ -753,7 +801,7 @@ export class EnemyNavigation {
+         return portals;
+     }
+ 
+-    private _entranceUsable(entrance: EnemyEntranceConfig, body: FlowBody): boolean {
++    private _entranceUsable(entrance: EnemyEntranceConfig, body: FlowBody, area: FlowArea = this._area): boolean {
+         if (!entrance.open || entrance.width < Math.max(body.width, body.height)) {
+             return false;
+         }
+@@ -763,9 +811,9 @@ export class EnemyNavigation {
+         entrance.outside.getWorldPosition(_tmpA);
+         entrance.inside.getWorldPosition(_tmpB);
+         return (
+-            this._field.pointWalkable({ x: _tmpA.x, y: _tmpA.y }, body, this._area) &&
+-            this._field.pointWalkable({ x: _tmpB.x, y: _tmpB.y }, body, this._area) &&
+-            this._field.lineClear({ x: _tmpA.x, y: _tmpA.y }, { x: _tmpB.x, y: _tmpB.y }, body, this._area)
++            this._field.pointWalkable({ x: _tmpA.x, y: _tmpA.y }, body, area) &&
++            this._field.pointWalkable({ x: _tmpB.x, y: _tmpB.y }, body, area) &&
++            this._field.lineClear({ x: _tmpA.x, y: _tmpA.y }, { x: _tmpB.x, y: _tmpB.y }, body, area)
+         );
+     }
+ 

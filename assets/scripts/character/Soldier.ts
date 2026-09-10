@@ -1,5 +1,6 @@
 import {
     _decorator,
+    Animation,
     BoxCollider2D,
     Collider2D,
     Component,
@@ -62,6 +63,7 @@ export class Soldier extends Component {
     private _isDead = false;
     private _canAct = true;
     private _isAttacking = false;
+    private _attackSequence = 0;
     private _currentLocomotionClip = '';
     private _lockedAttackTarget: SoldierAttackTarget | null = null;
     private _retargetTimer = 0;
@@ -140,6 +142,8 @@ export class Soldier extends Component {
     }
 
     deactivate(): void {
+        this._attackSequence += 1;
+        this._isAttacking = false;
         this._canAct = false;
         this._velocity.set(0, 0);
         this._pathAgent.reset();
@@ -149,7 +153,7 @@ export class Soldier extends Component {
     }
 
     tryAttack(): void {
-        if (!this._canAct || this._isDead || this._attackTimer > 0) {
+        if (!this._canAct || this._isDead || this._isAttacking || this._attackTimer > 0) {
             return;
         }
 
@@ -161,19 +165,27 @@ export class Soldier extends Component {
 
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
+        const sequence = ++this._attackSequence;
+        const isCurrent = (): boolean =>
+            sequence === this._attackSequence && this._canAct && !this._isDead;
+        const clipName = this._deployment === 'tower' ? 'remote_attack' : 'melee_attack';
+        const state = this.visualNode?.getComponent(Animation)?.getState(clipName);
 
         const unlock = (): void => {
+            if (!isCurrent()) {
+                return;
+            }
             this._isAttacking = false;
             this._currentLocomotionClip = '';
         };
 
         if (this._deployment === 'tower') {
-            if (this.visualNode) {
+            if (this.visualNode && state) {
                 playAttackWithFrameHit(
                     this.visualNode,
                     'remoteAttack',
                     () => {
-                        if (enemy.node.isValid && !enemy.isDead) {
+                        if (isCurrent() && enemy.node.isValid && !enemy.isDead) {
                             this._spawnProjectile(enemy.node);
                             enemy.takeDamage(this.attackDamage);
                         }
@@ -181,33 +193,23 @@ export class Soldier extends Component {
                     0.9,
                     unlock,
                 );
-                this.scheduleOnce(() => {
-                    if (this._isAttacking) {
-                        unlock();
-                    }
-                }, 1.2);
             } else {
                 this._spawnProjectile(enemy.node);
                 enemy.takeDamage(this.attackDamage);
                 unlock();
             }
-        } else if (this.visualNode) {
+        } else if (this.visualNode && state) {
             playAttackWithFrameHit(
                 this.visualNode,
                 'meleeAttack',
                 () => {
-                    if (enemy.node.isValid && !enemy.isDead) {
+                    if (isCurrent() && enemy.node.isValid && !enemy.isDead) {
                         enemy.takeDamage(this.attackDamage);
                     }
                 },
                 0.5,
                 unlock,
             );
-            this.scheduleOnce(() => {
-                if (this._isAttacking) {
-                    unlock();
-                }
-            }, 0.9);
         } else {
             enemy.takeDamage(this.attackDamage);
             unlock();
@@ -235,6 +237,7 @@ export class Soldier extends Component {
     }
 
     reset(): void {
+        this._attackSequence += 1;
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.soldierMaxHp;
         this._target = null;
@@ -468,6 +471,8 @@ export class Soldier extends Component {
     }
 
     private _die(): void {
+        this._attackSequence += 1;
+        this._isAttacking = false;
         this._isDead = true;
         this._canAct = false;
         this._velocity.set(0, 0);

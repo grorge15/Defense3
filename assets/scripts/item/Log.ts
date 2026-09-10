@@ -7,7 +7,6 @@ import {
     Node,
     RigidBody2D,
     Size,
-    UITransform,
     Vec2,
     Vec3,
 } from 'cc';
@@ -42,8 +41,9 @@ export class Log extends Component {
     private _collider: BoxCollider2D | null = null;
     private _baseColliderWidth = 100;
     private _baseColliderHeight = 76;
+    private readonly _baseColliderOffset = new Vec2();
     private _phase: LogPhase = 'rolling';
-    private _currentLength = GameConfig.logMinLength;
+    private _currentLength = GameConfig.logInitialLength;
     private _isLocked = false;
     private _isFading = false;
     private _pushPlayer: Player | null = null;
@@ -65,6 +65,7 @@ export class Log extends Component {
         this._rb = this.getComponent(RigidBody2D);
         this._collider = this.getComponent(BoxCollider2D);
         if (this._collider) {
+            this._baseColliderOffset.set(this._collider.offset);
             // 必须在 _refreshLengthVisual 之前缓存；禁止用 segmentSize*length(=1) 覆盖成细条
             const w = Math.abs(this._collider.size.width);
             const h = Math.abs(this._collider.size.height);
@@ -96,7 +97,7 @@ export class Log extends Component {
         this._isFading = false;
         this._yellowTriggered = false;
         this._blueTriggered = false;
-        this._currentLength = GameConfig.logMinLength;
+        this._currentLength = GameConfig.logInitialLength;
         this._refreshLengthVisual();
         this._playRollAnim();
         if (this._pushPlayer) {
@@ -238,11 +239,10 @@ export class Log extends Component {
         this._fadeOut();
     }
 
-    /** 固定后改为固体碰撞，并同步碰撞盒与 Visual 世界尺寸 */
+    /** 固定后使用独立的本地碰撞盒，不随 Visual 长度缩放。 */
     private _enableAsSolidBarrier(): void {
         this._freezeVisualRotation();
         this._refreshLengthVisual();
-        this._syncColliderToVisual();
         if (this._collider) {
             this._collider.sensor = false;
             // 强制把尺寸写回物理世界（Static 切换后偶发不同步）
@@ -256,28 +256,6 @@ export class Log extends Component {
             this._rb.enabledContactListener = true;
         }
         this._hp = GameConfig.logMaxHp;
-    }
-
-    /** 用 Visual 的 contentSize×worldScale 对齐 BoxCollider2D，避免固定后长短不一致 */
-    private _syncColliderToVisual(): void {
-        if (!this._collider) {
-            return;
-        }
-        const visual = this.visualNode;
-        if (!visual) {
-            this._refreshLengthVisual();
-            return;
-        }
-        const ui = visual.getComponent(UITransform);
-        const ws = visual.worldScale;
-        if (ui) {
-            const w = Math.max(Math.abs(ui.contentSize.width * ws.x), 1);
-            const h = Math.max(Math.abs(ui.contentSize.height * ws.y), 1);
-            this._collider.size = new Size(w, h);
-            this._collider.offset = new Vec2(0, 0);
-            return;
-        }
-        this._refreshLengthVisual();
     }
 
     /** 使用 prefab 内置血条 */
@@ -461,7 +439,8 @@ export class Log extends Component {
     }
 
     private _refreshLengthVisual(): void {
-        const visualLengthScale = 1 + this._currentLength * 0.2;
+        const visualLengthScale = GameConfig.logVisualBaseScale
+            + this._currentLength * GameConfig.logVisualScalePerLength;
         if (this.visualNode) {
             this.visualNode.setScale(
                 this._baseVisualScale.x * visualLengthScale,
@@ -470,10 +449,14 @@ export class Log extends Component {
             );
         }
         if (this._collider) {
+            const fixed = this._phase === 'fixed';
             this._collider.size = new Size(
-                this._baseColliderWidth * visualLengthScale,
-                this._baseColliderHeight,
+                fixed ? GameConfig.logFixedColliderWidth : this._baseColliderWidth * visualLengthScale,
+                fixed ? GameConfig.logFixedColliderHeight : this._baseColliderHeight,
             );
+            this._collider.offset = fixed
+                ? new Vec2(GameConfig.logFixedColliderOffsetX, GameConfig.logFixedColliderOffsetY)
+                : new Vec2(this._baseColliderOffset.x, this._baseColliderOffset.y);
             // 拾取加长时必须 apply，否则物理盒仍是旧尺寸
             this._collider.apply();
         }

@@ -3,18 +3,22 @@ import {
     BlockInputEvents,
     Color,
     Component,
+    director,
+    Director,
     EventTouch,
+    isValid,
     Node,
     Sprite,
     SpriteFrame,
     UIOpacity,
     UITransform,
     Vec3,
-    tween,
 } from 'cc';
 import { HeroShrine } from '../building/HeroShrine';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
+import { GameManager } from '../game/GameManager';
+import { GamePhase } from '../game/GamePhase';
 
 const { ccclass, property } = _decorator;
 
@@ -63,6 +67,13 @@ export class HeroSelectUI extends Component {
     private _canClick = false;
     private _inited = false;
     private _listening = false;
+    private _destroyed = false;
+    private _ownsPause = false;
+    private _transition: 'closed' | 'opening' | 'idle' | 'closing' = 'closed';
+    private _elapsed = 0;
+    private _lastUiTime = 0;
+    private _pickedSlot = -1;
+    private readonly _cardHandlers: ((e: EventTouch) => void)[] = [];
     private readonly _tmpColor = new Color();
 
     onLoad(): void {
@@ -70,8 +81,13 @@ export class HeroSelectUI extends Component {
         this.ensureReady();
     }
 
+    onDisable(): void {
+        this._cleanupPanel();
+    }
+
     onDestroy(): void {
-        this._unbindCardTouches();
+        this._destroyed = true;
+        this._cleanupPanel();
         if (this._listening) {
             EventManager.instance.offEvent(
                 GameEvents.HERO_SELECT_REQUESTED,
@@ -87,6 +103,7 @@ export class HeroSelectUI extends Component {
      * UIManager / BuildSystem 在弹窗前调用，使监听挂上（无需先显示面板）。
      */
     ensureReady(): void {
+        if (this._destroyed) return;
         this._ensureInit();
         if (this._listening) {
             return;
@@ -143,6 +160,9 @@ export class HeroSelectUI extends Component {
     }
 
     private _onSelectRequested = (...args: unknown[]): void => {
+        if (this._destroyed || !this.enabled || GameManager.instance?.getPhase() === GamePhase.GameOver) {
+            return;
+        }
         this._ensureInit();
         const shrine = args[0] as HeroShrine | null;
         if (!shrine || this._busy) {
@@ -170,15 +190,22 @@ export class HeroSelectUI extends Component {
     };
 
     private _openPanel(): void {
+        this._ownsPause = !director.isPaused();
+        if (this._ownsPause) {
+            director.pause();
+        }
         this.node.active = true;
         this._canClick = false;
         this._applyOfferVisuals();
         this._bindCardTouches();
-        this._fadeIn(() => {
-            this._canClick = true;
-            this._startCardBob();
-            this._placeFinger(0);
-        });
+        if (this.fingerNode) this.fingerNode.active = false;
+        this._transition = 'opening';
+        this._elapsed = 0;
+        this._pickedSlot = -1;
+        this._lastUiTime = performance.now();
+        this._getOpacity().opacity = 0;
+        director.on(Director.EVENT_BEFORE_DRAW, this._onBeforeDraw, this);
+        director.on(Director.EVENT_BEFORE_SCENE_LAUNCH, this._closePanel, this);
     }
 
     private _applyOfferVisuals(): void {
@@ -230,14 +257,18 @@ export class HeroSelectUI extends Component {
         this._unbindCardTouches();
         for (let i = 0; i < this._cards.length; i++) {
             const card = this._cards[i];
-            card?.on(Node.EventType.TOUCH_END, this._makeCardHandler(i), this);
+            const handler = this._makeCardHandler(i);
+            this._cardHandlers.push(handler);
+            card?.on(Node.EventType.TOUCH_END, handler, this);
         }
     }
 
     private _unbindCardTouches(): void {
-        for (const card of this._cards) {
-            card?.off(Node.EventType.TOUCH_END);
+        for (let i = 0; i < this._cardHandlers.length; i++) {
+            const card = this._cards[i];
+            if (isValid(card)) card.off(Node.EventType.TOUCH_END, this._cardHandlers[i], this);
         }
+        this._cardHandlers.length = 0;
     }
 
     private _findHeroSlot(card: Node, slot: number): Node | null {
@@ -259,6 +290,9 @@ export class HeroSelectUI extends Component {
     }
 
     private _onCardPicked(slot: number): void {
+        if (!this._busy || !this._canClick || GameManager.instance?.getPhase() === GamePhase.GameOver) {
+            return;
+        }
         const heroIdx = this._offer[slot];
         if (heroIdx !== 0 && heroIdx !== 1) {
             return;
@@ -266,79 +300,101 @@ export class HeroSelectUI extends Component {
         this._canClick = false;
         this._stopCardBob();
         this._consume(heroIdx);
-        const card = this._cards[slot];
-        if (card) {
-            const baseScale = this._cardBaseScale[slot] ?? card.scale.clone();
-            tween(card)
-                .to(0.12, {
-                    scale: new Vec3(baseScale.x * 1.12, baseScale.y * 1.12, baseScale.z),
-                })
-                .start();
-        }
+        this._pickedSlot = slot;
+        this._elapsed = 0;
+        this._lastUiTime = performance.now();
+        this._transition = 'closing';
+        if (this.fingerNode) this.fingerNode.active = false;
         // 先生成再关 UI，避免 fade/inactive 导致回调丢 shrine 或用户以为没生成
         const shrine = this._shrine;
         this._shrine = null;
         shrine?.onHeroSelected(heroIdx);
-        this._fadeOut(() => {
-            this.node.active = false;
-            this._busy = false;
-            this._unbindCardTouches();
-        });
     }
 
     private _consume(idx: number): void {
         this._remaining = this._remaining.filter((i) => i !== idx);
     }
 
-    private _fadeIn(done: () => void): void {
+    private _getOpacity(): UIOpacity {
         let opacity = this.getComponent(UIOpacity);
         if (!opacity) {
             opacity = this.addComponent(UIOpacity);
         }
-        opacity.opacity = 0;
-        tween(opacity)
-            .to(0.2, { opacity: 255 })
-            .call(done)
-            .start();
+        return opacity;
     }
 
-    private _fadeOut(done: () => void): void {
-        let opacity = this.getComponent(UIOpacity);
-        if (!opacity) {
-            opacity = this.addComponent(UIOpacity);
+    // BEFORE_DRAW still runs while director simulation and its TweenSystem are paused.
+    private _onBeforeDraw(): void {
+        if (!this._busy) return;
+        if (GameManager.instance?.getPhase() === GamePhase.GameOver) {
+            this._closePanel();
+            return;
         }
-        tween(opacity)
-            .to(HeroSelectUI.FADE_OUT_SEC, { opacity: 0 })
-            .call(done)
-            .start();
-    }
-
-    private _startCardBob(): void {
-        for (let i = 0; i < this._cards.length; i++) {
-            const card = this._cards[i];
-            if (!card) {
-                continue;
+        const now = performance.now();
+        this._elapsed += Math.max(0, now - this._lastUiTime) / 1000;
+        this._lastUiTime = now;
+        if (this._transition === 'opening') {
+            this._getOpacity().opacity = 255 * Math.min(1, this._elapsed / 0.2);
+            if (this._elapsed >= 0.2) {
+                this._transition = 'idle';
+                this._elapsed = 0;
+                this._canClick = true;
+                this._placeFinger(0);
             }
-            const base = this._cardBasePos[i];
-            const amp = HeroSelectUI.CARD_BOB;
-            const half = HeroSelectUI.CARD_BOB_HALF;
-            tween(card)
-                .repeatForever(
-                    tween()
-                        .to(half, { position: new Vec3(base.x, base.y + amp, base.z) })
-                        .to(half, { position: new Vec3(base.x, base.y, base.z) }),
-                )
-                .start();
+        } else if (this._transition === 'idle') {
+            const cycle = (this._elapsed / HeroSelectUI.CARD_BOB_HALF) % 2;
+            const offset = HeroSelectUI.CARD_BOB * (cycle <= 1 ? cycle : 2 - cycle);
+            for (let i = 0; i < this._cards.length; i++) {
+                const base = this._cardBasePos[i];
+                this._cards[i].setPosition(base.x, base.y + offset, base.z);
+            }
+            this._placeFinger(0);
+        } else if (this._transition === 'closing') {
+            const card = this._cards[this._pickedSlot];
+            const base = this._cardBaseScale[this._pickedSlot];
+            if (card && base) {
+                const scale = 1 + 0.12 * Math.min(1, this._elapsed / 0.12);
+                card.setScale(base.x * scale, base.y * scale, base.z);
+            }
+            this._getOpacity().opacity = 255 * Math.max(0, 1 - this._elapsed / HeroSelectUI.FADE_OUT_SEC);
+            if (this._elapsed >= HeroSelectUI.FADE_OUT_SEC) this._closePanel();
+        }
+    }
+
+    private _closePanel(): void {
+        this.node.active = false;
+        this._cleanupPanel();
+    }
+
+    private _cleanupPanel(): void {
+        director.off(Director.EVENT_BEFORE_DRAW, this._onBeforeDraw, this);
+        director.off(Director.EVENT_BEFORE_SCENE_LAUNCH, this._closePanel, this);
+        this._unbindCardTouches();
+        this._busy = false;
+        this._canClick = false;
+        this._transition = 'closed';
+        this._elapsed = 0;
+        this._pickedSlot = -1;
+        this._shrine = null;
+        this._offer = [];
+        this._stopCardBob();
+        for (let i = 0; i < this._cards.length; i++) {
+            if (isValid(this._cards[i])) this._cards[i].setScale(this._cardBaseScale[i]);
+        }
+        if (isValid(this.fingerNode)) this.fingerNode.active = false;
+        const ownsPause = this._ownsPause;
+        this._ownsPause = false;
+        if (ownsPause && director.isPaused() && GameManager.instance?.getPhase() !== GamePhase.GameOver) {
+            director.resume();
         }
     }
 
     private _stopCardBob(): void {
         for (let i = 0; i < this._cards.length; i++) {
             const card = this._cards[i];
-            if (!card) {
+            if (!isValid(card)) {
                 continue;
             }
-            tween(card).stop();
             card.setPosition(this._cardBasePos[i]);
         }
     }

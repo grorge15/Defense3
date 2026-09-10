@@ -19,9 +19,10 @@ import { Soldier } from '../character/Soldier';
 import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
+import { EnemyNavigation } from '../core/EnemyNavigation';
+import { FlowBody, stableFlowBody } from '../core/FlowField';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
-import { PathAgent } from '../core/PathAgent';
 import { VisualFacing } from '../core/VisualFacing';
 import { Log } from '../item/Log';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -96,13 +97,13 @@ export class EnemyBoss extends Component {
     private readonly _facingDir = new Vec2(0, 1);
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
-    private readonly _toTarget = new Vec2();
-    private readonly _pathAgent = new PathAgent();
-    private _airWalls: BoxCollider2D[] = [];
     private _attackTimer = 0;
     private _isDead = false;
     private _canMove = true;
     private _isAttacking = false;
+    private _lifeGeneration = 0;
+    private _attackGeneration = 0;
+    private _blockingLog: Log | null = null;
     private _currentLocomotionClip = '';
     private readonly _visualFacing = new VisualFacing();
 
@@ -155,11 +156,25 @@ export class EnemyBoss extends Component {
     }
 
     onDestroy(): void {
+        this._blockingLog = null;
+        this._lifeGeneration += 1;
+        this._isAttacking = false;
         EventManager.instance.offEvent(
             GameEvents.BOSS_TARGET_REGISTER,
             this._onTargetRegister,
             this,
         );
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+    }
+
+    onDisable(): void {
+        this._blockingLog = null;
+        this._lockedTarget = null;
+        this._attackTimer = 0;
+        this._lifeGeneration += 1;
+        this._isAttacking = false;
+        this._stopMovement();
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
     }
 
     registerTargets(options: BossTargetOptions): void {
@@ -328,13 +343,14 @@ export class EnemyBoss extends Component {
 
     /** 每 bossRetargetInterval 重索敌；期间锁当前目标（死亡则立刻重选） */
     private _resolveChaseTarget(dt: number): Node | null {
+        if (this._blockingLog && this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)) return this._lockedTarget;
         this._retargetTimer -= dt;
         const lockedAlive =
             !!this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget);
         if (!lockedAlive || this._retargetTimer <= 0) {
             this._lockedTarget = this.pickTarget();
             this._retargetTimer = GameConfig.bossRetargetInterval;
-            this._pathAgent.reset();
+            EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
         }
         return this._lockedTarget;
     }
@@ -349,22 +365,23 @@ export class EnemyBoss extends Component {
     }
 
     tryAttack(): void {
-        if (this._isDead || this._attackTimer > 0) {
+        if (this._isDead || this._isAttacking || this._attackTimer > 0) {
             return;
         }
 
         // 无索敌距离：追当前锁定目标；仅近战距离内出手
-        const target =
+        const target = this._blockingLog?.node ?? (
             this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)
                 ? this._lockedTarget
-                : this.pickTarget();
+                : this.pickTarget());
         if (!target) {
             return;
         }
 
         const dist = this._distanceToTargetSurface(target);
         const melee = Math.max(this.attackTriggerRange, 48);
-        if (dist > melee) {
+        const log = target.getComponent(Log);
+        if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), melee) : dist > melee) {
             return;
         }
 
@@ -379,6 +396,16 @@ export class EnemyBoss extends Component {
         }
         this._visualFacing.faceByTarget(this.visualNode, this.node, target);
 
+        const generation = this._lifeGeneration;
+        const attack = ++this._attackGeneration, original = this._lockedTarget, temporary = this._blockingLog;
+        let hit = false;
+        const valid = (): boolean => this._lifeGeneration === generation && this._attackGeneration === attack &&
+            !this._isDead && this.node.isValid && this.node.activeInHierarchy && this._lockedTarget === original &&
+            (!original || this._isTargetAlive(original)) && this._blockingLog === temporary;
+        const damage = (): void => {
+            if (hit || !valid() || !this._isAttacking) return;
+            hit = true; this._applyCircleAttack();
+        };
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
         if (this.visualNode) {
@@ -386,17 +413,16 @@ export class EnemyBoss extends Component {
             playAttackWithFrameHit(
                 this.visualNode,
                 'attack',
-                () => {
-                    if (!this._isDead) {
-                        this._applyCircleAttack();
-                    }
-                },
+                damage,
                 0.75,
             );
         } else {
-            this._applyCircleAttack();
+            damage();
         }
         this.scheduleOnce(() => {
+            if (this._lifeGeneration !== generation || this._attackGeneration !== attack) {
+                return;
+            }
             this._isAttacking = false;
         }, 1.2);
     }
@@ -422,6 +448,8 @@ export class EnemyBoss extends Component {
     }
 
     reset(): void {
+        this._blockingLog = null;
+        this._lifeGeneration += 1;
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.bossMaxHp;
         this._targetList.length = 0;
@@ -436,7 +464,7 @@ export class EnemyBoss extends Component {
         this._isAttacking = false;
         this._currentLocomotionClip = '';
         this._facingDir.set(0, 1);
-        this._pathAgent.reset();
+        EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -466,17 +494,45 @@ export class EnemyBoss extends Component {
         if (!this._canMove || this._isDead || dt <= 0) {
             return;
         }
+
+        if (this._isAttacking) {
+            this._stopMovement();
+            return;
+        }
+
         this._scanTargetsByInterval(dt);
 
         // 每 5s 重索敌；soldier > Structure > hero > player（Structure 按建造序）
         const target = this._resolveChaseTarget(dt);
         if (!target) {
+            this._blockingLog = null;
+            EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this._velocity.set(0, 0);
-            if (this._rb) {
-                this._rb.linearVelocity = this._velocity;
-            }
+            this._stopMovement();
             this._updateLocomotionAnim(false);
             return;
+        }
+
+        const size = this._bodySize();
+        const nav = EnemyNavigation.get(this.node.scene);
+        const melee = Math.max(this.attackTriggerRange, 48);
+        const request = { unit: this.node, target, role: 'boss' as const, speed: GameConfig.bossMoveSpeed,
+            dt, body: size, stopDistance: melee, preferEntranceNearestTo: this._playerNode };
+        const ordinaryLog = target.getComponent(Log);
+        const diversion = ordinaryLog ? null : nav?.blockingLog(request, melee) ?? null;
+        if (this._blockingLog !== (diversion?.log ?? null)) nav?.resetUnit(this.node);
+        this._blockingLog = diversion?.log ?? null;
+        const log = ordinaryLog ?? this._blockingLog;
+        if (log && nav) {
+            if (nav.canAttackLog(this.node, log, size, melee)) {
+                this._stopMovement(); this._updateLocomotionAnim(false); this.tryAttack(); return;
+            }
+            const route = diversion ?? nav.logRoute(this.node, log, size, melee);
+            if (route) nav.nextLogVelocity(request, route, this._velocity);
+            else this._velocity.set(0,0);
+            if (this._rb) this._rb.linearVelocity = this._velocity;
+            this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
+            this._updateLocomotionAnim(true); return;
         }
 
         this.node.getWorldPosition(this._selfPos);
@@ -491,42 +547,26 @@ export class EnemyBoss extends Component {
         }
         this._visualFacing.faceByTarget(this.visualNode, this.node, target);
 
-        const melee = Math.max(this.attackTriggerRange, 48);
         if (dist <= melee) {
-            this._velocity.set(0, 0);
-            if (this._rb) {
-                this._rb.linearVelocity = this._velocity;
-            }
+            this._stopMovement();
             this._updateLocomotionAnim(false);
             this.tryAttack();
             return;
         }
 
-        const size = AirWallAabb.bodySize(this.node, 60, 60);
-        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
-        // 卡住时加大探测距离，逼出侧向绕行
-        const stuck = this._stuckFrames > 12;
-        const probe = stuck ? Math.max(size.w, size.h) * 2.2 : undefined;
-        this._pathAgent.nextDirection(
-            dt,
-            this._selfPos,
-            this._targetPos,
-            size.w,
-            size.h,
-            walls,
-            this._toTarget,
-            probe,
+        EnemyNavigation.get(this.node.scene)?.nextVelocity(
+            {
+                unit: this.node,
+                target,
+                role: 'boss',
+                speed: GameConfig.bossMoveSpeed,
+                dt,
+                body: { width: size.w, height: size.h, offsetX: size.offsetX, offsetY: size.offsetY },
+                stopDistance: melee,
+                preferEntranceNearestTo: this._playerNode,
+            },
+            this._velocity,
         );
-        // 贴墙全堵：沿朝向的法线滑行一帧
-        if (
-            stuck &&
-            this._toTarget.x === this._facingDir.x &&
-            this._toTarget.y === this._facingDir.y
-        ) {
-            this._toTarget.set(-this._facingDir.y, this._facingDir.x);
-        }
-        this._velocity.x = this._toTarget.x * GameConfig.bossMoveSpeed;
-        this._velocity.y = this._toTarget.y * GameConfig.bossMoveSpeed;
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
@@ -567,7 +607,9 @@ export class EnemyBoss extends Component {
             if (!this._isTargetAlive(node)) {
                 continue;
             }
-            if (this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
+            const log = node.getComponent(Log);
+            if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), radius)
+                : this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
                 continue;
             }
             this._dealDamageToNode(node);
@@ -604,6 +646,7 @@ export class EnemyBoss extends Component {
         this._pruneDeadTargets();
         const out: Node[] = [];
         const seen = new Set<Node>();
+        if (this._blockingLog?.node.isValid) { out.push(this._blockingLog.node); seen.add(this._blockingLog.node); }
         for (const e of this._targetList) {
             if (e.node?.isValid && this._isTargetAlive(e.node) && !seen.has(e.node)) {
                 seen.add(e.node);
@@ -673,6 +716,7 @@ export class EnemyBoss extends Component {
         const log = node.getComponent(Log);
         if (log?.isAttackable()) {
             log.takeDamage(GameConfig.bossAttackDamage);
+            if (!log.isAttackable()) EnemyNavigation.get(this.node.scene)?.invalidate();
             return;
         }
         const barrier = node.getComponent(Barrier);
@@ -704,7 +748,10 @@ export class EnemyBoss extends Component {
     }
 
     private _die(): void {
+        this._blockingLog = null;
+        this._lifeGeneration += 1;
         this._isDead = true;
+        this._isAttacking = false;
         this._canMove = false;
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
@@ -712,10 +759,15 @@ export class EnemyBoss extends Component {
         if (this._collider) {
             this._collider.enabled = false;
         }
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');
         }
+        const generation = this._lifeGeneration;
         this.scheduleOnce(() => {
+            if (this._lifeGeneration !== generation) {
+                return;
+            }
             this.node.active = false;
         }, 0.8);
     }
@@ -743,5 +795,35 @@ export class EnemyBoss extends Component {
         }
         this._currentLocomotionClip = clip;
         playAnim(this.visualNode, clip);
+    }
+
+    private _stopMovement(): void {
+        this._velocity.set(0, 0);
+        if (this._rb) {
+            this._rb.linearVelocity = this._velocity;
+        }
+    }
+
+    private _bodySize(): FlowBody & { w: number; h: number } {
+        const box = this.node.getComponent(BoxCollider2D);
+        if (box) {
+            const physical = EnemyNavigation.bodyForCollider?.(box);
+            if (physical) return { ...physical, w: physical.width, h: physical.height };
+            const aabb = box.worldAABB;
+            const w = Math.abs(aabb.width);
+            const h = Math.abs(aabb.height);
+            if (w >= 1 && h >= 1) {
+                this.node.getWorldPosition(this._selfPos);
+                const stable = stableFlowBody({
+                    width: w,
+                    height: h,
+                    offsetX: (aabb.xMin + aabb.xMax) * 0.5 - this._selfPos.x,
+                    offsetY: (aabb.yMin + aabb.yMax) * 0.5 - this._selfPos.y,
+                });
+                return { ...stable, w: stable.width, h: stable.height };
+            }
+        }
+        const fallback = AirWallAabb.bodySize(this.node, 60, 60);
+        return { ...fallback, width: fallback.w, height: fallback.h, offsetX: 0, offsetY: 0 };
     }
 }

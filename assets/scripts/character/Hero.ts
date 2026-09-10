@@ -233,7 +233,7 @@ export class Hero extends Component {
         }
 
         this._ensureFollowTarget();
-        if (!this._followTarget || !this._followTarget.active) {
+        if (!this._followTarget || !this._followTarget.activeInHierarchy) {
             this._velocity.set(0, 0);
             if (this._rb) {
                 this._rb.linearVelocity = this._velocity;
@@ -350,7 +350,7 @@ export class Hero extends Component {
         let nearestDist = range;
 
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.active || minion.isDead) {
+            if (!minion.node.activeInHierarchy || minion.isDead) {
                 continue;
             }
             minion.node.getWorldPosition(this._targetPos);
@@ -363,7 +363,7 @@ export class Hero extends Component {
             }
         }
         for (const boss of scene.getComponentsInChildren(EnemyBoss)) {
-            if (!boss.node.active || boss.isDead) {
+            if (!boss.node.activeInHierarchy || boss.isDead) {
                 continue;
             }
             boss.node.getWorldPosition(this._targetPos);
@@ -434,6 +434,10 @@ export class Hero extends Component {
         this._canAct = false;
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
+        }
+        const shadow = this.node.getChildByName('角色通用投影1');
+        if (shadow) {
+            shadow.active = false;
         }
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');

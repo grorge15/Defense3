@@ -1,0 +1,610 @@
+{
+  "phase": "after",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "f5ab38b4339431118902690695abe247e1e2f2507ba55c378e4d9bbf1d0bdad9",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 0,
+      "coldMs": 120.9597,
+      "ms": 15.343200000000024,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 119.52829999999926,
+        "approachMs": 135.48069999999927
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 1,
+      "coldMs": 105.9411,
+      "ms": 9.376700000000028,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 105.61489999999935,
+        "approachMs": 114.87950000000035
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 2,
+      "coldMs": 104.35079999999994,
+      "ms": 8.56720000000007,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 104.01919999999939,
+        "approachMs": 112.83459999999991
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 3,
+      "coldMs": 103.36119999999994,
+      "ms": 8.078899999999976,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 103.0278000000011,
+        "approachMs": 111.37199999999825
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 4,
+      "coldMs": 103.48940000000005,
+      "ms": 8.23720000000003,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 84608,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 84608,
+        "peakEntries": 2,
+        "lineChecks": 33093,
+        "pointChecks": 117970,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 103.13970000000131,
+        "approachMs": 111.66609999999741
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 0,
+      "coldMs": 114.01019999999994,
+      "ms": 10.238599999999906,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 113.45549999999866,
+        "approachMs": 123.62120000000073
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 1,
+      "coldMs": 108.26800000000003,
+      "ms": 10.244200000000092,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 107.9803999999981,
+        "approachMs": 118.1598999999992
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 2,
+      "coldMs": 108.32449999999994,
+      "ms": 10.130599999999959,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 108.10410000000047,
+        "approachMs": 118.1080000000004
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 3,
+      "coldMs": 108.11390000000006,
+      "ms": 11.013400000000047,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 107.85200000000123,
+        "approachMs": 118.76570000000106
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 4,
+      "coldMs": 106.07259999999997,
+      "ms": 10.039899999999989,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 85616,
+      "stats": {
+        "visitedCells": 15732,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 85616,
+        "peakEntries": 5,
+        "lineChecks": 33120,
+        "pointChecks": 118090,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 105.76980000000003,
+        "approachMs": 115.79149999999822
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 0,
+      "coldMs": 235.5757000000001,
+      "ms": 7.623500000000149,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 235.28780000000097,
+        "approachMs": 243.15059999999562
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 1,
+      "coldMs": 230.07539999999995,
+      "ms": 8.572200000000066,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 229.8204999999998,
+        "approachMs": 238.1603
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 2,
+      "coldMs": 232.8523,
+      "ms": 8.062400000000252,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 232.5838999999969,
+        "approachMs": 240.85259999999926
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 3,
+      "coldMs": 230.92839999999978,
+      "ms": 8.016999999999825,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 230.67159999999694,
+        "approachMs": 238.89009999999917
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "round": 4,
+      "coldMs": 231.18280000000004,
+      "ms": 9.285300000000007,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 2,
+      "bytes": 179249,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 288,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 179249,
+        "peakEntries": 2,
+        "lineChecks": 69518,
+        "pointChecks": 245848,
+        "approachHits": 200
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 230.9533000000024,
+        "approachMs": 240.4017000000049
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 0,
+      "coldMs": 231.3453999999997,
+      "ms": 9.206300000000283,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 231.23539999999866,
+        "approachMs": 240.2584999999999
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 1,
+      "coldMs": 233.5942,
+      "ms": 9.828199999999924,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 233.3782000000033,
+        "approachMs": 243.08910000000424
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 2,
+      "coldMs": 231.7741000000001,
+      "ms": 9.175900000000183,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 231.50580000000355,
+        "approachMs": 240.658899999999
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 3,
+      "coldMs": 232.36810000000014,
+      "ms": 9.22440000000006,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 232.12990000000036,
+        "approachMs": 241.27979999999752
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "round": 4,
+      "coldMs": 226.14480000000003,
+      "ms": 9.380400000000009,
+      "builds": 0,
+      "additionalBuilds": 0,
+      "graphs": 1,
+      "additionalGraphs": 0,
+      "entries": 5,
+      "bytes": 180341,
+      "stats": {
+        "visitedCells": 34028,
+        "candidates": 1152,
+        "hits": 200,
+        "misses": 1,
+        "peakBytes": 180341,
+        "peakEntries": 5,
+        "lineChecks": 69545,
+        "pointChecks": 245956,
+        "approachHits": 197
+      },
+      "cpu": {
+        "graphLookupAndBuildMs": 225.89519999999948,
+        "approachMs": 235.21990000000505
+      }
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default",
+      "name": "WARM-UNREACHABLE-200",
+      "medianMs": 8.56720000000007,
+      "p95Ms": 15.343200000000024
+    },
+    {
+      "bounds": "default",
+      "name": "MOVING-BODY-TARGET-200",
+      "medianMs": 10.238599999999906,
+      "p95Ms": 11.013400000000047
+    },
+    {
+      "bounds": "scene",
+      "name": "WARM-UNREACHABLE-200",
+      "medianMs": 8.062400000000252,
+      "p95Ms": 9.285300000000007
+    },
+    {
+      "bounds": "scene",
+      "name": "MOVING-BODY-TARGET-200",
+      "medianMs": 9.22440000000006,
+      "p95Ms": 9.828199999999924
+    }
+  ]
+}

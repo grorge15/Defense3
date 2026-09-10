@@ -1,0 +1,1592 @@
+{
+  "results": [
+    {
+      "name": "AC-ENTRY: endpoint obstruction selects a legal reachable surface and advances to damage range",
+      "passed": true
+    },
+    {
+      "name": "AC-ALTERNATE: another legal entrance keeps the original target",
+      "passed": true
+    },
+    {
+      "name": "AC-NONLOG: removing only the log cannot bypass a second sealed barrier",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=true",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=false",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=true",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=false",
+      "passed": true
+    },
+    {
+      "name": "AC-BOSS-ORDINARY: normal-priority locked Log uses surface movement and deduplicated circle hit",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyMinion real destruction, HP event, collider removal and original pursuit",
+      "passed": true
+    },
+    {
+      "name": "AC-DAMAGE: EnemyMinion no Visual single fallback and stale target before frame",
+      "passed": true
+    },
+    {
+      "name": "AC-POOL: EnemyMinion old hit/recovery/death after disable/reset and new attack",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyBoss real destruction, HP event, collider removal and original pursuit",
+      "passed": true
+    },
+    {
+      "name": "AC-DAMAGE: EnemyBoss no Visual single fallback and stale target before frame",
+      "passed": true
+    },
+    {
+      "name": "AC-POOL: EnemyBoss old hit/recovery/death after disable/reset and new attack",
+      "passed": true
+    },
+    {
+      "name": "AC-SAME: same-side inside/outside and nonnull replacement do not prove objective reachability",
+      "passed": true
+    },
+    {
+      "name": "AC-SAME: Minion 32/50 early hold cannot suppress the blocking-log attack",
+      "passed": true
+    },
+    {
+      "name": "AC-MOVING: real Log eligibility and cached fixed-to-moving transitions",
+      "passed": true
+    },
+    {
+      "name": "AC-ALTERNATE/NONLOG: direct, same-side detour, no Log, illegal shortcut and missing config",
+      "passed": true
+    },
+    {
+      "name": "AC-SURFACE: long log, offsets, alternate faces, thin non-log occlusion and large dt",
+      "passed": true
+    },
+    {
+      "name": "AC-SHARED: 200 enemies x 300 frames positive/no-Log/non-Log negative counts",
+      "passed": true,
+      "details": [
+        {
+          "mode": "positive",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 1,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 1,
+            "graphs": 1,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 301,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 1,
+            "graphs": 1,
+            "fields": 0
+          },
+          "entries": 2,
+          "bytes": 4220
+        },
+        {
+          "mode": "no-log",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 2,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 1,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 602,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 1,
+            "fields": 0
+          },
+          "entries": 2,
+          "bytes": 4220
+        },
+        {
+          "mode": "non-log",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 2,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 2,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 2,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 602,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 2,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 2,
+            "fields": 0
+          },
+          "entries": 3,
+          "bytes": 7250
+        }
+      ]
+    },
+    {
+      "name": "AC-SURFACE: contact stance blocked but a farther in-range stance can hit through a narrow slot",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY-FIXTURE: readonly Main.scene bindings and complete parent transforms",
+      "passed": true,
+      "details": {
+        "source": "assets/scenes/Main.scene",
+        "sha256": "e87b06ec58de24b6167de7baed40fdcb9e665eee94c9584ecb95422f0b035f69",
+        "boundsMin": {
+          "x": -1922.807,
+          "y": -498.633,
+          "z": 0
+        },
+        "boundsMax": {
+          "x": 1809.26,
+          "y": 3306.767,
+          "z": 0
+        },
+        "castle": [
+          {
+            "x": 310.465,
+            "y": 1706.435,
+            "z": 0
+          },
+          {
+            "x": 263.31,
+            "y": -145.359,
+            "z": 0
+          },
+          {
+            "x": -252.693,
+            "y": -144.625,
+            "z": 0
+          },
+          {
+            "x": -305.296,
+            "y": 1697.079,
+            "z": 0
+          }
+        ],
+        "ground": [
+          {
+            "x": -1922.807,
+            "y": -498.633,
+            "z": 0
+          },
+          {
+            "x": -2561.155,
+            "y": 3579.052,
+            "z": 0
+          },
+          {
+            "x": 1809.26,
+            "y": 3306.767,
+            "z": 0
+          },
+          {
+            "x": 2365.143,
+            "y": -908.41,
+            "z": 0
+          }
+        ],
+        "entrances": [
+          {
+            "id": 1,
+            "width": 100,
+            "open": true,
+            "outside": {
+              "x": -446.714,
+              "y": 1482.73,
+              "z": 0
+            },
+            "inside": {
+              "x": -230.105,
+              "y": 1522.4,
+              "z": 0
+            }
+          },
+          {
+            "id": 2,
+            "width": 200,
+            "open": true,
+            "outside": {
+              "x": 0,
+              "y": 1741.842,
+              "z": 0
+            },
+            "inside": {
+              "x": 0,
+              "y": 1560.416,
+              "z": 0
+            }
+          },
+          {
+            "id": 3,
+            "width": 100,
+            "open": true,
+            "outside": {
+              "x": 448.581,
+              "y": 1485.412,
+              "z": 0
+            },
+            "inside": {
+              "x": 246.567,
+              "y": 1525.83,
+              "z": 0
+            }
+          }
+        ],
+        "chains": {
+          "76": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "77": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "78": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "79": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "249": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "251": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "252": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "253": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "255": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "257": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "258": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "259": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "260": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "261": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ]
+        },
+        "verifiedMiddleReachable": true
+      }
+    },
+    {
+      "name": "AC-CACHE: body/offset/region and exact same-cell terminal conditions are isolated",
+      "passed": true
+    },
+    {
+      "name": "AC-CACHE: 10000 queries/1000 revisions, combined diagnostic/query LRU and byte pressure",
+      "passed": true,
+      "details": [
+        {
+          "queries": 10000,
+          "revisions": 1000,
+          "graphs": 1000,
+          "fields": 0,
+          "scans": 1000,
+          "peakEntries": 2,
+          "peakBytes": 4232
+        },
+        {
+          "budget": {
+            "entries": 8,
+            "bytes": 8388608,
+            "cells": 262144
+          },
+          "entries": 8,
+          "bytes": 11516
+        },
+        {
+          "budget": {
+            "entries": 64,
+            "bytes": 18000,
+            "cells": 262144
+          },
+          "entries": 13,
+          "bytes": 17586
+        }
+      ]
+    },
+    {
+      "name": "AC-RESUME: EnemyMinion external destruction, moving objective and invalidation",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyBoss external destruction, moving objective and invalidation",
+      "passed": true
+    },
+    {
+      "name": "AC-TARGET: Minion external assignment cancels old hit/recovery without polluting the next attack",
+      "passed": true
+    },
+    {
+      "name": "AC-STRUCTURE: Boss original building is evaluated by its attack surface, not its occupied center",
+      "passed": true
+    },
+    {
+      "name": "AC-SURFACE: physical rotation/scale/offset envelopes and exact contact epsilon",
+      "passed": true
+    },
+    {
+      "name": "AC-ATTACK-GENERATION: EnemyMinion old same-life hit/recovery cannot affect next attack",
+      "passed": true
+    },
+    {
+      "name": "AC-ATTACK-GENERATION: EnemyBoss old same-life hit/recovery cannot affect next attack",
+      "passed": true
+    },
+    {
+      "name": "V3-ROUTE: raw grid connectivity is not a usable entrance route",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- <ref *4> Log {\n-   _airWalls: [],\n-   _baseColliderHeight: 76,\n-   _baseColliderOffset: Vec2 {\n-     x: 0,\n-     y: 0\n-   },\n-   _baseColliderWidth: 100,\n-   _baseVisualScale: Vec3 {\n-     x: 1,\n-     y: 1,\n-     z: 1\n-   },\n-   _blueTriggered: false,\n-   _collider: <ref *5> BoxCollider2D {\n-     enabled: true,\n-     node: <ref *2> {\n-       active: true,\n-       activeInHierarchy: true,\n-       add: [Function (anonymous)],\n-       addComponent: [Function (anonymous)],\n-       children: [],\n-       components: Map(2) {\n-         [class BoxCollider2D] => [Circular *5],\n-         [class Log extends Component] => [Circular *4]\n-       },\n-       emit: [Function (anonymous)],\n-       getChildByName: [Function (anonymous)],\n-       getComponent: [Function (anonymous)],\n-       getComponentInChildren: [Function (anonymous)],\n-       getComponents: [Function (anonymous)],\n-       getComponentsInChildren: [Function (anonymous)],\n-       getWorldPosition: [Function: getWorldPosition],\n-       isValid: true,\n-       move: [Function (anonymous)],\n-       name: 'log',\n-       off: [Function (anonymous)],\n-       on: [Function (anonymous)],\n-       parent: <ref *1> {\n-         active: true,\n-         activeInHierarchy: true,\n-         add: [Function (anonymous)],\n-         addComponent: [Function (anonymous)],\n-         children: [\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground--200--200-0.06380539738284341'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground-200--200-0.6332574758988971'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground-200-200-0.7068890364577285'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground--200-200-0.24592914065347626'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle--200-0-0.31776092730270644'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle-200-0-0.7946428827716645'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle-200-200-0.1853612313405557'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle--200-200-0.6963001891829956'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside--130--60-0.9499459779409112'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside--130-60-0.35026706418313425'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside-0--60-0.3238608801846985'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside-0-60-0.29631593851224336'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside-130--60-0.17244591800898634'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside-130-60-0.12043136040043056'\n-           },\n-           [Circular *2],\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'unit',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'unit-0--150-0.10660248385331039'\n-           },\n-           <ref *3> {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(1) {\n-               [class Player] => Player {\n-                 damage: 0,\n-                 isDead: false,\n-                 node: [Circular *3]\n-               }\n-             },\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'player',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'player-0-140-0.8577505013242834'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--1922.807--498.633-0.4295233102358831'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-1809.26-3306.767-0.8945317656633145'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-310.465-1706.435-0.6571674499597433'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-263.31--145.359-0.16005187005275867'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--252.693--144.625-0.6189252281122524'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--305.296-1697.079-0.8542140033775161'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--1922.807--498.633-0.3696478030078576'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--2561.155-3579.052-0.521583995429528'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-1809.26-3306.767-0.43811138489359314'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-2365.143--908.41-0.4331212766990542'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--446.714-1482.73-0.3428775412317402'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--230.105-1522.4-0.9261163269151391'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-0-1741.842-0.28047430381107263'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-0-1560.416-0.8253712028146072'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-448.581-1485.412-0.7052930742665013'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-246.567-1525.83-0.32884230647074086'\n-           }\n-         ],\n-         components: Map(0) {},\n-         emit: [Function (anonymous)],\n-         getChildByName: [Function (anonymous)],\n-         getComponent: [Function (anonymous)],\n-         getComponentInChildren: [Function (anonymous)],\n-         getComponents: [Function (anonymous)],\n-         getComponentsInChildren: [Function (anonymous)],\n-         getWorldPosition: [Function: getWorldPosition],\n-         isValid: true,\n-         move: [Function (anonymous)],\n-         name: 'scene',\n-         off: [Function (anonymous)],\n-         on: [Function (anonymous)],\n-         parent: null,\n-         remove: [Function (anonymous)],\n-         scene: [Circular *1],\n-         set: [Function: set],\n-         uuid: 'scene-0-0-0.03222446754150288'\n-       },\n-       remove: [Function (anonymous)],\n-       scene: <ref *1> {\n-         active: true,\n-         activeInHierarchy: true,\n-         add: [Function (anonymous)],\n-         addComponent: [Function (anonymous)],\n-         children: [\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground--200--200-0.06380539738284341'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground-200--200-0.6332574758988971'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground-200-200-0.7068890364577285'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'ground',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'ground--200-200-0.24592914065347626'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle--200-0-0.31776092730270644'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle-200-0-0.7946428827716645'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle-200-200-0.1853612313405557'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'castle',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'castle--200-200-0.6963001891829956'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside--130--60-0.9499459779409112'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside--130-60-0.35026706418313425'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside-0--60-0.3238608801846985'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside-0-60-0.29631593851224336'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'outside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'outside-130--60-0.17244591800898634'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'inside',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'inside-130-60-0.12043136040043056'\n-           },\n-           [Circular *2],\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'unit',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'unit-0--150-0.10660248385331039'\n-           },\n-           <ref *3> {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(1) {\n-               [class Player] => Player {\n-                 damage: 0,\n-                 isDead: false,\n-                 node: [Circular *3]\n-               }\n-             },\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'player',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'player-0-140-0.8577505013242834'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--1922.807--498.633-0.4295233102358831'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-1809.26-3306.767-0.8945317656633145'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-310.465-1706.435-0.6571674499597433'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-263.31--145.359-0.16005187005275867'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--252.693--144.625-0.6189252281122524'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--305.296-1697.079-0.8542140033775161'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--1922.807--498.633-0.3696478030078576'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--2561.155-3579.052-0.521583995429528'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-1809.26-3306.767-0.43811138489359314'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-2365.143--908.41-0.4331212766990542'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--446.714-1482.73-0.3428775412317402'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker--230.105-1522.4-0.9261163269151391'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-0-1741.842-0.28047430381107263'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-0-1560.416-0.8253712028146072'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-448.581-1485.412-0.7052930742665013'\n-           },\n-           {\n-             active: true,\n-             activeInHierarchy: true,\n-             add: [Function (anonymous)],\n-             addComponent: [Function (anonymous)],\n-             children: [],\n-             components: Map(0) {},\n-             emit: [Function (anonymous)],\n-             getChildByName: [Function (anonymous)],\n-             getComponent: [Function (anonymous)],\n-             getComponentInChildren: [Function (anonymous)],\n-             getComponents: [Function (anonymous)],\n-             getComponentsInChildren: [Function (anonymous)],\n-             getWorldPosition: [Function: getWorldPosition],\n-             isValid: true,\n-             move: [Function (anonymous)],\n-             name: 'v3-marker',\n-             off: [Function (anonymous)],\n-             on: [Function (anonymous)],\n-             parent: [Circular *1],\n-             remove: [Function (anonymous)],\n-             scene: [Circular *1],\n-             set: [Function: set],\n-             uuid: 'v3-marker-246.567-1525.83-0.32884230647074086'\n-           }\n-         ],\n-         components: Map(0) {},\n-         emit: [Function (anonymous)],\n-         getChildByName: [Function (anonymous)],\n-         getComponent: [Function (anonymous)],\n-         getComponentInChildren: [Function (anonymous)],\n-         getComponents: [Function (anonymous)],\n-         getComponentsInChildren: [Function (anonymous)],\n-         getWorldPosition: [Function: getWorldPosition],\n-         isValid: true,\n-         move: [Function (anonymous)],\n-         name: 'scene',\n-         off: [Function (anonymous)],\n-         on: [Function (anonymous)],\n-         parent: null,\n-         remove: [Function (anonymous)],\n-         scene: [Circular *1],\n-         set: [Function: set],\n-         uuid: 'scene-0-0-0.03222446754150288'\n-       },\n-       set: [Function: set],\n-       uuid: 'log--2-1648.897-0.46666983027223385'\n-     },\n-     worldAABB: Rect {\n-       height: 19,\n-       width: 235,\n-       x: -119.5,\n-       xMax: 115.5,\n-       xMin: -119.5,\n-       y: 1639.397,\n-       yMax: 1658.397,\n-       yMin: 1639.397\n-     }\n-   },\n-   _currentLength: 3,\n-   _desiredPos: Vec3 {\n-     x: 0,\n-     y: 0,\n-     z: 0\n-   },\n-   _followOffset: Vec3 {\n-     x: 0,\n-     y: 0,\n-     z: 0\n-   },\n-   _followVel: Vec2 {\n-     x: 0,\n-     y: 0\n-   },\n-   _hasFollowOffset: false,\n-   _hp: 100,\n-   _hpBarSpawned: false,\n-   _isFading: false,\n-   _isLocked: true,\n-   _phase: 'fixed',\n-   _playerPos: Vec3 {\n-     x: 0,\n-     y: 0,\n-     z: 0\n-   },\n-   _pushPlayer: null,\n-   _rb: null,\n-   _scheduled: [],\n-   _selfPos: Vec3 {\n-     x: 0,\n-     y: 0,\n-     z: 0\n-   },\n-   _tmpLinePos: Vec3 {\n-     x: 0,\n-     y: 0,\n-     z: 0\n-   },\n-   _yellowTriggered: false,\n-   blueLine: null,\n-   node: <ref *2> {\n-     active: true,\n-     activeInHierarchy: true,\n-     add: [Function (anonymous)],\n-     addComponent: [Function (anonymous)],\n-     children: [],\n-     components: Map(2) {\n-       [class BoxCollider2D] => BoxCollider2D {\n-         enabled: true,\n-         node: [Circular *2],\n-         worldAABB: Rect {\n-           height: 19,\n-           width: 235,\n-           x: -119.5,\n-           xMax: 115.5,\n-           xMin: -119.5,\n-           y: 1639.397,\n-           yMax: 1658.397,\n-           yMin: 1639.397\n-         }\n-       },\n-       [class Log extends Component] => [Circular *4]\n-     },\n-     emit: [Function (anonymous)],\n-     getChildByName: [Function (anonymous)],\n-     getComponent: [Function (anonymous)],\n-     getComponentInChildren: [Function (anonymous)],\n-     getComponents: [Function (anonymous)],\n-     getComponentsInChildren: [Function (anonymous)],\n-     getWorldPosition: [Function: getWorldPosition],\n-     isValid: true,\n-     move: [Function (anonymous)],\n-     name: 'log',\n-     off: [Function (anonymous)],\n-     on: [Function (anonymous)],\n-     parent: <ref *1> {\n-       active: true,\n-       activeInHierarchy: true,\n-       add: [Function (anonymous)],\n-       addComponent: [Function (anonymous)],\n-       children: [\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground--200--200-0.06380539738284341'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground-200--200-0.6332574758988971'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground-200-200-0.7068890364577285'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground--200-200-0.24592914065347626'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle--200-0-0.31776092730270644'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle-200-0-0.7946428827716645'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle-200-200-0.1853612313405557'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle--200-200-0.6963001891829956'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside--130--60-0.9499459779409112'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside--130-60-0.35026706418313425'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside-0--60-0.3238608801846985'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside-0-60-0.29631593851224336'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside-130--60-0.17244591800898634'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside-130-60-0.12043136040043056'\n-         },\n-         [Circular *2],\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'unit',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'unit-0--150-0.10660248385331039'\n-         },\n-         <ref *3> {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(1) {\n-             [class Player] => Player {\n-               damage: 0,\n-               isDead: false,\n-               node: [Circular *3]\n-             }\n-           },\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'player',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'player-0-140-0.8577505013242834'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--1922.807--498.633-0.4295233102358831'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-1809.26-3306.767-0.8945317656633145'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-310.465-1706.435-0.6571674499597433'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-263.31--145.359-0.16005187005275867'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--252.693--144.625-0.6189252281122524'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--305.296-1697.079-0.8542140033775161'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--1922.807--498.633-0.3696478030078576'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--2561.155-3579.052-0.521583995429528'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-1809.26-3306.767-0.43811138489359314'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-2365.143--908.41-0.4331212766990542'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--446.714-1482.73-0.3428775412317402'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--230.105-1522.4-0.9261163269151391'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-0-1741.842-0.28047430381107263'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-0-1560.416-0.8253712028146072'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-448.581-1485.412-0.7052930742665013'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-246.567-1525.83-0.32884230647074086'\n-         }\n-       ],\n-       components: Map(0) {},\n-       emit: [Function (anonymous)],\n-       getChildByName: [Function (anonymous)],\n-       getComponent: [Function (anonymous)],\n-       getComponentInChildren: [Function (anonymous)],\n-       getComponents: [Function (anonymous)],\n-       getComponentsInChildren: [Function (anonymous)],\n-       getWorldPosition: [Function: getWorldPosition],\n-       isValid: true,\n-       move: [Function (anonymous)],\n-       name: 'scene',\n-       off: [Function (anonymous)],\n-       on: [Function (anonymous)],\n-       parent: null,\n-       remove: [Function (anonymous)],\n-       scene: [Circular *1],\n-       set: [Function: set],\n-       uuid: 'scene-0-0-0.03222446754150288'\n-     },\n-     remove: [Function (anonymous)],\n-     scene: <ref *1> {\n-       active: true,\n-       activeInHierarchy: true,\n-       add: [Function (anonymous)],\n-       addComponent: [Function (anonymous)],\n-       children: [\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground--200--200-0.06380539738284341'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground-200--200-0.6332574758988971'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground-200-200-0.7068890364577285'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'ground',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'ground--200-200-0.24592914065347626'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle--200-0-0.31776092730270644'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle-200-0-0.7946428827716645'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle-200-200-0.1853612313405557'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'castle',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'castle--200-200-0.6963001891829956'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside--130--60-0.9499459779409112'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside--130-60-0.35026706418313425'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside-0--60-0.3238608801846985'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside-0-60-0.29631593851224336'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'outside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'outside-130--60-0.17244591800898634'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'inside',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'inside-130-60-0.12043136040043056'\n-         },\n-         [Circular *2],\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'unit',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'unit-0--150-0.10660248385331039'\n-         },\n-         <ref *3> {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(1) {\n-             [class Player] => Player {\n-               damage: 0,\n-               isDead: false,\n-               node: [Circular *3]\n-             }\n-           },\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'player',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'player-0-140-0.8577505013242834'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--1922.807--498.633-0.4295233102358831'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-1809.26-3306.767-0.8945317656633145'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-310.465-1706.435-0.6571674499597433'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-263.31--145.359-0.16005187005275867'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--252.693--144.625-0.6189252281122524'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--305.296-1697.079-0.8542140033775161'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--1922.807--498.633-0.3696478030078576'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--2561.155-3579.052-0.521583995429528'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-1809.26-3306.767-0.43811138489359314'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-2365.143--908.41-0.4331212766990542'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--446.714-1482.73-0.3428775412317402'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker--230.105-1522.4-0.9261163269151391'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-0-1741.842-0.28047430381107263'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-0-1560.416-0.8253712028146072'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-448.581-1485.412-0.7052930742665013'\n-         },\n-         {\n-           active: true,\n-           activeInHierarchy: true,\n-           add: [Function (anonymous)],\n-           addComponent: [Function (anonymous)],\n-           children: [],\n-           components: Map(0) {},\n-           emit: [Function (anonymous)],\n-           getChildByName: [Function (anonymous)],\n-           getComponent: [Function (anonymous)],\n-           getComponentInChildren: [Function (anonymous)],\n-           getComponents: [Function (anonymous)],\n-           getComponentsInChildren: [Function (anonymous)],\n-           getWorldPosition: [Function: getWorldPosition],\n-           isValid: true,\n-           move: [Function (anonymous)],\n-           name: 'v3-marker',\n-           off: [Function (anonymous)],\n-           on: [Function (anonymous)],\n-           parent: [Circular *1],\n-           remove: [Function (anonymous)],\n-           scene: [Circular *1],\n-           set: [Function: set],\n-           uuid: 'v3-marker-246.567-1525.83-0.32884230647074086'\n-         }\n-       ],\n-       components: Map(0) {},\n-       emit: [Function (anonymous)],\n-       getChildByName: [Function (anonymous)],\n-       getComponent: [Function (anonymous)],\n-       getComponentInChildren: [Function (anonymous)],\n-       getComponents: [Function (anonymous)],\n-       getComponentsInChildren: [Function (anonymous)],\n-       getWorldPosition: [Function: getWorldPosition],\n-       isValid: true,\n-       move: [Function (anonymous)],\n-       name: 'scene',\n-       off: [Function (anonymous)],\n-       on: [Function (anonymous)],\n-       parent: null,\n-       remove: [Function (anonymous)],\n-       scene: [Circular *1],\n-       set: [Function: set],\n-       uuid: 'scene-0-0-0.03222446754150288'\n-     },\n-     set: [Function: set],\n-     uuid: 'log--2-1648.897-0.46666983027223385'\n-   },\n-   segmentSize: 1,\n-   visualNode: null,\n-   yellowLine: null\n- }\n\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:379:12\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:30:27)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:374:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    },
+    {
+      "name": "V3-UPDATE: actual Minion crosses castle boundary, hits, destroys and resumes",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: must retain entry obligation after y=1700\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:390:5\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:30:27)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:382:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    },
+    {
+      "name": "V3-ALTERNATE: another usable entrance prevents demolition; non-Log seal does not cause it",
+      "passed": true
+    }
+  ]
+}

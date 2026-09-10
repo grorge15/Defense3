@@ -1,7 +1,9 @@
-import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { EventManager } from '../core/EventManager';
+import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { Building } from './Building';
 
 const { ccclass, property } = _decorator;
 
@@ -11,7 +13,7 @@ const HERO_PREFAB_PATHS = [
 ] as const;
 
 @ccclass('HeroShrine')
-export class HeroShrine extends Component {
+export class HeroShrine extends Building {
     @property({ type: Node, tooltip: 'Visual 子节点（Sprite + Billboard + SortingOrder2D）' })
     visualNode: Node | null = null;
 
@@ -42,6 +44,10 @@ export class HeroShrine extends Component {
     private readonly _spawnPos = new Vec3();
 
     onLoad(): void {
+        if (this.maxHp <= 0) {
+            this.maxHp = GameConfig.barracksMaxHp;
+        }
+        super.onLoad();
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }

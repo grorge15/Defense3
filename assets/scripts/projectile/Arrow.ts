@@ -10,7 +10,6 @@ import {
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
 import { GameConfig } from '../core/GameConfig';
-import { Log } from '../item/Log';
 
 const { ccclass, property } = _decorator;
 
@@ -128,20 +127,6 @@ export class Arrow extends Component {
                 }
             }
         }
-        for (const log of scene.getComponentsInChildren(Log)) {
-            if (!log.node.activeInHierarchy || !log.isAttackable()) {
-                continue;
-            }
-            log.node.getWorldPosition(this._enemyPos);
-            const dx = this._enemyPos.x - this._pos.x;
-            const dy = this._enemyPos.y - this._pos.y;
-            if (dx * dx + dy * dy <= r2) {
-                this._applyHit(log.node);
-                if (!this._alive) {
-                    return;
-                }
-            }
-        }
     }
 
     private _onBeginContact = (
@@ -173,11 +158,6 @@ export class Arrow extends Component {
             const minion = cur.getComponent(EnemyMinion);
             if (minion) {
                 this._damageEnemy(cur.uuid, (damage) => minion.takeDamage(damage));
-                return;
-            }
-            const log = cur.getComponent(Log);
-            if (log?.isAttackable()) {
-                this._damageEnemy(cur.uuid, (damage) => log.takeDamage(damage));
                 return;
             }
             cur = cur.parent;

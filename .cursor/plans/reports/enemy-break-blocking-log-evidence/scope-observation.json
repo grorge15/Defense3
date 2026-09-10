@@ -1,0 +1,11 @@
+{
+  "changed": [
+    ".cursor/plans/enemy-break-blocking-log.md",
+    ".cursor/scripts/test-enemy-navigation.cjs",
+    "assets/scripts/core/EnemyNavigation.ts",
+    "assets/scripts/core/FlowField.ts",
+    "assets/scripts/enemy/EnemyAI.ts",
+    "assets/scripts/enemy/EnemyBoss.ts",
+    "assets/scripts/enemy/EnemyMinion.ts"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "platform": "web-mobile",
+  "debug": true,
+  "buildPath": "project://build/codex-log-v3",
+  "outputName": "web-mobile",
+  "startScene": "2786ab12-94da-4bc1-82e1-ea1269c6270a",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Main.scene",
+      "uuid": "2786ab12-94da-4bc1-82e1-ea1269c6270a"
+    }
+  ]
+}

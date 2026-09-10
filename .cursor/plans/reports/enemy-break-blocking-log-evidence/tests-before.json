@@ -1,0 +1,19 @@
+{
+  "results": [
+    {
+      "name": "AC-ENTRY: endpoint obstruction selects a legal reachable surface and advances to damage range",
+      "passed": false,
+      "error": "TypeError: f.nav.blockingLog is not a function\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:58:27\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:27:27)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:56:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    },
+    {
+      "name": "AC-ALTERNATE: another legal entrance keeps the original target",
+      "passed": false,
+      "error": "TypeError: f.nav.blockingLog is not a function\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:71:65\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:27:27)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:70:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    },
+    {
+      "name": "AC-NONLOG: removing only the log cannot bypass a second sealed barrier",
+      "passed": false,
+      "error": "TypeError: f.nav.blockingLog is not a function\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:75:30\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:27:27)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-enemy-break-blocking-log.cjs:73:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    }
+  ]
+}

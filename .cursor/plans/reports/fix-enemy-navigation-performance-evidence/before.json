@@ -1,0 +1,534 @@
+{
+  "phase": "before",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "7de6085c3d32e941355f352bf49200f328e2358b0227f7cbd3830fd01c37c508",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 35.68709999999999,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 24.72860000000003,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 17.794899999999984,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 25.490400000000022,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 17.732599999999934,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 1625.9256000000003,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 1647.4017,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 1607.5515000000005,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 1594.4615999999996,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 1616.9120999999996,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 66.27299999999923,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 63.651700000000346,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 62.79650000000038,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 66.17759999999907,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 65.46789999999964,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 2800.5499,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 2787.0079000000005,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 2854.134400000001,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 2823.7935000000034,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 2839.8133000000016,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 32.953199999999924,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 32.28129999999874,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 32.571899999999005,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 33.07129999999961,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 32.536199999998644,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 3613.4916999999987,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 3586.526399999999,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 3571.9859000000033,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 3595.903600000005,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 3603.7464000000036,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 135.8507000000027,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 144.1606000000029,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 137.11070000000473,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 142.01830000000336,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 135.85809999999765,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 5982.440600000002,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 5942.136299999998,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 6039.0216,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 6018.032899999998,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 6099.279500000004,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "result": null
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "medianMs": 24.72860000000003,
+      "p95Ms": 35.68709999999999
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 1616.9120999999996,
+      "p95Ms": 1647.4017
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "medianMs": 65.46789999999964,
+      "p95Ms": 66.27299999999923
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 2823.7935000000034,
+      "p95Ms": 2854.134400000001
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "medianMs": 32.571899999999005,
+      "p95Ms": 33.07129999999961
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 3595.903600000005,
+      "p95Ms": 3613.4916999999987
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "medianMs": 137.11070000000473,
+      "p95Ms": 144.1606000000029
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 6018.032899999998,
+      "p95Ms": 6099.279500000004
+    }
+  ]
+}

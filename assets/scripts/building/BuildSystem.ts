@@ -3,6 +3,7 @@ import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
 import { playAnimWithCallback } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
+import { EnemyNavigation } from '../core/EnemyNavigation';
 import { GameEvents } from '../core/GameEvents';
 import { BossSpawner } from '../enemy/BossSpawner';
 import { CoinSystem } from '../game/CoinSystem';
@@ -32,7 +33,7 @@ type BuildCompletePayload = {
 
 /**
  * 建造编排：PARKOUR_FINISHED 解锁墙地块 → 建墙 → 两墙 BOTH_WALLS_COMPLETE
- * → 塔/兵营 → 兵营后 Plot_HeroShrine → 建碑 activate → 选英雄后 Plot_Expand
+ * → 两座初级塔建成 → 兵营 → 兵营后 Plot_HeroShrine → 建碑 activate → 选英雄后 Plot_Expand
  * → expandArea 完成激活 Barrier / ExpandSideWalls / 高级塔地块。
  */
 @ccclass('BuildSystem')
@@ -52,7 +53,7 @@ export class BuildSystem extends Component {
     @property({ type: [Node], tooltip: '拓展地块：Plot_Expand' })
     expandPlots: Node[] = [];
 
-    @property({ type: [Node], tooltip: '拓展地块解锁后需要隐藏的节点列表' })
+    @property({ type: [Node], tooltip: '拓展区建成并出现后需要隐藏的节点列表' })
     hideWhenExpandUnlocked: Node[] = [];
 
     @property({ type: [Node], tooltip: '高级塔地块：Plot_TowerAdvanced_L/R' })
@@ -118,6 +119,8 @@ export class BuildSystem extends Component {
     private _wallLeftDone = false;
     private _wallRightDone = false;
     private _bothWallsEmitted = false;
+    private readonly _completedBasicTowerPlots = new Set<Node>();
+    private _barracksUnlocked = false;
     private _advLeftDone = false;
     private _advRightDone = false;
     private _advBuiltCount = 0;
@@ -169,6 +172,8 @@ export class BuildSystem extends Component {
             } else if (spawnSide === 'right') {
                 this._wallRightDone = true;
             }
+            EnemyNavigation.get(this.node.scene)?.syncClosedEntranceFromPlot(plotRoot ?? null, spawnSide);
+            this._invalidateEnemyNavigation();
             if (this._wallLeftDone && this._wallRightDone) {
                 this._onBothWallsComplete();
             }
@@ -178,6 +183,7 @@ export class BuildSystem extends Component {
         if (buildType === 'towerBasic') {
             this._spawnTower(worldPos, plotRoot);
             this._trySpawnBossOnFirstDefenseBuilding();
+            this._onBasicTowerBuilt(plotRoot);
             return;
         }
 
@@ -227,7 +233,18 @@ export class BuildSystem extends Component {
         this._bothWallsEmitted = true;
         EventManager.instance.emitEvent(GameEvents.BOTH_WALLS_COMPLETE);
         this._revealPlots(this.towerPlots, 'towerBasic');
-        this._revealPlots(this.barracksPlots, 'barracks');
+    }
+
+    private _onBasicTowerBuilt(plotRoot?: Node): void {
+        if (this._barracksUnlocked || !plotRoot || this.towerPlots.indexOf(plotRoot) < 0) {
+            return;
+        }
+        // 按地块身份记录建成历史；重复事件与后续塔被毁不改变解锁进度。
+        this._completedBasicTowerPlots.add(plotRoot);
+        if (this._completedBasicTowerPlots.size >= 2) {
+            this._barracksUnlocked = true;
+            this._revealPlots(this.barracksPlots, 'barracks');
+        }
     }
 
     /** 首座初级箭塔或兵营建成后生成 Boss（只一次） */
@@ -385,6 +402,7 @@ export class BuildSystem extends Component {
         const tower = node.getComponent(Tower);
         tower?.activate();
         this._registerBossTarget(node, 'building');
+        this._invalidateEnemyNavigation();
     }
 
     private _spawnBarracks(worldPos?: Vec3, plotRoot?: Node): void {
@@ -398,6 +416,7 @@ export class BuildSystem extends Component {
         const barracks = node.getComponent(Barracks);
         barracks?.activate();
         this._registerBossTarget(node, 'building');
+        this._invalidateEnemyNavigation();
     }
 
     private _spawnHeroShrine(worldPos?: Vec3, plotRoot?: Node): void {
@@ -433,6 +452,7 @@ export class BuildSystem extends Component {
         // 场景里 HeroSelect 常开局 inactive → onLoad 未跑、听不到事件；先挂监听再 activate
         this._ensureHeroSelectReady();
         shrine.activate();
+        this._invalidateEnemyNavigation();
     }
 
     private _ensureHeroSelectReady(): void {
@@ -463,7 +483,6 @@ export class BuildSystem extends Component {
         }
         this._registerBossTarget(heroNode, 'hero');
         this._revealPlots(this.expandPlots, 'expandArea');
-        this._hideExpandUnlockNodes();
     }
 
     private _hideExpandUnlockNodes(): void {
@@ -472,6 +491,7 @@ export class BuildSystem extends Component {
                 node.active = false;
             }
         }
+        this._invalidateEnemyNavigation();
     }
 
     private _onExpandComplete(): void {
@@ -480,6 +500,8 @@ export class BuildSystem extends Component {
         this._activateBarrierRoot(this.barrierLongCenter);
         this._activateBarrierRoot(this.expandSideWalls);
         this._revealPlots(this.towerAdvancedPlots, 'towerAdvanced');
+        this._hideExpandUnlockNodes();
+        this._invalidateEnemyNavigation();
         // 拓展完成 → 防守拓展阶段
         GameManager.instance?.setPhase(GamePhase.DefensePhase);
     }
@@ -496,6 +518,7 @@ export class BuildSystem extends Component {
             }
             if (node) {
                 this._registerBossTarget(node, 'building');
+                this._invalidateEnemyNavigation();
             }
         }
 
@@ -587,6 +610,7 @@ export class BuildSystem extends Component {
                 this._registerBossTarget(barrier.node, 'barrier');
             }
         }
+        this._invalidateEnemyNavigation();
     }
 
     /** 建成/生成后插入 Boss 索敌表（Structure 按建造顺序） */
@@ -700,5 +724,9 @@ export class BuildSystem extends Component {
         const found = this.node.scene?.getComponentInChildren(CoinSystem) ?? null;
         this.coinSystem = found;
         return found;
+    }
+
+    private _invalidateEnemyNavigation(): void {
+        EventManager.instance.emitEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED);
     }
 }

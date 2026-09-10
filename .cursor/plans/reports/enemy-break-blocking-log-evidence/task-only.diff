@@ -1,0 +1,803 @@
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/enemy-break-blocking-log.md b/.cursor/plans/enemy-break-blocking-log.md
+index 36f6e52..3bfc4a0 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/enemy-break-blocking-log.md
++++ b/.cursor/plans/enemy-break-blocking-log.md
+@@ -1,7 +1,7 @@
+ ---
+ slug: enemy-break-blocking-log
+-版本: 1
+-状态: draft
++版本: 2
++状态: done
+ 创建: 2026-09-09
+ ---
+ 
+@@ -76,12 +76,12 @@ slug: enemy-break-blocking-log
+ ## To-dos
+ 
+ - [x] EBL.a：规划调研及基线交接完成；主线程44测试通过；确认替代位置误判、入口拒绝接近、旧evidence写入风险。
+-- [ ] EBL.b：单build-agent读计划/相关增量/现有报告/实际磁盘差异，记录当前HEAD、相关文件哈希和脏增量；识别并行修改所有权。扩展测试的独立输出目录后，将原44回归输出写到本slug；旧基准不动。
+-- [ ] EBL.c：先新增针对当前缺口的失败用例，覆盖下方机器AC；复用harness并统一实际Log/导航/敌人加载身份。主线程检查测试是否替换了待测逻辑、入口是否真实配置及可达判断是否偷换概念，不重跑已接受Survey。
+-- [ ] EBL.d：最小补充共享阻路与表面查询，再接Minion/AI及Boss临时目标；保留原索敌和所有非Log障碍限制。
+-- [ ] EBL.e：接攻击帧/冷却/代次清理及摧毁失效，跑真实方法联动与池复活反例；共享缓存做正负及体型隔离压力验证。
+-- [ ] EBL.f：回归44项+专用测试+tsc+OpenSpec+范围检查；主线程审查计数证据和验收风险，AC失败只修相关步骤，不重建已验收内容。
+-- [ ] EBL.g：全部机器AC通过后更新同主题bugs、报告及plan状态；机器通过可done，实玩未完成单列，不宣称已证实FPS。
++- [x] EBL.b：单build-agent读计划/相关增量/现有报告/实际磁盘差异，记录当前HEAD、相关文件哈希和脏增量；识别并行修改所有权。扩展测试的独立输出目录后，将原44回归输出写到本slug；旧基准不动。
++- [x] EBL.c：先新增针对当前缺口的失败用例，覆盖下方机器AC；复用harness并统一实际Log/导航/敌人加载身份。主线程已审查真实update/命中/恢复链与只读场景fixture。
++- [x] EBL.d：最小补充共享阻路与表面查询，再接Minion/AI及Boss临时目标；保留原索敌和所有非Log障碍限制。
++- [x] EBL.e：接攻击帧/冷却/代次清理及摧毁失效，跑真实方法联动与池复活反例；共享缓存做正负及体型隔离压力验证。
++- [x] EBL.f：原44项正文未改且全通过，专用31项、tsc、OpenSpec strict、diff check和范围检查通过；主线程审查无新增阻塞。
++- [x] EBL.g：全部机器AC通过后更新bugs单条记录、报告及done状态；Creator实玩与FPS未验证。
+ 
+ ## 实施步骤
+ 
+@@ -148,6 +148,8 @@ Remove-Item Env:NAV_EVIDENCE_DIR
+ 
+ ## 修订记录
+ 
++- v2（2026-09-09，build局部修订）：主线程快照仅在tool store，已按本轮授权在任务evidence/baseline保存当前脏源码字节快照、manifest及dirty.diff；主线程基线仍接受。明确Boss普通锁定Log也共用表面路线，不改变priority；表面查询含接触、半攻击距离、攻击距离内三层有界站位。原AC不删减；首批21专用测试、44回归和tsc通过，剩余矩阵继续补齐。
++- v2执行完成：31专用测试与44回归全通过，所有机器AC证据见本slug报告和evidence；本轮唯一build-agent，未执行旧benchmark、MCP或资源写入，未验证Creator实玩/FPS。
+ - v1（2026-09-09）：用户已采纳行为的初版；纳入主线程44测试/tsc基线及五核心脚本快照、harness复用、旧evidence保护和非null替代位置误判风险。规划阶段OpenSpec严格校验通过；无阻塞，未实施代码。
+ 
+ ## 执行报告须含
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/test-enemy-navigation.cjs b/.cursor/scripts/test-enemy-navigation.cjs
+index b505806..4b0ff52 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/test-enemy-navigation.cjs
++++ b/.cursor/scripts/test-enemy-navigation.cjs
+@@ -1338,9 +1338,9 @@ should('AC-REF: service releases a detour field when switching to direct or inva
+ 
+ if (process.env.NAV_HARNESS_ONLY !== '1' && !process.exitCode) console.log('enemy navigation core tests passed');
+ if (process.env.NAV_HARNESS_ONLY !== '1') {
+-    const dir = path.join(root, '.cursor/plans/reports/fix-enemy-navigation-performance-evidence');
++    const dir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/plans/reports/fix-enemy-navigation-performance-evidence');
+     fs.mkdirSync(dir, { recursive: true });
+     fs.writeFileSync(path.join(dir, 'logic-results.json'), JSON.stringify({ node: process.version, typescript: ts.version, testResults }, null, 2));
+ }
+ module.exports = { loadTs, clearLoaded, loadEnemyNavigationForServiceTests, actualScriptMocks,
+-    componentNode, mockNode, groundNodes, outVec, advanceFrame: () => ++currentFrame };
++    componentNode, mockNode, groundNodes, outVec, eventNode, advanceFrame: () => ++currentFrame };
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyNavigation.ts b/assets/scripts/core/EnemyNavigation.ts
+index 3d58982..a48c789 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyNavigation.ts
++++ b/assets/scripts/core/EnemyNavigation.ts
+@@ -19,6 +19,7 @@ import { GameEvents } from './GameEvents';
+ 
+ export type EnemyNavRole = 'minion' | 'boss';
+ export type EnemyRegion = 'outside' | 'transition' | 'inside';
++export type BlockingLogRoute = { log: Log; point: FlowPoint };
+ 
+ export type EnemyEntranceConfig = {
+     id: number;
+@@ -111,6 +112,8 @@ export class EnemyNavigation {
+     private readonly _watched = new Set<Node>();
+     private readonly _geometryWatched = new Set<Node>();
+     private readonly _rectByCollider = new Map<BoxCollider2D, FlowRect>();
++    private readonly _fixedByCollider = new Map<BoxCollider2D, Log>();
++    private _contactLog: Log | null = null;
+     private _discovered = false;
+     private _lastGeometryFrame = -1;
+     private _diagnosticAt = 0;
+@@ -120,7 +123,7 @@ export class EnemyNavigation {
+     private _dirty = true;
+     private _topology: number[] = [];
+     readonly debugStats = { fullSceneScan: 0, trackedColliderChecks: 0, signatureBuild: 0,
+-        invalidateRequests: 0, effectiveCommits: 0, geometryChanges: 0 };
++        invalidateRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0 };
+     private readonly _area: FlowArea = {
+         bounds: {
+             minX: GameConfig.enemyNavDefaultMinX,
+@@ -170,7 +173,8 @@ export class EnemyNavigation {
+         this._unitPositions.clear();
+         this._buckets.clear();
+         for (const node of this._watched) this._unwatch(node);
+-        this._watched.clear(); this._tracked.clear(); this._rectByCollider.clear();
++        this._watched.clear(); this._tracked.clear(); this._rectByCollider.clear(); this._fixedByCollider.clear();
++        this._contactLog = null;
+         for (const node of this._geometryWatched) {
+             node.off?.('transform-changed', this.invalidate, this);
+             node.off?.('active-in-hierarchy-changed', this.invalidate, this);
+@@ -377,6 +381,122 @@ export class EnemyNavigation {
+         return out;
+     }
+ 
++    blockingLog(request: EnemyMoveRequest, range: number): BlockingLogRoute | null {
++        this._prepareFrame();
++        if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured() ||
++            !this._hasConfiguredEntrance() || (this._area.castlePolygon?.length ?? 0) < 3) return null;
++        const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
++        if (!this._field.pointWalkable(from, body, this._area)) return null;
++        const targetBox = request.target.getComponent(BoxCollider2D);
++        const targetRect = targetBox ? this._rectByCollider.get(targetBox) : undefined;
++        if (!targetRect && this._field.lineClear(from, target, body, this._area)) return null;
++        const condition = `blocking:${request.role}:${range}:${target.x},${target.y}:${targetRect ? JSON.stringify(targetRect) : ''}`;
++        return this._field.sharedQuery(from, body, this._area, condition, () => {
++            const reachable = (area: FlowArea): boolean => targetRect
++                ? !!this._surface(from, targetRect, body, area, range, true)
++                : this._field.canReach(from, target, body, area);
++            if (reachable(this._area)) return null;
++            this.debugStats.blockingScans++;
++            for (const [box, rect] of this._rectByCollider) {
++                const log = box.node.getComponent(Log);
++                if (!this._fixedLog(log)) continue;
++                // Diagnostic view never enters direction(), avoidance or the final movement sweep.
++                const diagnostic: FlowArea = { ...this._area, obstacles: this._area.obstacles.filter(r => r !== rect),
++                    diagnosticOf: this._area, ignoredObstacle: rect };
++                if (!reachable(diagnostic)) continue;
++                const point = this._surface(from, rect, body, this._area, range);
++                if (point) return { log: log!, point };
++            }
++            return null;
++        });
++    }
++
++    logRoute(unit: Node, log: Log, body: FlowBody, range: number): BlockingLogRoute | null {
++        this._prepareFrame();
++        const rect = this._logRect(log);
++        if (!rect) return null;
++        const from = nodePoint(unit);
++        const point = this._field.sharedQuery(from, body, this._area, `surface:${range}:${JSON.stringify(rect)}`,
++            () => this._surface(from, rect, body, this._area, range));
++        return point ? { log, point } : null;
++    }
++
++    canAttackLog(unit: Node, log: Log, body: FlowBody, range: number): boolean {
++        this._prepareFrame();
++        const rect = this._logRect(log);
++        if (!rect || !unit.isValid || !unit.activeInHierarchy) return false;
++        return this._surfaceHit(nodePoint(unit), rect, body, this._area, range);
++    }
++
++    nextLogVelocity(request: EnemyMoveRequest, route: BlockingLogRoute, out: Vec2 = this._velocity): Vec2 {
++        out.set(0, 0); this._prepareFrame(); this._releaseField(request.unit);
++        if (!this._logRect(route.log) || request.dt <= 0 || request.speed <= 0) return out;
++        const from = nodePoint(request.unit);
++        const result = this._field.direction(from, route.point, request.body, this._area);
++        if (result.blocked || result.reached) return out;
++        const speed = Math.min(request.speed, Math.hypot(route.point.x-from.x, route.point.y-from.y)/request.dt);
++        out.set(result.x*speed, result.y*speed);
++        this._registeredUnits.add(request.unit); this._insertUnitIntoBuckets(request.unit);
++        this._applyLocalAvoidance(request.unit, from, request.body, request.speed, out);
++        this._constrainVelocity(from, request.body, request.dt, out);
++        return out;
++    }
++
++    private _fixedLog(log: Log | null): boolean {
++        return !!log && log.isValid !== false && log.node.isValid && log.node.activeInHierarchy &&
++            log.getPhase() === 'fixed' && log.isAttackable();
++    }
++
++    contactLog(): Log | null {
++        this._prepareFrame();
++        return this._contactLog;
++    }
++
++    private _logRect(log: Log): FlowRect | null {
++        if (!this._hasGroundConfigured() || !this._hasConfiguredEntrance() ||
++            (this._area.castlePolygon?.length ?? 0) < 3 || !this._fixedLog(log)) return null;
++        const box = log.getBoxCollider();
++        return box?.enabled ? this._rectByCollider.get(box) ?? null : null;
++    }
++
++    private _surfaceHit(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number): boolean {
++        if (!this._field.pointWalkable(from, body, area)) return false;
++        const cx = from.x+(body.offsetX ?? 0), cy = from.y+(body.offsetY ?? 0);
++        const sx = Math.max(rect.xMin, Math.min(cx, rect.xMax)), sy = Math.max(rect.yMin, Math.min(cy, rect.yMax));
++        const bx = Math.max(cx-body.width/2, Math.min(sx,cx+body.width/2));
++        const by = Math.max(cy-body.height/2, Math.min(sy,cy+body.height/2));
++        return Math.hypot(sx-bx,sy-by) <= range && this._field.lineClear({x:bx,y:by},{x:sx,y:sy},
++            {width:0,height:0},area);
++    }
++
++    private _surface(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number, rootRange = false): FlowPoint | null {
++        this.debugStats.surfaceScans++;
++        const ox = body.offsetX ?? 0, oy = body.offsetY ?? 0;
++        const candidates: FlowPoint[] = [];
++        const step = Math.max(1,this._field.cellSize/2);
++        const span = (min: number,max: number,add: (v:number)=>void): void => {
++            add(min); add(max);
++            for (let v=Math.ceil(min/step)*step;v<max;v+=step) add(v);
++        };
++        for (const gap of [0.05, Math.max(0.05,range/2), Math.max(0.05,range-0.05)]) {
++            const left = rect.xMin-body.width/2-ox-gap, right = rect.xMax+body.width/2-ox+gap;
++            const bottom = rect.yMin-body.height/2-oy-gap, top = rect.yMax+body.height/2-oy+gap;
++            span(Math.max(rect.xMin-ox,area.bounds.minX),Math.min(rect.xMax-ox,area.bounds.maxX), x => {
++                candidates.push({x,y:bottom},{x,y:top});
++            });
++            span(Math.max(rect.yMin-oy,area.bounds.minY),Math.min(rect.yMax-oy,area.bounds.maxY), y => {
++                candidates.push({x:left,y},{x:right,y});
++            });
++        }
++        // Stable ordering lets the selected surface be shared by an entire connected region.
++        for (const point of candidates) {
++            if (rootRange && Math.hypot(point.x-Math.max(rect.xMin,Math.min(point.x,rect.xMax)),
++                point.y-Math.max(rect.yMin,Math.min(point.y,rect.yMax))) > range) continue;
++            if (this._surfaceHit(point,rect,body,area,range) && this._field.canReach(from,point,body,area)) return point;
++        }
++        return null;
++    }
++
+     chooseEntrance(
+         from: FlowPoint,
+         body: FlowBody,
+@@ -547,11 +667,23 @@ export class EnemyNavigation {
+             this._watchTree(this._scene);
+         }
+         let changed = false;
++        this._contactLog = null;
++        for (const box of this._fixedByCollider.keys()) {
++            if (!this._tracked.has(box)) { this._fixedByCollider.delete(box); changed = true; }
++        }
+         for (const box of this._rectByCollider.keys()) {
+             if (!this._tracked.has(box)) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
+         }
+         for (const box of this._tracked) {
+             this.debugStats.trackedColliderChecks++;
++            const log = box.node?.getComponent(Log) ?? null;
++            if (!this._contactLog && log && log.isValid !== false && log.node.isValid && log.node.activeInHierarchy &&
++                log.node.active && log.getPhase() !== 'failed') this._contactLog = log;
++            const fixed = box.enabled !== false && this._fixedLog(log);
++            if ((this._fixedByCollider.get(box) ?? null) !== (fixed ? log : null)) {
++                if (fixed) this._fixedByCollider.set(box, log!); else this._fixedByCollider.delete(box);
++                changed = true;
++            }
+             const old = this._rectByCollider.get(box);
+             if (box.isValid === false || box.node?.isValid === false || !this._isBlockingCollider(box)) {
+                 if (old) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/FlowField.ts b/assets/scripts/core/FlowField.ts
+index 1c5dacd..39356a0 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/FlowField.ts
++++ b/assets/scripts/core/FlowField.ts
+@@ -39,6 +39,8 @@ export type FlowArea = {
+     walkablePolygons?: FlowPoint[][];
+     castlePolygon?: FlowPoint[];
+     portals?: FlowPortal[];
++    diagnosticOf?: FlowArea;
++    ignoredObstacle?: FlowRect;
+ };
+ 
+ export type FlowDirectionResult = {
+@@ -74,6 +76,7 @@ type Connectivity = {
+     stamp: number;
+ };
+ type Approach = { id: string; point: FlowPoint | null; stamp: number };
++type SharedQuery = { id: string; value: unknown; stamp: number };
+ 
+ export type FlowBudget = { entries: number; bytes: number; cells: number };
+ 
+@@ -108,6 +111,7 @@ export class FlowField {
+     private _buildCount = 0;
+     private readonly _graphs = new Map<string, Connectivity>();
+     private readonly _approaches = new Map<string, Approach>();
++    private readonly _queries = new Map<string, SharedQuery>();
+     private _graphBuildCount = 0;
+     readonly debugStats = { visitedCells: 0, candidates: 0, hits: 0, misses: 0, peakBytes: 0, peakEntries: 0,
+         lineChecks: 0, pointChecks: 0, approachHits: 0 };
+@@ -125,9 +129,10 @@ export class FlowField {
+         for (const f of this._cache.values()) bytes += f.distances.byteLength + f.id.length * 2 + 128;
+         for (const g of this._graphs.values()) bytes += g.labels.byteLength + g.edges.byteLength + g.id.length * 2 + 128;
+         for (const a of this._approaches.values()) bytes += a.id.length * 2 + 128;
++        for (const q of this._queries.values()) bytes += q.id.length * 2 + 256;
+         return bytes;
+     }
+-    get debugEntries(): number { return this._cache.size + this._graphs.size + this._approaches.size; }
++    get debugEntries(): number { return this._cache.size + this._graphs.size + this._approaches.size + this._queries.size; }
+ 
+     get buildCount(): number {
+         return this._buildCount;
+@@ -145,6 +150,7 @@ export class FlowField {
+         this._cache.clear();
+         this._graphs.clear();
+         this._approaches.clear();
++        this._queries.clear();
+     }
+ 
+     invalidate(): void {
+@@ -764,6 +770,30 @@ export class FlowField {
+         return { x: 0, y: 0, waypoint: { x: waypoint.x, y: waypoint.y }, fieldId, blocked, reached };
+     }
+ 
++    canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
++        return this._canReach(from, target, body, area);
++    }
++
++    // Small fixed-shape query results share graph/field admission and LRU, including null results.
++    sharedQuery<T>(from: FlowPoint, body: FlowBody, area: FlowArea, condition: string, compute: () => T): T {
++        const starts = this._attachments(from, body, area);
++        if (!starts.length) return compute();
++        const graph = this._graphFor(body, area);
++        if (!graph) return compute();
++        const labels = Array.from(new Set(starts.map(c => graph.labels[this._index(c.x, c.y, graph.width)])))
++            .filter(l => l >= 0).sort((a,b) => a-b);
++        if (!labels.length) return compute();
++        const id = `${graph.id}:query:${labels.join(',')}:${condition}`;
++        const old = this._queries.get(id);
++        if (old) { old.stamp = ++this._stamp; return old.value as T; }
++        const value = compute();
++        const bytes = id.length * 2 + 256;
++        if (bytes <= this._budget.bytes && this._budget.entries > 0) {
++            this._makeRoom(bytes); this._queries.set(id, { id, value, stamp: ++this._stamp }); this._recordPeak();
++        }
++        return value;
++    }
++
+     private _canReach(from: FlowPoint, target: FlowPoint, body: FlowBody, area: FlowArea): boolean {
+         if (this.lineClear(from, target, body, area)) return true;
+         const starts = this._attachments(from, body, area);
+@@ -781,6 +811,7 @@ export class FlowField {
+     private _areaKeys = new WeakMap<FlowArea, { version: number; key: string }>();
+     private _nextAreaId = 0;
+     private _areaKey(area: FlowArea): string {
++        if (area.diagnosticOf) return `${this._areaKey(area.diagnosticOf)}:ignore:${area.diagnosticOf.obstacles.indexOf(area.ignoredObstacle!)}`;
+         const cached = this._areaKeys.get(area);
+         if (cached?.version === area.obstacleVersion) return cached.key;
+         if (!this._areaIds.has(area)) this._areaIds.set(area, ++this._nextAreaId);
+@@ -857,8 +888,10 @@ export class FlowField {
+             for (const [id, f] of this._cache) if (f.stamp < stamp) { key = id; stamp = f.stamp; kind = 0; }
+             for (const [id, g] of this._graphs) if (g.stamp < stamp) { key = id; stamp = g.stamp; kind = 1; }
+             for (const [id, a] of this._approaches) if (a.stamp < stamp) { key = id; stamp = a.stamp; kind = 2; }
++            for (const [id, q] of this._queries) if (q.stamp < stamp) { key = id; stamp = q.stamp; kind = 3; }
+             // Unit references are identifiers, not array ownership. Eviction forces a fresh query.
+-            if (kind === 1) this._graphs.delete(key); else if (kind === 2) this._approaches.delete(key); else this._cache.delete(key);
++            if (kind === 1) this._graphs.delete(key); else if (kind === 2) this._approaches.delete(key);
++            else if (kind === 3) this._queries.delete(key); else this._cache.delete(key);
+         }
+     }
+ 
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyAI.ts b/assets/scripts/enemy/EnemyAI.ts
+index 6094b77..9af6c57 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyAI.ts
++++ b/assets/scripts/enemy/EnemyAI.ts
+@@ -4,6 +4,7 @@ import { Player } from '../character/Player';
+ import { EnemyNavigation } from '../core/EnemyNavigation';
+ import { FlowBody } from '../core/FlowField';
+ import { GameConfig } from '../core/GameConfig';
++import { Log } from '../item/Log';
+ 
+ const { ccclass, property } = _decorator;
+ 
+@@ -66,17 +67,25 @@ export class EnemyAI extends Component {
+      * 开冷却并允许播攻击动画（伤害改由帧事件 applyAttackDamage）。
+      * @returns 是否成功进入攻击
+      */
+-    beginAttack(range: number): boolean {
++    beginAttack(range: number, log: Log | null = null): boolean {
+         if (this._attackTimer > 0) {
+             return false;
+         }
+-        if (!this._hasAttackTarget(range)) {
++        if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._body(), range) : !this._hasAttackTarget(range)) {
+             return false;
+         }
+         this._attackTimer = this.attackCooldown;
+         return true;
+     }
+ 
++    applyLogDamage(log: Log, range: number): boolean {
++        const nav = EnemyNavigation.get(this.node.scene);
++        if (!nav?.canAttackLog(this.node, log, this._body(), range)) return false;
++        log.takeDamage(GameConfig.minionAttackDamage);
++        if (!log.isAttackable()) nav.invalidate();
++        return true;
++    }
++
+     /** 帧事件出手：近距优先 Barrier，否则打玩家 */
+     applyAttackDamage(range: number): boolean {
+         if (this.attackPrefersBarrier) {
+@@ -182,6 +191,8 @@ export class EnemyAI extends Component {
+         if (!box) {
+             return { width: 24, height: 24 };
+         }
++        const physical = EnemyNavigation.bodyForCollider?.(box);
++        if (physical) return physical;
+         const aabb = box.worldAABB;
+         this.node.getWorldPosition(this._selfPos);
+         return {
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyBoss.ts b/assets/scripts/enemy/EnemyBoss.ts
+index 2f0ad2f..8f7662e 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyBoss.ts
++++ b/assets/scripts/enemy/EnemyBoss.ts
+@@ -102,6 +102,8 @@ export class EnemyBoss extends Component {
+     private _canMove = true;
+     private _isAttacking = false;
+     private _lifeGeneration = 0;
++    private _attackGeneration = 0;
++    private _blockingLog: Log | null = null;
+     private _currentLocomotionClip = '';
+     private readonly _visualFacing = new VisualFacing();
+ 
+@@ -154,6 +156,7 @@ export class EnemyBoss extends Component {
+     }
+ 
+     onDestroy(): void {
++        this._blockingLog = null;
+         this._lifeGeneration += 1;
+         this._isAttacking = false;
+         EventManager.instance.offEvent(
+@@ -165,6 +168,9 @@ export class EnemyBoss extends Component {
+     }
+ 
+     onDisable(): void {
++        this._blockingLog = null;
++        this._lockedTarget = null;
++        this._attackTimer = 0;
+         this._lifeGeneration += 1;
+         this._isAttacking = false;
+         this._stopMovement();
+@@ -337,6 +343,7 @@ export class EnemyBoss extends Component {
+ 
+     /** 每 bossRetargetInterval 重索敌；期间锁当前目标（死亡则立刻重选） */
+     private _resolveChaseTarget(dt: number): Node | null {
++        if (this._blockingLog && this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)) return this._lockedTarget;
+         this._retargetTimer -= dt;
+         const lockedAlive =
+             !!this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget);
+@@ -358,22 +365,23 @@ export class EnemyBoss extends Component {
+     }
+ 
+     tryAttack(): void {
+-        if (this._isDead || this._attackTimer > 0) {
++        if (this._isDead || this._isAttacking || this._attackTimer > 0) {
+             return;
+         }
+ 
+         // 无索敌距离：追当前锁定目标；仅近战距离内出手
+-        const target =
++        const target = this._blockingLog?.node ?? (
+             this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget)
+                 ? this._lockedTarget
+-                : this.pickTarget();
++                : this.pickTarget());
+         if (!target) {
+             return;
+         }
+ 
+         const dist = this._distanceToTargetSurface(target);
+         const melee = Math.max(this.attackTriggerRange, 48);
+-        if (dist > melee) {
++        const log = target.getComponent(Log);
++        if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), melee) : dist > melee) {
+             return;
+         }
+ 
+@@ -389,6 +397,15 @@ export class EnemyBoss extends Component {
+         this._visualFacing.faceByTarget(this.visualNode, this.node, target);
+ 
+         const generation = this._lifeGeneration;
++        const attack = ++this._attackGeneration, original = this._lockedTarget, temporary = this._blockingLog;
++        let hit = false;
++        const valid = (): boolean => this._lifeGeneration === generation && this._attackGeneration === attack &&
++            !this._isDead && this.node.isValid && this.node.activeInHierarchy && this._lockedTarget === original &&
++            (!original || this._isTargetAlive(original)) && this._blockingLog === temporary;
++        const damage = (): void => {
++            if (hit || !valid() || !this._isAttacking) return;
++            hit = true; this._applyCircleAttack();
++        };
+         this._isAttacking = true;
+         this._attackTimer = this.attackCooldown;
+         if (this.visualNode) {
+@@ -396,18 +413,14 @@ export class EnemyBoss extends Component {
+             playAttackWithFrameHit(
+                 this.visualNode,
+                 'attack',
+-                () => {
+-                    if (this._lifeGeneration === generation && !this._isDead && this._isAttacking) {
+-                        this._applyCircleAttack();
+-                    }
+-                },
++                damage,
+                 0.75,
+             );
+         } else {
+-            this._applyCircleAttack();
++            damage();
+         }
+         this.scheduleOnce(() => {
+-            if (this._lifeGeneration !== generation) {
++            if (this._lifeGeneration !== generation || this._attackGeneration !== attack) {
+                 return;
+             }
+             this._isAttacking = false;
+@@ -435,6 +448,7 @@ export class EnemyBoss extends Component {
+     }
+ 
+     reset(): void {
++        this._blockingLog = null;
+         this._lifeGeneration += 1;
+         this.unscheduleAllCallbacks();
+         this._hp = GameConfig.bossMaxHp;
+@@ -491,12 +505,36 @@ export class EnemyBoss extends Component {
+         // 每 5s 重索敌；soldier > Structure > hero > player（Structure 按建造序）
+         const target = this._resolveChaseTarget(dt);
+         if (!target) {
++            this._blockingLog = null;
++            EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+             this._velocity.set(0, 0);
+             this._stopMovement();
+             this._updateLocomotionAnim(false);
+             return;
+         }
+ 
++        const size = this._bodySize();
++        const nav = EnemyNavigation.get(this.node.scene);
++        const melee = Math.max(this.attackTriggerRange, 48);
++        const request = { unit: this.node, target, role: 'boss' as const, speed: GameConfig.bossMoveSpeed,
++            dt, body: size, stopDistance: melee, preferEntranceNearestTo: this._playerNode };
++        const ordinaryLog = target.getComponent(Log);
++        const diversion = ordinaryLog ? null : nav?.blockingLog(request, melee) ?? null;
++        if (this._blockingLog !== (diversion?.log ?? null)) nav?.resetUnit(this.node);
++        this._blockingLog = diversion?.log ?? null;
++        const log = ordinaryLog ?? this._blockingLog;
++        if (log && nav) {
++            if (nav.canAttackLog(this.node, log, size, melee)) {
++                this._stopMovement(); this._updateLocomotionAnim(false); this.tryAttack(); return;
++            }
++            const route = diversion ?? nav.logRoute(this.node, log, size, melee);
++            if (route) nav.nextLogVelocity(request, route, this._velocity);
++            else this._velocity.set(0,0);
++            if (this._rb) this._rb.linearVelocity = this._velocity;
++            this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
++            this._updateLocomotionAnim(true); return;
++        }
++
+         this.node.getWorldPosition(this._selfPos);
+         target.getWorldPosition(this._targetPos);
+         const dx = this._targetPos.x - this._selfPos.x;
+@@ -509,7 +547,6 @@ export class EnemyBoss extends Component {
+         }
+         this._visualFacing.faceByTarget(this.visualNode, this.node, target);
+ 
+-        const melee = Math.max(this.attackTriggerRange, 48);
+         if (dist <= melee) {
+             this._stopMovement();
+             this._updateLocomotionAnim(false);
+@@ -517,7 +554,6 @@ export class EnemyBoss extends Component {
+             return;
+         }
+ 
+-        const size = this._bodySize();
+         EnemyNavigation.get(this.node.scene)?.nextVelocity(
+             {
+                 unit: this.node,
+@@ -571,7 +607,9 @@ export class EnemyBoss extends Component {
+             if (!this._isTargetAlive(node)) {
+                 continue;
+             }
+-            if (this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
++            const log = node.getComponent(Log);
++            if (log ? !EnemyNavigation.get(this.node.scene)?.canAttackLog(this.node, log, this._bodySize(), radius)
++                : this._distanceFromSelfToTargetSurfaceSq(node) > radiusSq) {
+                 continue;
+             }
+             this._dealDamageToNode(node);
+@@ -608,6 +646,7 @@ export class EnemyBoss extends Component {
+         this._pruneDeadTargets();
+         const out: Node[] = [];
+         const seen = new Set<Node>();
++        if (this._blockingLog?.node.isValid) { out.push(this._blockingLog.node); seen.add(this._blockingLog.node); }
+         for (const e of this._targetList) {
+             if (e.node?.isValid && this._isTargetAlive(e.node) && !seen.has(e.node)) {
+                 seen.add(e.node);
+@@ -677,6 +716,7 @@ export class EnemyBoss extends Component {
+         const log = node.getComponent(Log);
+         if (log?.isAttackable()) {
+             log.takeDamage(GameConfig.bossAttackDamage);
++            if (!log.isAttackable()) EnemyNavigation.get(this.node.scene)?.invalidate();
+             return;
+         }
+         const barrier = node.getComponent(Barrier);
+@@ -708,6 +748,7 @@ export class EnemyBoss extends Component {
+     }
+ 
+     private _die(): void {
++        this._blockingLog = null;
+         this._lifeGeneration += 1;
+         this._isDead = true;
+         this._isAttacking = false;
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyMinion.ts b/assets/scripts/enemy/EnemyMinion.ts
+index 9f40395..bf0f399 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/EnemyMinion.ts
++++ b/assets/scripts/enemy/EnemyMinion.ts
+@@ -70,6 +70,9 @@ export class EnemyMinion extends Component {
+     private _isDead = false;
+     private _canMove = true;
+     private _isAttacking = false;
++    private _blockingLog: Log | null = null;
++    private _lifeGeneration = 0;
++    private _attackGeneration = 0;
+     private _forceChaseTarget = false;
+     private _inAttackHysteresis = false;
+     private _currentLocomotionClip = '';
+@@ -107,6 +110,13 @@ export class EnemyMinion extends Component {
+ 
+     setTarget(target: Node | null): void {
+         this._ensureRuntimeRefs();
++        if (this._target !== target) {
++            this._blockingLog = null;
++            this._attackGeneration++;
++            this._isAttacking = false;
++            this._inAttackHysteresis = false;
++            EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
++        }
+         this._target = target;
+         this._ai?.setTarget(target);
+     }
+@@ -120,28 +130,36 @@ export class EnemyMinion extends Component {
+             return;
+         }
+         const range = GameConfig.enemyMinionAttackEnterRange;
+-        if (!this._ai.beginAttack(range)) {
++        const log = this._blockingLog, target = this._target;
++        if (!this._ai.beginAttack(range, log)) {
+             return;
+         }
+         this._isAttacking = true;
+-        this._visualFacing.faceByTarget(this.visualNode, this.node, this._target);
++        const life = this._lifeGeneration, attack = ++this._attackGeneration;
++        let hit = false;
++        const valid = (): boolean => this._lifeGeneration === life && this._attackGeneration === attack &&
++            !this._isDead && this.node.isValid && this.node.activeInHierarchy && this._target === target &&
++            !!target?.isValid && target.activeInHierarchy && !target.getComponent(Player)?.isDead;
++        const damage = (): void => {
++            if (hit || !valid()) return;
++            hit = true;
++            if (log) { if (this._blockingLog === log) this._ai?.applyLogDamage(log, range); }
++            else this._ai?.applyAttackDamage(range);
++        };
++        this._visualFacing.faceByTarget(this.visualNode, this.node, log?.node ?? target);
+         if (this.visualNode) {
+             // minion frame_012 → 0.4s
+             playAttackWithFrameHit(
+                 this.visualNode,
+                 'attack',
+-                () => {
+-                    if (!this._isDead) {
+-                        this._ai?.applyAttackDamage(range);
+-                    }
+-                },
++                damage,
+                 0.45,
+             );
+         } else {
+-            this._ai.applyAttackDamage(range);
++            damage();
+         }
+         this.scheduleOnce(() => {
+-            this._isAttacking = false;
++            if (valid()) this._isAttacking = false;
+         }, 0.8);
+     }
+ 
+@@ -166,6 +184,8 @@ export class EnemyMinion extends Component {
+     }
+ 
+     reset(): void {
++        this._lifeGeneration++;
++        this._blockingLog = null;
+         this._ensureRuntimeRefs();
+         this.unscheduleAllCallbacks();
+         this._hp = GameConfig.minionMaxHp;
+@@ -206,7 +226,9 @@ export class EnemyMinion extends Component {
+             return;
+         }
+ 
+-        if (!this._target || !this._target.activeInHierarchy) {
++        if (!this._target?.isValid || !this._target.activeInHierarchy || this._target.getComponent(Player)?.isDead) {
++            this._blockingLog = null;
++            EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+             this._halt(false);
+             return;
+         }
+@@ -222,6 +244,29 @@ export class EnemyMinion extends Component {
+             this._halt(false);
+             return;
+         }
++        const size = this._bodySize();
++        const nav = EnemyNavigation.get(this.node.scene);
++        const request = { unit: this.node, target: this._target, role: 'minion' as const,
++            speed: GameConfig.minionMoveSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
++        if (this._isAttacking && this._blockingLog) { this._halt(false); return; }
++        const diversion = nav?.blockingLog(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
++        if (this._blockingLog !== (diversion?.log ?? null)) {
++            nav?.resetUnit(this.node);
++            this._inAttackHysteresis = false;
++        }
++        this._blockingLog = diversion?.log ?? null;
++        if (diversion && nav) {
++            if (nav.canAttackLog(this.node, diversion.log, size, GameConfig.enemyMinionAttackEnterRange)) {
++                this._halt(true); return;
++            }
++            nav.nextLogVelocity(request, diversion, this._velocity);
++            this._adjustVelocityAgainstLog();
++            nav.constrainFinalVelocity(this.node, size, _dt, GameConfig.minionMoveSpeed, this._velocity);
++            if (this._rb) this._rb.linearVelocity = this._velocity;
++            this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
++            this._updateLocomotionAnim(true);
++            return;
++        }
+         const shouldHoldForAttack = resolveMinionAttackHysteresis(this._inAttackHysteresis, dist);
+         this._inAttackHysteresis = shouldHoldForAttack;
+         if (dist <= GameConfig.enemyMinionAttackEnterRange) {
+@@ -233,8 +278,6 @@ export class EnemyMinion extends Component {
+             return;
+         }
+ 
+-        const size = this._bodySize();
+-        const nav = EnemyNavigation.get(this.node.scene);
+         if (nav) {
+             nav.nextVelocity(
+                 {
+@@ -364,14 +407,7 @@ export class EnemyMinion extends Component {
+     }
+ 
+     private _resolveLog(): Log | null {
+-        if (this._log?.isValid && this._log.node.activeInHierarchy) {
+-            return this._log;
+-        }
+-        const scene = this.node.scene;
+-        if (!scene) {
+-            return null;
+-        }
+-        this._log = scene.getComponentInChildren(Log);
++        this._log = EnemyNavigation.get(this.node.scene)?.contactLog() ?? null;
+         return this._log;
+     }
+ 
+@@ -411,6 +447,10 @@ export class EnemyMinion extends Component {
+     }
+ 
+     private _die(): void {
++        const life = ++this._lifeGeneration;
++        this._blockingLog = null;
++        this._isAttacking = false;
++        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+         this._isDead = true;
+         this._canMove = false;
+         this._velocity.set(0, 0);
+@@ -430,6 +470,8 @@ export class EnemyMinion extends Component {
+         coinSys?.dropAt(this._selfPos);
+ 
+         this.scheduleOnce(() => {
++            if (this._lifeGeneration !== life || !this._isDead) return;
++            this._lifeGeneration++;
+             this.node.active = false;
+             EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+             this.onReturnedToPool?.(this);
+@@ -437,6 +479,17 @@ export class EnemyMinion extends Component {
+     }
+ 
+     onDestroy(): void {
++        this.onDisable();
++    }
++
++    onDisable(): void {
++        this._lifeGeneration++;
++        this._blockingLog = null;
++        this._isAttacking = false;
++        this._target = null;
++        this._ai?.setTarget(null);
++        this._ai?.reset();
++        this._halt(false);
+         EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+     }
+ 
+diff --git a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/bugs.md b/bugs.md
+index 7653dda..8ffdf19 100644
+--- a/.cursor/plans/reports/enemy-break-blocking-log-evidence/baseline/bugs.md
++++ b/bugs.md
+@@ -1182,3 +1182,16 @@
+ | **验证** | TypeScript 和 mock 回归通过，覆盖提前冷却、动画完成、旧回调、缺少动画、reset 与死亡。实际动画观感待 Cocos 手测。 |
+ 
+ ---
++
++## enemy-break-blocking-log：敌人无法拆除阻路固定滚木
++
++### v1（2026-09-09）
++
++| 项 | 说明 |
++|---|---|
++| **现象** | 固定滚木阻断追踪或唯一开放入口时，小怪/Boss 停留而不走近拆木；Boss 普通锁定滚木也可能被入口整段检查拒绝。 |
++| **原因** | 普通入口路线要求完整通行、替代位置非空不等于原目标可达；小怪玩家距离早退及仅玩家伤害入口未形成拆木闭环，旧攻击回调缺少完整生命/攻击代次保护。 |
++| **解决** | 共享连通查询先证明仅移除固定可攻击 Log 后原目标可达，再以真实体型/偏移选择外侧可达站位；实际移动和命中保留障碍/地面/入口约束。临时 Log 与原目标分离，Boss 普通 Log 共用表面路线，帧伤害去重并保护生命周期，摧毁后恢复追踪。 |
++| **验证** | 原44项+专用31项、tsc、OpenSpec strict及范围检查通过；200敌人×300帧预热后扫描/建图增量零，缓存压力在统一预算内。报告：`.cursor/plans/reports/enemy-break-blocking-log-report.md`。本轮真实 Creator 实玩与 FPS 未验证。 |
++
++---

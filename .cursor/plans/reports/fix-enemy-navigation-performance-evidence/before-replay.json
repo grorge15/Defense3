@@ -1,0 +1,814 @@
+{
+  "phase": "before",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "7de6085c3d32e941355f352bf49200f328e2358b0227f7cbd3830fd01c37c508",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 34.740099999999984,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 23.868899999999996,
+        "approachMs": 34.44630000000018
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 23.634199999999964,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 17.87869999999998,
+        "approachMs": 23.42930000000024
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 18.96289999999999,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 13.226699999999994,
+        "approachMs": 18.521000000000242
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 24.900800000000004,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 19.429899999999975,
+        "approachMs": 24.82899999999978
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 18.130600000000072,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 12.88639999999998,
+        "approachMs": 18.067100000000778
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 1628.6907999999999,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 1612.1851999999985,
+        "approachMs": 1628.6882
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 1610.3487,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 1594.6634000000004,
+        "approachMs": 1610.3458
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 1611.9575000000004,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 1596.1141000000061,
+        "approachMs": 1611.9554999999996
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 1600.7242999999999,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 1585.4324999999963,
+        "approachMs": 1600.7221
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 1590.037400000001,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 1574.8136000000068,
+        "approachMs": 1590.0334000000012
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 66.64609999999993,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 66.07330000000184,
+        "approachMs": 66.54629999999815
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 61.84109999999964,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 61.45930000000226,
+        "approachMs": 61.79290000000219
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 61.8708000000006,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 61.46529999999984,
+        "approachMs": 61.83599999999751
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 61.81640000000152,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 61.431500000004235,
+        "approachMs": 61.78189999999813
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 61.38140000000021,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 67362,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 60.96810000000005,
+        "approachMs": 61.34740000000056
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 2853.9310000000005,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 2837.2703999999903,
+        "approachMs": 2853.928899999999
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 2844.4909000000007,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 2827.4842000000117,
+        "approachMs": 2844.4884
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 2840.480800000001,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 2824.3848000000216,
+        "approachMs": 2840.4776
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 2863.826799999999,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 2847.256999999965,
+        "approachMs": 2863.8030999999974
+      },
+      "result": null
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 2838.3493000000017,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 19467618,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 2822.472199999993,
+        "approachMs": 2838.3447000000015
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 0,
+      "ms": 33.60139999999956,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 28.033500000001368,
+        "approachMs": 33.57240000004094
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 1,
+      "ms": 33.21169999999984,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 27.651699999998527,
+        "approachMs": 33.18479999999545
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 2,
+      "ms": 32.74169999999867,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 27.364699999998265,
+        "approachMs": 32.715899999984686
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 3,
+      "ms": 32.783800000001065,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 27.582099999999627,
+        "approachMs": 32.75749999999971
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "round": 4,
+      "ms": 32.851299999998446,
+      "builds": 1,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 27.649900000000343,
+        "approachMs": 32.82470000000467
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 0,
+      "ms": 3742.702000000001,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 3718.531899999969,
+        "approachMs": 3742.6924
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 1,
+      "ms": 3686.2864999999983,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 3663.069600000028,
+        "approachMs": 3686.2835000000014
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 2,
+      "ms": 3652.8182999999954,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 3631.6943999999858,
+        "approachMs": 3652.8153999999995
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 3,
+      "ms": 3709.8601000000053,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 3688.0100999999777,
+        "approachMs": 3709.8561000000045
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "round": 4,
+      "ms": 3681.5049999999974,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 3659.333299999984,
+        "approachMs": 3681.5017000000007
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 0,
+      "ms": 142.53540000000066,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 141.9571999999971,
+        "approachMs": 142.4400999999998
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 1,
+      "ms": 143.33239999999932,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 142.8104999999996,
+        "approachMs": 143.29460000000108
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 2,
+      "ms": 143.5355999999956,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 142.93300000000454,
+        "approachMs": 143.46379999999772
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 3,
+      "ms": 152.90000000000146,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 152.2922999999937,
+        "approachMs": 152.85629999999946
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "round": 4,
+      "ms": 143.41399999999703,
+      "builds": 5,
+      "cache": 1,
+      "graphs": null,
+      "entries": 1,
+      "bytes": 143032,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 142.74780000001192,
+        "approachMs": 143.3824999999997
+      },
+      "result": {
+        "x": 200,
+        "y": 200
+      }
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 0,
+      "ms": 6127.655999999995,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 6105.766800000056,
+        "approachMs": 6127.6528000000035
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 1,
+      "ms": 6155.660799999998,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 6133.277499999902,
+        "approachMs": 6155.657700000003
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 2,
+      "ms": 6184.017099999997,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 6161.040099999998,
+        "approachMs": 6184.014199999998
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 3,
+      "ms": 6120.606400000004,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 6099.03680000022,
+        "approachMs": 6120.602700000003
+      },
+      "result": null
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "round": 4,
+      "ms": 6164.2995999999985,
+      "builds": 289,
+      "cache": 289,
+      "graphs": null,
+      "entries": 289,
+      "bytes": 41336248,
+      "stats": null,
+      "cpu": {
+        "bfsMs": 6141.937100000199,
+        "approachMs": 6164.295700000002
+      },
+      "result": null
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default",
+      "name": "CLEAR-200",
+      "medianMs": 23.634199999999964,
+      "p95Ms": 34.740099999999984
+    },
+    {
+      "bounds": "default",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 1610.3487,
+      "p95Ms": 1628.6907999999999
+    },
+    {
+      "bounds": "default",
+      "name": "INVALIDATE-5",
+      "medianMs": 61.84109999999964,
+      "p95Ms": 66.64609999999993
+    },
+    {
+      "bounds": "default",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 2844.4909000000007,
+      "p95Ms": 2863.826799999999
+    },
+    {
+      "bounds": "scene",
+      "name": "CLEAR-200",
+      "medianMs": 32.851299999998446,
+      "p95Ms": 33.60139999999956
+    },
+    {
+      "bounds": "scene",
+      "name": "UNREACHABLE-COLD",
+      "medianMs": 3686.2864999999983,
+      "p95Ms": 3742.702000000001
+    },
+    {
+      "bounds": "scene",
+      "name": "INVALIDATE-5",
+      "medianMs": 143.41399999999703,
+      "p95Ms": 152.90000000000146
+    },
+    {
+      "bounds": "scene",
+      "name": "LOG-OVERLAP-COLD",
+      "medianMs": 6155.660799999998,
+      "p95Ms": 6184.017099999997
+    }
+  ]
+}

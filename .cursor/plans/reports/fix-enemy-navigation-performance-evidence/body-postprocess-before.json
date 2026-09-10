@@ -1,0 +1,52 @@
+{
+  "values": [
+    {
+      "x": 0,
+      "body": {
+        "w": 40,
+        "h": 40,
+        "width": 40,
+        "height": 40,
+        "offsetX": 0,
+        "offsetY": 0
+      }
+    },
+    {
+      "x": 0.1,
+      "body": {
+        "w": 40,
+        "h": 40,
+        "width": 40,
+        "height": 40,
+        "offsetX": 1.4155343563970746e-15,
+        "offsetY": 0
+      }
+    },
+    {
+      "x": 1922.807,
+      "body": {
+        "w": 40,
+        "h": 40,
+        "width": 40,
+        "height": 40,
+        "offsetX": 0,
+        "offsetY": 0
+      }
+    },
+    {
+      "x": 10000.1,
+      "body": {
+        "w": 40,
+        "h": 40,
+        "width": 40,
+        "height": 40,
+        "offsetX": 0,
+        "offsetY": 0
+      }
+    }
+  ],
+  "zeroNavigationVelocityAfterLog": {
+    "x": 0,
+    "y": 5
+  }
+}

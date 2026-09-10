@@ -15,6 +15,10 @@ export class GameConfig {
     static readonly barracksMaxHp = 200;
     /** 滚木固定后作为可攻击障碍的最大生命 */
     static readonly logMaxHp = 100;
+    static readonly logFixedColliderOffsetX = -2;
+    static readonly logFixedColliderOffsetY = 10;
+    static readonly logFixedColliderWidth = 235;
+    static readonly logFixedColliderHeight = 19;
 
     // --- 攻击 ---
     static readonly bossAttackDamage = 90;
@@ -103,12 +107,34 @@ export class GameConfig {
     /** 以起终点包围盒外扩的寻路区域。 */
     static readonly pathBoundsPadding = 128;
 
+    // --- Enemy shared flow-field navigation ---
+    static readonly enemyFlowCellSize = 20;
+    static readonly enemyFlowLookaheadCells = 20;
+    static readonly enemyFlowTargetSearchCells = 8;
+    static readonly enemyFlowCacheEntries = 32;
+    static readonly enemyFlowCacheBytes = 8 * 1024 * 1024;
+    static readonly enemyFlowMaxCells = 262144;
+    static readonly enemyNavDiagnostics = false;
+    static readonly enemyNavDefaultMinX = -1200;
+    static readonly enemyNavDefaultMinY = -1200;
+    static readonly enemyNavDefaultMaxX = 1200;
+    static readonly enemyNavDefaultMaxY = 1600;
+    static readonly enemyEntranceWidth = 80;
+    static readonly enemyPeerSeparationRadius = 36;
+    static readonly enemyAvoidanceWeight = 0.55;
+    static readonly enemyMinionAttackEnterRange = 32;
+    static readonly enemyMinionAttackExitRange = 50;
+    static readonly enemySweepMaxStep = 5;
+
     // --- 滚木 ---
     static readonly logRollSpeed = 4;
     static readonly logExtendAmount = 1;
     static readonly logShrinkAmount = 1;
     static readonly logMinLength = 1;
     static readonly logMaxLength = 10;
+    static readonly logInitialLength = 3;
+    static readonly logVisualBaseScale = 0.4;
+    static readonly logVisualScalePerLength = 0.2;
     /** 蓝线固定所需最小滚木长度 */
     static readonly blueLineMinLogLength = 3;
 

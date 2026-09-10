@@ -1,0 +1,16 @@
+{
+  "creatorVersion": "3.8.8",
+  "exitCode": 36,
+  "buildDirectory": "build/codex-log-v3/web-mobile",
+  "url": "http://127.0.0.1:8766/",
+  "mainBundle": "assets/main/index.87668.js",
+  "mainBundleSha256": "f0234bc0fcf5f23b796c8cd2b72aa4875371c4260064d4aa984d153e12048fc6",
+  "containsEntranceRouteFix": true,
+  "containsFixedLogPhysicalBodyFix": true,
+  "mainSceneLoadedAt": "2026-09-10T03:01:09.342Z",
+  "fixedLogEventAt": "2026-09-10T03:01:17.272Z",
+  "fixedLogEvent": "[Log] blue line LOCK OK length=3 need>=3",
+  "scriptErrorsObserved": false,
+  "closedSideStairsDemolitionLiveVerified": false,
+  "sustainedFpsVerified": false
+}

@@ -1,0 +1,1599 @@
+{
+  "results": [
+    {
+      "name": "AC-ENTRY: endpoint obstruction selects a legal reachable surface and advances to damage range",
+      "passed": true
+    },
+    {
+      "name": "AC-ALTERNATE: another legal entrance keeps the original target",
+      "passed": true
+    },
+    {
+      "name": "AC-NONLOG: removing only the log cannot bypass a second sealed barrier",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=true",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyMinion real update and frame, endpoint=false",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=true",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY/DAMAGE: EnemyBoss real update and frame, endpoint=false",
+      "passed": true
+    },
+    {
+      "name": "AC-BOSS-ORDINARY: normal-priority locked Log uses surface movement and deduplicated circle hit",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyMinion real destruction, HP event, collider removal and original pursuit",
+      "passed": true
+    },
+    {
+      "name": "AC-DAMAGE: EnemyMinion no Visual single fallback and stale target before frame",
+      "passed": true
+    },
+    {
+      "name": "AC-POOL: EnemyMinion old hit/recovery/death after disable/reset and new attack",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyBoss real destruction, HP event, collider removal and original pursuit",
+      "passed": true
+    },
+    {
+      "name": "AC-DAMAGE: EnemyBoss no Visual single fallback and stale target before frame",
+      "passed": true
+    },
+    {
+      "name": "AC-POOL: EnemyBoss old hit/recovery/death after disable/reset and new attack",
+      "passed": true
+    },
+    {
+      "name": "AC-SAME: same-side inside/outside and nonnull replacement do not prove objective reachability",
+      "passed": true
+    },
+    {
+      "name": "AC-SAME: Minion 32/50 early hold cannot suppress the blocking-log attack",
+      "passed": true
+    },
+    {
+      "name": "AC-MOVING: real Log eligibility and cached fixed-to-moving transitions",
+      "passed": true
+    },
+    {
+      "name": "AC-ALTERNATE/NONLOG: direct, same-side detour, no Log, illegal shortcut and missing config",
+      "passed": true
+    },
+    {
+      "name": "AC-SURFACE: long log, offsets, alternate faces, thin non-log occlusion and large dt",
+      "passed": true
+    },
+    {
+      "name": "AC-SHARED: 200 enemies x 300 frames positive/no-Log/non-Log negative counts",
+      "passed": true,
+      "details": [
+        {
+          "mode": "positive",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 1,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 1,
+            "graphs": 1,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 301,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 1,
+            "graphs": 1,
+            "fields": 0
+          },
+          "entries": 2,
+          "bytes": 4358
+        },
+        {
+          "mode": "no-log",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 2,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 1,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 602,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 1,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 1,
+            "fields": 0
+          },
+          "entries": 2,
+          "bytes": 4358
+        },
+        {
+          "mode": "non-log",
+          "before": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 2,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 2,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 2,
+            "fields": 0
+          },
+          "after": {
+            "fullSceneScan": 1,
+            "trackedColliderChecks": 602,
+            "signatureBuild": 0,
+            "invalidateRequests": 0,
+            "effectiveCommits": 1,
+            "geometryChanges": 2,
+            "blockingScans": 1,
+            "surfaceScans": 0,
+            "graphs": 2,
+            "fields": 0
+          },
+          "entries": 3,
+          "bytes": 7388
+        }
+      ]
+    },
+    {
+      "name": "AC-SURFACE: contact stance blocked but a farther in-range stance can hit through a narrow slot",
+      "passed": true
+    },
+    {
+      "name": "AC-ENTRY-FIXTURE: readonly Main.scene bindings and complete parent transforms",
+      "passed": true,
+      "details": {
+        "source": "assets/scenes/Main.scene",
+        "sha256": "e87b06ec58de24b6167de7baed40fdcb9e665eee94c9584ecb95422f0b035f69",
+        "boundsMin": {
+          "x": -1922.807,
+          "y": -498.633,
+          "z": 0
+        },
+        "boundsMax": {
+          "x": 1809.26,
+          "y": 3306.767,
+          "z": 0
+        },
+        "castle": [
+          {
+            "x": 310.465,
+            "y": 1706.435,
+            "z": 0
+          },
+          {
+            "x": 263.31,
+            "y": -145.359,
+            "z": 0
+          },
+          {
+            "x": -252.693,
+            "y": -144.625,
+            "z": 0
+          },
+          {
+            "x": -305.296,
+            "y": 1697.079,
+            "z": 0
+          }
+        ],
+        "ground": [
+          {
+            "x": -1922.807,
+            "y": -498.633,
+            "z": 0
+          },
+          {
+            "x": -2561.155,
+            "y": 3579.052,
+            "z": 0
+          },
+          {
+            "x": 1809.26,
+            "y": 3306.767,
+            "z": 0
+          },
+          {
+            "x": 2365.143,
+            "y": -908.41,
+            "z": 0
+          }
+        ],
+        "entrances": [
+          {
+            "id": 1,
+            "width": 100,
+            "open": true,
+            "outside": {
+              "x": -446.714,
+              "y": 1482.73,
+              "z": 0
+            },
+            "inside": {
+              "x": -230.105,
+              "y": 1522.4,
+              "z": 0
+            }
+          },
+          {
+            "id": 2,
+            "width": 200,
+            "open": true,
+            "outside": {
+              "x": 0,
+              "y": 1741.842,
+              "z": 0
+            },
+            "inside": {
+              "x": 0,
+              "y": 1560.416,
+              "z": 0
+            }
+          },
+          {
+            "id": 3,
+            "width": 100,
+            "open": true,
+            "outside": {
+              "x": 448.581,
+              "y": 1485.412,
+              "z": 0
+            },
+            "inside": {
+              "x": 246.567,
+              "y": 1525.83,
+              "z": 0
+            }
+          }
+        ],
+        "chains": {
+          "76": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "77": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "78": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "79": [
+            {
+              "id": 11,
+              "name": "Ground",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "249": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "251": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "252": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "253": [
+            {
+              "id": 250,
+              "name": "castArea",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "255": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "257": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "258": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "259": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "260": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ],
+          "261": [
+            {
+              "id": 256,
+              "name": "entrance",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 1432.078,
+                "z": 0
+              }
+            },
+            {
+              "id": 9,
+              "name": "World",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 10,
+              "name": "GameRoot",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            },
+            {
+              "id": 1,
+              "name": "Main",
+              "scale": {
+                "__type__": "cc.Vec3",
+                "x": 1,
+                "y": 1,
+                "z": 1
+              },
+              "rotation": {
+                "__type__": "cc.Quat",
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "position": {
+                "__type__": "cc.Vec3",
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          ]
+        },
+        "verifiedMiddleReachable": true
+      }
+    },
+    {
+      "name": "AC-CACHE: body/offset/region and exact same-cell terminal conditions are isolated",
+      "passed": true
+    },
+    {
+      "name": "AC-CACHE: 10000 queries/1000 revisions, combined diagnostic/query LRU and byte pressure",
+      "passed": true,
+      "details": [
+        {
+          "queries": 10000,
+          "revisions": 1000,
+          "graphs": 1000,
+          "fields": 0,
+          "scans": 1000,
+          "peakEntries": 2,
+          "peakBytes": 4370
+        },
+        {
+          "budget": {
+            "entries": 8,
+            "bytes": 8388608,
+            "cells": 262144
+          },
+          "entries": 8,
+          "bytes": 12482
+        },
+        {
+          "budget": {
+            "entries": 64,
+            "bytes": 18000,
+            "cells": 262144
+          },
+          "entries": 12,
+          "bytes": 17890
+        }
+      ]
+    },
+    {
+      "name": "AC-RESUME: EnemyMinion external destruction, moving objective and invalidation",
+      "passed": true
+    },
+    {
+      "name": "AC-RESUME: EnemyBoss external destruction, moving objective and invalidation",
+      "passed": true
+    },
+    {
+      "name": "AC-TARGET: Minion external assignment cancels old hit/recovery without polluting the next attack",
+      "passed": true
+    },
+    {
+      "name": "AC-STRUCTURE: Boss original building is evaluated by its attack surface, not its occupied center",
+      "passed": true
+    },
+    {
+      "name": "AC-SURFACE: physical rotation/scale/offset envelopes and exact contact epsilon",
+      "passed": true
+    },
+    {
+      "name": "AC-ATTACK-GENERATION: EnemyMinion old same-life hit/recovery cannot affect next attack",
+      "passed": true
+    },
+    {
+      "name": "AC-ATTACK-GENERATION: EnemyBoss old same-life hit/recovery cannot affect next attack",
+      "passed": true
+    },
+    {
+      "name": "V3-ROUTE: raw grid connectivity is not a usable entrance route",
+      "passed": true
+    },
+    {
+      "name": "V3-UPDATE: actual Minion crosses castle boundary, hits, destroys and resumes",
+      "passed": true,
+      "details": {
+        "frames": 483,
+        "crossed": true,
+        "attackPosition": {
+          "x": -112.57270552772674,
+          "y": 1688.3702518030643,
+          "z": 0
+        }
+      }
+    },
+    {
+      "name": "V3-ALTERNATE: another usable entrance prevents demolition; non-Log seal does not cause it",
+      "passed": true
+    }
+  ]
+}

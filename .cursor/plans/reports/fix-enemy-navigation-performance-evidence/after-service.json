@@ -1,0 +1,119 @@
+{
+  "phase": "after",
+  "node": "v22.17.0",
+  "typescript": "5.4.5",
+  "platform": "win32",
+  "arch": "x64",
+  "sourceHash": "f5ab38b4339431118902690695abe247e1e2f2507ba55c378e4d9bbf1d0bdad9",
+  "harnessHash": "8f43da61bee0a71835cb94f3583fba7c4a3b3e9ee5b8d340e9c07b46f2617ac8",
+  "sceneHash": "a9b4f61e9648d09be1c0878ee32e614eef92f2e2e280355ca3fe814802d686b7",
+  "boundsSets": {
+    "default": {
+      "minX": -1200,
+      "minY": -1200,
+      "maxX": 1200,
+      "maxY": 1600
+    },
+    "scene": {
+      "minX": -1922.807,
+      "minY": -498.633,
+      "maxX": 1809.26,
+      "maxY": 3306.767
+    }
+  },
+  "rows": [
+    {
+      "round": 0,
+      "stableMs": 21.642200000000003,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 7.375100000000998
+      }
+    },
+    {
+      "round": 1,
+      "stableMs": 14.622899999999959,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 7.683799999998996
+      }
+    },
+    {
+      "round": 2,
+      "stableMs": 11.275700000000029,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 8.066299999999046
+      }
+    },
+    {
+      "round": 3,
+      "stableMs": 11.249099999999999,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 6.947200000000748
+      }
+    },
+    {
+      "round": 4,
+      "stableMs": 11.091099999999983,
+      "stableScans": 1,
+      "duplicateVersionDelta": 0,
+      "diagnostics": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 30100,
+        "signatureBuild": 0,
+        "invalidateRequests": 5,
+        "effectiveCommits": 1,
+        "geometryChanges": 100
+      },
+      "cpu": {
+        "prepareFrameMs": 6.931499999999346
+      }
+    }
+  ],
+  "summary": [
+    {
+      "bounds": "default"
+    },
+    {
+      "bounds": "scene"
+    }
+  ]
+}
