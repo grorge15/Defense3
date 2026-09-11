@@ -14,6 +14,7 @@ import { CameraFollow } from './CameraFollow';
 import { BuildSystem } from '../building/BuildSystem';
 import { CoinSystem } from './CoinSystem';
 import { CombatGuideController } from './CombatGuideController';
+import { GuideIndicatorUI } from '../ui/GuideIndicatorUI';
 import { CombatSystem } from './CombatSystem';
 import { GameManager } from './GameManager';
 import { GamePhase } from './GamePhase';
@@ -62,6 +63,9 @@ export class SceneSetup extends Component {
 
     @property({ type: HeroSelectUI, tooltip: '英雄二选一 UI（可选补绑）' })
     heroSelectUI: HeroSelectUI | null = null;
+
+    @property({ type: GuideIndicatorUI, tooltip: '预摆十步引导 UI（可选补绑）' })
+    guideIndicatorUI: GuideIndicatorUI | null = null;
 
     onLoad(): void {
         if (!this.getComponent(Physics2DSetup)) {
@@ -217,9 +221,11 @@ export class SceneSetup extends Component {
     }
 
     private _ensureCombatGuide(): void {
-        if (!this.getComponent(CombatGuideController)) {
-            this.addComponent(CombatGuideController);
+        const guide = this.getComponent(CombatGuideController) ?? this.addComponent(CombatGuideController);
+        if (!this.guideIndicatorUI && this.node.scene) {
+            this.guideIndicatorUI = this.node.scene.getComponentInChildren(GuideIndicatorUI);
         }
+        guide.bindSceneRefs(this.player, this.log, this.buildSystem, this.coinSystem, this.guideIndicatorUI);
     }
 
     private _ensureUltimateSystem(): void {

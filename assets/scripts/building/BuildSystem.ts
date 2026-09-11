@@ -120,6 +120,8 @@ export class BuildSystem extends Component {
     private _wallRightDone = false;
     private _bothWallsEmitted = false;
     private readonly _completedBasicTowerPlots = new Set<Node>();
+    /** 单局建成历史；地块子节点销毁后仍可供引导查询。 */
+    private readonly _completedPlotRoots = new Set<Node>();
     private _barracksUnlocked = false;
     private _advLeftDone = false;
     private _advRightDone = false;
@@ -152,6 +154,10 @@ export class BuildSystem extends Component {
         );
     }
 
+    public hasCompletedPlot(plotRoot: Node | null): boolean {
+        return !!plotRoot && this._completedPlotRoots.has(plotRoot);
+    }
+
     private _onParkourFinished = (): void => {
         this._revealPlots(this.wallPlots, 'wall');
     };
@@ -162,6 +168,10 @@ export class BuildSystem extends Component {
         const spawnSide = payload.spawnSide ?? '';
         const worldPos = payload.worldPosition;
         const plotRoot = payload.plotRoot;
+
+        if (plotRoot) {
+            this._completedPlotRoots.add(plotRoot);
+        }
 
         this._playBuildUpgradeVfx(buildType, worldPos);
 

@@ -16,6 +16,7 @@ import { EnemyMinion } from '../enemy/EnemyMinion';
 import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
+import type { EnemyHitSource } from '../core/EnemyHitVfx';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { PathAgent } from '../core/PathAgent';
@@ -27,7 +28,7 @@ const { ccclass, property } = _decorator;
 export type SoldierDeployment = 'tower' | 'barracks';
 type BossLike = Component & {
     readonly isDead: boolean;
-    takeDamage(amount: number): void;
+    takeDamage(amount: number, source: EnemyHitSource): void;
 };
 type SoldierAttackTarget = EnemyMinion | BossLike;
 
@@ -187,7 +188,7 @@ export class Soldier extends Component {
                     () => {
                         if (isCurrent() && enemy.node.isValid && !enemy.isDead) {
                             this._spawnProjectile(enemy.node);
-                            enemy.takeDamage(this.attackDamage);
+                            enemy.takeDamage(this.attackDamage, 'soldier-ranged');
                         }
                     },
                     0.9,
@@ -195,7 +196,7 @@ export class Soldier extends Component {
                 );
             } else {
                 this._spawnProjectile(enemy.node);
-                enemy.takeDamage(this.attackDamage);
+                enemy.takeDamage(this.attackDamage, 'soldier-ranged');
                 unlock();
             }
         } else if (this.visualNode && state) {
@@ -204,14 +205,14 @@ export class Soldier extends Component {
                 'meleeAttack',
                 () => {
                     if (isCurrent() && enemy.node.isValid && !enemy.isDead) {
-                        enemy.takeDamage(this.attackDamage);
+                        enemy.takeDamage(this.attackDamage, 'soldier-melee');
                     }
                 },
                 0.5,
                 unlock,
             );
         } else {
-            enemy.takeDamage(this.attackDamage);
+            enemy.takeDamage(this.attackDamage, 'soldier-melee');
             unlock();
         }
     }

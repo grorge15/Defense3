@@ -10,7 +10,9 @@ import {
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
+import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
+import { GameEvents } from '../core/GameEvents';
 import { TweenUtil } from '../core/TweenUtil';
 import { Log } from './Log';
 
@@ -60,6 +62,10 @@ export class LogExtendItem extends Component {
         if (this._collider) {
             this._collider.off(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this);
         }
+    }
+
+    get isConsumed(): boolean {
+        return this._consumed;
     }
 
     update(_dt: number): void {
@@ -131,6 +137,7 @@ export class LogExtendItem extends Component {
             return;
         }
         this._consumed = true;
+        EventManager.instance.emitEvent(GameEvents.LOG_EXTEND_ITEM_CONSUMED, this, log);
         if (this._collider) {
             this._collider.enabled = false;
         }

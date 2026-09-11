@@ -86,7 +86,7 @@ export class HeroProjectile extends Component {
             const dx = this._targetPos.x - this._pos.x;
             const dy = this._targetPos.y - this._pos.y;
             if (dx * dx + dy * dy <= r2) {
-                boss.takeDamage(this._damage);
+                boss.takeDamage(this._damage, 'hero');
                 this._destroySelf();
                 return;
             }
@@ -99,7 +99,7 @@ export class HeroProjectile extends Component {
             const dx = this._targetPos.x - this._pos.x;
             const dy = this._targetPos.y - this._pos.y;
             if (dx * dx + dy * dy <= r2) {
-                minion.takeDamage(this._damage);
+                minion.takeDamage(this._damage, 'hero');
                 this._destroySelf();
                 return;
             }

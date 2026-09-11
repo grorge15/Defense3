@@ -152,12 +152,12 @@ export class Arrow extends Component {
             // 命中节点树上 Boss 优先于小怪（与索敌一致）
             const boss = cur.getComponent(EnemyBoss);
             if (boss) {
-                this._damageEnemy(cur.uuid, (damage) => boss.takeDamage(damage));
+                this._damageEnemy(cur.uuid, (damage) => boss.takeDamage(damage, 'player-arrow'));
                 return;
             }
             const minion = cur.getComponent(EnemyMinion);
             if (minion) {
-                this._damageEnemy(cur.uuid, (damage) => minion.takeDamage(damage));
+                this._damageEnemy(cur.uuid, (damage) => minion.takeDamage(damage, 'player-arrow'));
                 return;
             }
             cur = cur.parent;

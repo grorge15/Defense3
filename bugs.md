@@ -7,6 +7,41 @@
 
 ---
 
+## fix-guide-indicator-path-and-build-plot-anchor — 引导箭头路径与建筑锚点
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | DirectionArrow 只显示一个，不能沿玩家到目标的直线连续提示；TargetArrow 没有上下浮动，且建筑阶段落在 `Plot_*` 根而非实际可建造的 `BuildPlot` 子节点。 |
+| **原因** | 引导显示层只定位预摆的单个方向节点，并直接投影业务目标根节点；没有路径箭头池、浮动时序或显示专用的 BuildPlot 锚点解析。 |
+| **解决** | 以预摆 `DirectionArrow` 为模板按配置间距复用克隆，沿裁剪后的玩家到目标直线统一朝向目标；TargetArrow 按配置上下浮动 15 UI 像素。投影建筑目标时仅在显示层解析其 `BuildPlot` 节点作为视觉锚点，购买、完成和资金判断仍使用原 `Plot_*` 根。 |
+| **验证** | `npx --no-install tsc --noEmit`、`node .cursor/scripts/test-ten-step-player-guidance.cjs` 与 `git diff --check` 均通过；未改 Prefab 或 Main.scene。 |
+
+---
+
+## fix-enemy-hit-vfx-interface — 敌人受击 VFX 来源与生命周期
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | EnemyMinion/EnemyBoss 的受伤入口不区分命中来源，无法稳定选择蓝/黄受击 VFX；受击特效也缺少统一的挂点、世界坐标和完成回收约定。 |
+| **原因** | 敌人 `takeDamage` 未携带来源类型，攻击调用链没有区分 Hero、Player/Arrow、Soldier ranged/melee；现有 VFX 资源只能由 Inspector 绑定，不能依赖路径加载。 |
+| **解决** | 新增 `EnemyHitSource` 和共享生命周期 helper；敌人暴露 `hitVfxBluePrefab`/`hitVfxYellowPrefab`，四类来源分别传递并映射为 Hero=blue、其余=yellow；实例挂到 `GameRoot/Effect`、保留命中世界坐标，Animation FINISHED 后销毁，缺绑定/挂点/动画安全跳过且不影响伤害。非敌人受伤入口保持原行为。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`、12 项来源/生命周期/禁用 fallback 静态断言通过；未改 Main.scene、Prefab、Meta 或 VFX 资源，Cocos MCP/实玩未执行。 |
+
+### v2（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 受击特效实例加入 `GameRoot/Effect` 后仍可能不生成，蓝/黄特效的动画播放入口没有被触发。 |
+| **原因** | 实例先被设为 inactive，随后在激活前调用 `Animation.getState`；动画尚未初始化时返回空，代码立即销毁实例。 |
+| **解决** | 实例挂入 `GameRoot/Effect` 并定位后立即激活，再获取并播放对应动画；保留 Inspector prefab 绑定接口和动画完成后的销毁回收逻辑。 |
+| **验证** | `npx tsc --noEmit --pretty false` 与 `git diff --check` 通过；未修改 Prefab 或 Main.scene。 |
+
+---
+
 ## fix-barrier-hp-bar-damage-sync — pref_barrier_wall 受伤后血条不变化
 
 ### v1（2026-09-11）

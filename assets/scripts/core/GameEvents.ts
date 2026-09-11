@@ -13,6 +13,8 @@ export const GameEvents = {
     HERO_SELECT_REQUESTED: 'hero_select_requested',
     /** 单次建造完成（墙/兵营/塔等） */
     BUILD_COMPLETE: 'build_complete',
+    /** 滚木增长道具被玩家或关联滚木成功接受消费（item, log） */
+    LOG_EXTEND_ITEM_CONSUMED: 'log_extend_item_consumed',
     /** 左右高级塔均建完 */
     BOTH_ADVANCED_TOWERS_COMPLETE: 'both_advanced_towers_complete',
     /**

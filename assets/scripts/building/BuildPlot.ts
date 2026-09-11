@@ -171,6 +171,14 @@ export class BuildPlot extends Component {
         }
     }
 
+    getRemainingCost(): number {
+        return Math.max(0, this.getBuildCost() - this._paidAmount);
+    }
+
+    get isComplete(): boolean {
+        return this._isComplete;
+    }
+
     setAvailableCoins(getter: () => number): void {
         this._coinGetter = getter;
     }
@@ -193,7 +201,7 @@ export class BuildPlot extends Component {
             return;
         }
 
-        const remaining = totalCost - this._paidAmount;
+        const remaining = this.getRemainingCost();
         const spend = Math.min(this.fillSpeedPerSecond * dt, remaining, available);
         if (spend <= 0) {
             return;

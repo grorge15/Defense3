@@ -154,6 +154,21 @@ export class GameConfig {
     /** 跑酷结束后首次 Boss 生成延迟（秒） */
     static readonly bossFirstSpawnDelay = 1.5;
 
+    // --- 玩家引导 ---
+    static readonly guideTargetRefreshInterval = 0.15;
+    static readonly guideFloatTolerance = 0.001;
+    static readonly guideDirectionOffset = 64;
+    /** World distance between repeated direction arrows along the player-to-target line. */
+    static readonly guideDirectionArrowSpacing = 72;
+    /** Includes the preplaced DirectionArrow template. */
+    static readonly guideDirectionArrowMaxCount = 8;
+    static readonly guideTargetOffset = 52;
+    /** Target marker's vertical bobbing distance in world units. */
+    static readonly guideTargetFloatAmplitude = 15;
+    static readonly guideTargetFloatPeriod = 0.75;
+    static readonly guideDirectionArrowScale = 0.35;
+    static readonly guideTargetArrowScale = 0.5;
+
     // --- 建造（调试期统一 10 金）---
     static readonly wallBuildCost = 10;
     static readonly towerBasicBuildCost = 10;
