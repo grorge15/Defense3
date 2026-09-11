@@ -50,6 +50,12 @@ export class Barrier extends Component {
         }
 
         this._hp = Math.max(0, this._hp - amount);
+        EventManager.instance.emitEvent(
+            GameEvents.HP_CHANGED,
+            this.node,
+            this._hp,
+            this._maxHp,
+        );
         this.flashRed();
         this._updateHpBarVisibility();
 
@@ -72,9 +78,10 @@ export class Barrier extends Component {
     }
 
     private _updateHpBarVisibility(): void {
-        if (!this.hpBarAnchor) {
+        const hpBar = this.hpBarAnchor ?? this.node.getChildByName('pref_ui_hp_bar_player');
+        if (!hpBar) {
             return;
         }
-        this.hpBarAnchor.active = this._hp < this._maxHp && this._hp > 0;
+        hpBar.active = this._hp < this._maxHp && this._hp > 0;
     }
 }

@@ -1,4 +1,4 @@
-import { _decorator, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
+import { _decorator, instantiate, Node, Prefab, resources, RigidBody2D, Vec2, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
@@ -92,6 +92,8 @@ export class HeroShrine extends Building {
     private _spawnHero(prefab: Prefab, heroIndex: 0 | 1): void {
         const spawnParent = this._resolveSpawnParent();
         const heroNode = instantiate(prefab);
+        // Initialize physics at the spawn position even while the selection UI pauses simulation.
+        heroNode.active = false;
         spawnParent.addChild(heroNode);
 
         const spawnPoint = this._resolveHeroSpawnPoint();
@@ -100,6 +102,12 @@ export class HeroShrine extends Building {
 
         const hero = heroNode.getComponent(Hero);
         hero?.setHeroVariant(heroIndex === 0 ? 1 : 2);
+
+        heroNode.active = true;
+        const rigidBody = heroNode.getComponent(RigidBody2D);
+        if (rigidBody) {
+            rigidBody.linearVelocity = new Vec2(0, 0);
+        }
 
         console.info(
             `[HeroShrine] spawned hero${heroIndex + 1} at (${this._spawnPos.x.toFixed(1)}, ${this._spawnPos.y.toFixed(1)})`,

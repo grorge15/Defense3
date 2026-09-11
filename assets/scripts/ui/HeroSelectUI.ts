@@ -36,6 +36,9 @@ export class HeroSelectUI extends Component {
     private static readonly CARD_BOB_HALF = 0.9;
     private static readonly MASK_ALPHA = 102;
     private static readonly FADE_OUT_SEC = 0.25;
+    private static readonly FINGER_DWELL_SEC = 1;
+    private static readonly FINGER_Z_MIN = 5;
+    private static readonly FINGER_Z_MAX = 50;
 
     @property({ type: SpriteFrame, tooltip: '英雄0卡牌底图（编辑器拖入）' })
     cardStyle0: SpriteFrame | null = null;
@@ -73,6 +76,8 @@ export class HeroSelectUI extends Component {
     private _elapsed = 0;
     private _lastUiTime = 0;
     private _pickedSlot = -1;
+    private _fingerSlot = 0;
+    private _fingerElapsed = 0;
     private readonly _cardHandlers: ((e: EventTouch) => void)[] = [];
     private readonly _tmpColor = new Color();
 
@@ -201,6 +206,8 @@ export class HeroSelectUI extends Component {
         if (this.fingerNode) this.fingerNode.active = false;
         this._transition = 'opening';
         this._elapsed = 0;
+        this._fingerSlot = 0;
+        this._fingerElapsed = 0;
         this._pickedSlot = -1;
         this._lastUiTime = performance.now();
         this._getOpacity().opacity = 0;
@@ -331,15 +338,18 @@ export class HeroSelectUI extends Component {
             return;
         }
         const now = performance.now();
-        this._elapsed += Math.max(0, now - this._lastUiTime) / 1000;
+        const deltaSeconds = Math.max(0, now - this._lastUiTime) / 1000;
+        this._elapsed += deltaSeconds;
         this._lastUiTime = now;
         if (this._transition === 'opening') {
             this._getOpacity().opacity = 255 * Math.min(1, this._elapsed / 0.2);
             if (this._elapsed >= 0.2) {
                 this._transition = 'idle';
                 this._elapsed = 0;
+                this._fingerSlot = 0;
+                this._fingerElapsed = 0;
                 this._canClick = true;
-                this._placeFinger(0);
+                this._placeFinger(this._fingerSlot, HeroSelectUI.FINGER_Z_MIN);
             }
         } else if (this._transition === 'idle') {
             const cycle = (this._elapsed / HeroSelectUI.CARD_BOB_HALF) % 2;
@@ -348,7 +358,7 @@ export class HeroSelectUI extends Component {
                 const base = this._cardBasePos[i];
                 this._cards[i].setPosition(base.x, base.y + offset, base.z);
             }
-            this._placeFinger(0);
+            this._updateFinger(deltaSeconds);
         } else if (this._transition === 'closing') {
             const card = this._cards[this._pickedSlot];
             const base = this._cardBaseScale[this._pickedSlot];
@@ -374,6 +384,8 @@ export class HeroSelectUI extends Component {
         this._canClick = false;
         this._transition = 'closed';
         this._elapsed = 0;
+        this._fingerSlot = 0;
+        this._fingerElapsed = 0;
         this._pickedSlot = -1;
         this._shrine = null;
         this._offer = [];
@@ -399,12 +411,31 @@ export class HeroSelectUI extends Component {
         }
     }
 
-    private _placeFinger(slot: number): void {
+    private _updateFinger(deltaSeconds: number): void {
+        if (!this.fingerNode || this._cards.length === 0) {
+            return;
+        }
+
+        this._fingerElapsed += deltaSeconds;
+        while (this._fingerElapsed >= HeroSelectUI.FINGER_DWELL_SEC) {
+            this._fingerElapsed -= HeroSelectUI.FINGER_DWELL_SEC;
+            this._fingerSlot = (this._fingerSlot + 1) % Math.min(this._cards.length, 2);
+        }
+
+        const phase = this._fingerElapsed / HeroSelectUI.FINGER_DWELL_SEC;
+        const smoothPingPong = 0.5 - 0.5 * Math.cos(phase * Math.PI * 2);
+        const fingerZ =
+            HeroSelectUI.FINGER_Z_MIN +
+            (HeroSelectUI.FINGER_Z_MAX - HeroSelectUI.FINGER_Z_MIN) * smoothPingPong;
+        this._placeFinger(this._fingerSlot, fingerZ);
+    }
+
+    private _placeFinger(slot: number, localZ: number): void {
         if (!this.fingerNode || !this._cards[slot]) {
             return;
         }
         this.fingerNode.active = true;
         const cardPos = this._cards[slot].position;
-        this.fingerNode.setPosition(cardPos.x + 12, cardPos.y + 34, cardPos.z);
+        this.fingerNode.setPosition(cardPos.x + 50, cardPos.y - 50, localZ);
     }
 }
