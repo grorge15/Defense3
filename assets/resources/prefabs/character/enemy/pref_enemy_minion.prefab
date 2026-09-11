@@ -654,6 +654,7 @@
     "__type__": "a4acdUYDtlLVpOAeIcn2j8a",
     "_name": "",
     "_objFlags": 0,
+    "__editorExtras__": {},
     "node": {
       "__id__": 1
     },
@@ -663,6 +664,14 @@
     },
     "visualNode": {
       "__id__": 10
+    },
+    "hitVfxBluePrefab": {
+      "__uuid__": "6ecf6b7a-c902-4188-9b68-1f617df544d6",
+      "__expectedType__": "cc.Prefab"
+    },
+    "hitVfxYellowPrefab": {
+      "__uuid__": "ffdac5eb-8f05-4ef4-ba40-c578bdd569eb",
+      "__expectedType__": "cc.Prefab"
     },
     "attackRange": 1.5,
     "attackCooldown": 1,

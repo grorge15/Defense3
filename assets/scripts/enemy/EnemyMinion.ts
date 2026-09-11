@@ -6,6 +6,7 @@ import {
     Component,
     ERigidBody2DType,
     Node,
+    Prefab,
     Rect,
     RigidBody2D,
     UITransform,
@@ -23,6 +24,7 @@ import { VisualFacing } from '../core/VisualFacing';
 import { CoinSystem } from '../game/CoinSystem';
 import { Log } from '../item/Log';
 import { Player } from '../character/Player';
+import { playEnemyHitVfx, type EnemyHitSource } from '../core/EnemyHitVfx';
 import { HpBarUI } from '../ui/HpBarUI';
 import { EnemyAI } from './EnemyAI';
 
@@ -48,6 +50,12 @@ export function resolveMinionAttackHysteresis(inAttackHysteresis: boolean, dista
 export class EnemyMinion extends Component {
     @property({ tooltip: 'Visual 子节点，挂有 Animation 组件' })
     visualNode: Node | null = null;
+
+    @property({ type: Prefab, tooltip: 'Hero 来源受击蓝色 VFX Prefab' })
+    hitVfxBluePrefab: Prefab | null = null;
+
+    @property({ type: Prefab, tooltip: 'Player/Arrow 或 Soldier 来源受击黄色 VFX Prefab' })
+    hitVfxYellowPrefab: Prefab | null = null;
 
     @property({ tooltip: '近战攻击范围（世界单位）' })
     attackRange = 40;
@@ -169,7 +177,7 @@ export class EnemyMinion extends Component {
         return this._isDead;
     }
 
-    takeDamage(amount: number): void {
+    takeDamage(amount: number, source: EnemyHitSource = 'hero'): void {
         if (this._isDead) {
             return;
         }
@@ -180,6 +188,7 @@ export class EnemyMinion extends Component {
             this._hp,
             GameConfig.minionMaxHp,
         );
+        playEnemyHitVfx(this.node, this.hitVfxBluePrefab, this.hitVfxYellowPrefab, source);
         if (this._hp <= 0) {
             this._die();
         }

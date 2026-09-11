@@ -6,6 +6,7 @@ import {
     Component,
     ERigidBody2DType,
     Node,
+    Prefab,
     RigidBody2D,
     Vec2,
     Vec3,
@@ -25,6 +26,7 @@ import { EnemyNavigation } from '../core/EnemyNavigation';
 import { FlowBody, stableFlowBody } from '../core/FlowField';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { playEnemyHitVfx, type EnemyHitSource } from '../core/EnemyHitVfx';
 import { VisualFacing } from '../core/VisualFacing';
 import { Log } from '../item/Log';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -70,6 +72,12 @@ export interface BossTargetOptions {
 export class EnemyBoss extends Component {
     @property({ tooltip: 'Visual 子节点，挂有 Animation 组件' })
     visualNode: Node | null = null;
+
+    @property({ type: Prefab, tooltip: 'Hero 来源受击蓝色 VFX Prefab' })
+    hitVfxBluePrefab: Prefab | null = null;
+
+    @property({ type: Prefab, tooltip: 'Player/Arrow 或 Soldier 来源受击黄色 VFX Prefab' })
+    hitVfxYellowPrefab: Prefab | null = null;
 
     @property({ tooltip: '已废弃：Boss 攻击现在使用 attackTriggerRange 圆形范围' })
     attackLength = 4;
@@ -435,7 +443,7 @@ export class EnemyBoss extends Component {
         }, 1.2);
     }
 
-    takeDamage(amount: number): void {
+    takeDamage(amount: number, source: EnemyHitSource = 'hero'): void {
         if (this._isDead) {
             return;
         }
@@ -446,6 +454,7 @@ export class EnemyBoss extends Component {
             this._hp,
             GameConfig.bossMaxHp,
         );
+        playEnemyHitVfx(this.node, this.hitVfxBluePrefab, this.hitVfxYellowPrefab, source);
         if (this._hp <= 0) {
             this._die();
         }
