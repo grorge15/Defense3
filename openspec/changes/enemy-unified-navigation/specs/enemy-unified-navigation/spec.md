@@ -48,4 +48,4 @@ The system SHALL retain revision-current, shared bounded navigation construction
 - **WHEN** a target moves while the current geometry is unchanged
 - **THEN** the enemy may retain only a bounded settled route that remains safe against that current geometry while it coalesces a replacement for the moved target
 - **AND WHEN** an obstacle is inserted, removed, reclassified, or destroyed while an enemy is pursuing
-- **THEN** obsolete pending and settled decisions are discarded, unsafe movement is not returned, and the enemy reevaluates its unchanged original objective against current geometry
+- **THEN** obsolete future planning work is discarded, while a unit retains only the direction or settled decision whose current-frame physical sweep and next safe segment pass current geometry; unsafe movement is not returned, and the enemy reevaluates its unchanged original objective against current geometry

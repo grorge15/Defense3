@@ -52,6 +52,9 @@ type UnitRouteState = {
     activeFieldId: string;
     activeTarget: FlowPoint | null;
     pendingFieldId: string;
+    pendingTarget: FlowPoint | null;
+    lastSafeDirection: FlowPoint | null;
+    lastSafeTarget: FlowPoint | null;
     replacementReadiness: 'idle' | 'pending' | 'unreachable';
     target: Node | null;
 };
@@ -290,7 +293,7 @@ export class EnemyNavigation {
     nextVelocity(request: EnemyMoveRequest, out: Vec2 = this._velocity): Vec2 {
         out.set(0, 0);
         const unit = request.unit;
-        if (!unit?.isValid || !request.target?.isValid || request.speed <= 0 || request.dt <= 0) {
+        if (!unit?.isValid || !request.target?.isValid || !request.target.activeInHierarchy || request.speed <= 0 || request.dt <= 0) {
             if (unit) this._releaseField(unit);
             return out;
         }
@@ -351,25 +354,38 @@ export class EnemyNavigation {
         const direct = this._field.lineClear(self, routeTarget.point, request.body, this._planningArea);
         if (direct) {
             this._releaseField(unit);
-            const physical = this._field.lineClear(self, routeTarget.point, request.body, this._area);
-            if (!physical) return out;
+            const directBlocker = this._firstPhysicalBlocker(self, routeTarget.point, request.body);
+            if (directBlocker && this._isDestructibleNode(directBlocker.node)) {
+                return out;
+            }
             const directResult = this._field.direction(self, routeTarget.point, request.body, this._planningArea);
             if (directResult.blocked || directResult.reached) return out;
-            out.set(directResult.x * request.speed, directResult.y * request.speed);
-            this._applyLocalAvoidance(unit, self, request.body, request.speed, out);
-            this._constrainVelocity(self, request.body, request.dt, out);
-            return out;
+            return this._applyCandidateVelocity(state, self, finalTarget, request, directResult.x, directResult.y, out);
         }
 
         const wantedId = this._field.fieldIdFor(routeTarget.point, request.body, this._planningArea);
         let result: ReturnType<FlowField['settledDirection']> = null;
+        let resultTarget: FlowPoint = { ...routeTarget.point };
         if (state.pendingFieldId) {
             const pending = this._field.settledDirection(self, state.pendingFieldId, request.body, this._planningArea);
             if (pending) {
                 const completedId = state.pendingFieldId;
+                const completedTarget = state.pendingTarget ?? routeTarget.point;
                 state.pendingFieldId = '';
+                state.pendingTarget = null;
                 state.replacementReadiness = 'idle';
-                if (completedId === wantedId) result = pending;
+                if (completedId === wantedId || this._withinRetainedDrift(completedTarget, finalTarget)) {
+                    result = pending;
+                    resultTarget = completedTarget;
+                    if (completedId !== wantedId) {
+                        const replacement = this._field.fieldStateFor(routeTarget.point, request.body, this._planningArea);
+                        if (replacement.readiness !== 'settled') {
+                            state.pendingFieldId = replacement.fieldId;
+                            state.pendingTarget = { ...routeTarget.point };
+                            state.replacementReadiness = replacement.readiness;
+                        }
+                    }
+                }
             }
         }
         if (!result && !state.pendingFieldId) {
@@ -378,6 +394,7 @@ export class EnemyNavigation {
                 result = this._field.settledDirection(self, replacement.fieldId, request.body, this._planningArea);
             } else {
                 state.pendingFieldId = replacement.fieldId;
+                state.pendingTarget = { ...routeTarget.point };
                 state.replacementReadiness = replacement.readiness;
             }
         }
@@ -386,29 +403,32 @@ export class EnemyNavigation {
             if (approach) {
                 if (this._field.lineClear(self, approach.point, request.body, this._planningArea)) {
                     result = this._field.direction(self, approach.point, request.body, this._planningArea);
+                    resultTarget = { ...approach.point };
                 } else {
                     const fallback = this._field.fieldStateFor(approach.point, request.body, this._planningArea);
                     if (fallback.readiness === 'settled') {
                         result = this._field.settledDirection(self, fallback.fieldId, request.body, this._planningArea);
+                        resultTarget = { ...approach.point };
                     } else {
                         state.pendingFieldId = fallback.fieldId;
+                        state.pendingTarget = { ...approach.point };
                         state.replacementReadiness = fallback.readiness;
                     }
                 }
             }
         }
         if (result && !result.blocked && !result.reached) {
-            this._setActiveField(state, result.fieldId, finalTarget);
-            state.replacementReadiness = 'idle';
+            this._setActiveField(state, result.fieldId, resultTarget);
+            if (!state.pendingFieldId) state.replacementReadiness = 'idle';
         } else if (state.replacementReadiness === 'pending') {
             return this._retainedVelocity(state, self, finalTarget, request, out);
         }
-        if (!result || result.blocked || result.reached || !this._field.lineClear(self, result.waypoint, request.body, this._area)) return out;
-
-        out.set(result.x * request.speed, result.y * request.speed);
-        this._applyLocalAvoidance(unit, self, request.body, request.speed, out);
-        this._constrainVelocity(self, request.body, request.dt, out);
-        return out;
+        if (!result || result.blocked || result.reached) return out;
+        const routeBlocker = this._firstPhysicalBlocker(self, result.waypoint, request.body);
+        if (routeBlocker && this._isDestructibleNode(routeBlocker.node)) {
+            return out;
+        }
+        return this._applyCandidateVelocity(state, self, finalTarget, request, result.x, result.y, out);
     }
 
     blockingObstacle(request: EnemyMoveRequest, range: number): BlockingObstacleRoute | null {
@@ -776,6 +796,7 @@ export class EnemyNavigation {
             this._field.invalidate();
             for (const state of this._unitState.values()) {
                 state.activeFieldId = ''; state.activeTarget = null; state.pendingFieldId = '';
+                state.pendingTarget = null;
                 state.replacementReadiness = 'idle';
             }
         }
@@ -973,13 +994,15 @@ export class EnemyNavigation {
         if (!state) return;
         if (state.activeFieldId) this._field.release(state.activeFieldId);
         state.activeFieldId = ''; state.activeTarget = null; state.pendingFieldId = '';
+        state.pendingTarget = null; state.lastSafeDirection = null; state.lastSafeTarget = null;
         state.replacementReadiness = 'idle';
     }
 
     private _routeState(unit: Node, target: Node): UnitRouteState {
         let state = this._unitState.get(unit);
         if (!state) {
-            state = { activeFieldId: '', activeTarget: null, pendingFieldId: '', replacementReadiness: 'idle', target };
+            state = { activeFieldId: '', activeTarget: null, pendingFieldId: '', pendingTarget: null,
+                lastSafeDirection: null, lastSafeTarget: null, replacementReadiness: 'idle', target };
             this._unitState.set(unit, state);
         } else if (state.target !== target) {
             this._releaseField(unit);
@@ -1004,15 +1027,44 @@ export class EnemyNavigation {
         request: EnemyMoveRequest,
         out: Vec2,
     ): Vec2 {
-        if (!state.activeFieldId || !state.activeTarget || state.replacementReadiness !== 'pending') return out;
-        const maxDrift = this._field.cellSize * this._field.lookaheadCells;
-        if (Math.hypot(finalTarget.x - state.activeTarget.x, finalTarget.y - state.activeTarget.y) > maxDrift) return out;
-        const retained = this._field.settledDirection(self, state.activeFieldId, request.body, this._planningArea);
-        if (!retained || retained.blocked || retained.reached ||
-            !this._field.lineClear(self, retained.waypoint, request.body, this._area)) return out;
-        out.set(retained.x * request.speed, retained.y * request.speed);
+        if (state.replacementReadiness !== 'pending') return out;
+        if (state.activeFieldId && state.activeTarget && this._withinRetainedDrift(state.activeTarget, finalTarget)) {
+            const retained = this._field.settledDirection(self, state.activeFieldId, request.body, this._planningArea);
+            if (retained && !retained.blocked && !retained.reached) {
+                return this._applyCandidateVelocity(state, self, finalTarget, request, retained.x, retained.y, out);
+            }
+        }
+        if (!state.lastSafeDirection || !state.lastSafeTarget || !this._withinRetainedDrift(state.lastSafeTarget, finalTarget)) {
+            return out;
+        }
+        return this._applyCandidateVelocity(state, self, finalTarget, request,
+            state.lastSafeDirection.x, state.lastSafeDirection.y, out);
+    }
+
+    private _withinRetainedDrift(previousTarget: FlowPoint, currentTarget: FlowPoint): boolean {
+        return Math.hypot(currentTarget.x - previousTarget.x, currentTarget.y - previousTarget.y) <=
+            this._field.cellSize * this._field.lookaheadCells;
+    }
+
+    private _applyCandidateVelocity(
+        state: UnitRouteState,
+        self: FlowPoint,
+        finalTarget: FlowPoint,
+        request: EnemyMoveRequest,
+        directionX: number,
+        directionY: number,
+        out: Vec2,
+    ): Vec2 {
+        out.set(directionX * request.speed, directionY * request.speed);
         this._applyLocalAvoidance(request.unit, self, request.body, request.speed, out);
         this._constrainVelocity(self, request.body, request.dt, out);
+        if (Math.hypot(out.x, out.y) > 0.001) {
+            const length = Math.hypot(directionX, directionY);
+            if (length > 0.001) {
+                state.lastSafeDirection = { x: directionX / length, y: directionY / length };
+                state.lastSafeTarget = { ...finalTarget };
+            }
+        }
         return out;
     }
 

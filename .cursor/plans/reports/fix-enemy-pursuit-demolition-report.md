@@ -51,3 +51,42 @@ Evidence, source baselines, harness results, and both benchmark outputs are in `
 | OpenSpec change | `openspec/changes/fix-enemy-pursuit-demolition/` |
 
 No Cocos MCP write operation was performed. AC-PLAY remains a Creator hand-test risk: verify continuous player pursuit, a Log on a physically bypassable selected route, Hard-wall bypass, sequential Logs, and no pre-destruction penetration in the final Creator runtime.
+
+## v2 Execution (2026-09-10)
+
+Plan v2 is complete. This was a high-risk continuation of v1. The v2 scope was limited to pursuit continuity after geometry commits, per-frame physical sweep behavior, and target-cell churn; no scene, prefab, meta, asset, GameConfig, or Cocos MCP write operation occurred.
+
+| Todo | Result |
+|---|---|
+| EPD.v2.a | Complete. Captured the v1 baseline and recorded that a city-region Sprite is not a movement-safety input. |
+| EPD.v2.b | Complete. Geometry invalidates future FlowField work while retaining a unit's last sweep-validated direction; invalid targets, resets, and unsafe starts clear it. |
+| EPD.v2.c | Complete. Direct, settled, retained, and obstacle-approach movement is constrained by one current-physical sweep; distant colliders no longer cause a full-line early stop. |
+| EPD.v2.d | Complete. A bounded completed older target-cell field becomes interim active work while a coalesced newest-cell replacement is pending. |
+| EPD.v2.e | Complete. Added focused Minion/Boss construction, sweep, churn, lifecycle, scheduler, cache, and v1 demolition regressions. |
+| EPD.v2.f | Complete. All machine AC passed. |
+
+Changed files: `assets/scripts/core/EnemyNavigation.ts` retains `pendingTarget`, `lastSafeDirection`, and `lastSafeTarget`; it rejects inactive targets, retains only bounded progress, accepts a recently superseded settled field, and performs final collision clipping through `_constrainVelocity`. `.cursor/scripts/test-enemy-navigation.cjs` adds four v2 focused regression cases. The v2 OpenSpec and plan changes were already present at the start of this build and were validated without alteration to their behavior.
+
+The normal pursuit route still yields to the existing selected-route destructible handoff when a fixed damageable obstacle is first on its leg. That handoff uses `nextObstacleVelocity`, which is also constrained by the same physical sweep, preserving the accepted v1 attack-surface and no-penetration behavior.
+
+| Validation | Result |
+|---|---|
+| `git diff --check` | Pass |
+| `npx tsc --noEmit --pretty false` | Pass |
+| Three OpenSpec strict validations | Pass |
+| `test-enemy-navigation.cjs` with v2 evidence | Pass, including all four `AC-V2-*` cases |
+| `test-enemy-break-blocking-log.cjs` with v2 evidence | Pass |
+| Construction benchmark | Pass: cell size `30`, work budget `4096`, slice p95 `5.7505ms`, slice max `10.4855ms` |
+
+The protected Hero prefab hashes remain `C1576385562CC6DD840397F17BBD0F44833A6BDEBA878749C6E219E71DA2CE8D` and `7368144775E59D2D76DB11CF10936D2548173732688941E0E06C31FDDD02A478`.
+
+| MCP Metric | Value |
+|---|---|
+| scene-open / scene-save | 0 / 0 |
+| create-prefab-from-node | 0 |
+| verify-mcp-gate | N/A |
+| assets-reimport-asset | 0 |
+| New prefabs | 0 |
+| Continuation | yes, v1 to v2 |
+
+Evidence is in `fix-enemy-pursuit-demolition-v2-evidence/`. AC-PLAY remains a non-blocking Creator hand-test: exercise a building spawning away from a pursuing enemy, one spawning in its next frame of travel, sustained player cross-cell movement, a selected-route Log, and a Hard wall.

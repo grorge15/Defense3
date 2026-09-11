@@ -20,8 +20,8 @@ import { HeroSelectUI } from '../ui/HeroSelectUI';
 
 const { ccclass, property } = _decorator;
 
-const VFX_BLUE_PATH = 'prefabs/VFX/pref_vfx_upgrade_blue';
-const VFX_YELLOW_PATH = 'prefabs/VFX/pref_vfx_upgrade_yellow';
+const VFX_BLUE_PATH = 'prefabs/VFX/blue_upgradeEffect';
+const VFX_YELLOW_PATH = 'prefabs/VFX/yellow_upgradeEffect';
 
 type BuildCompletePayload = {
     buildType?: BuildPlotType | string;
@@ -80,10 +80,10 @@ export class BuildSystem extends Component {
     @property({ type: Prefab, tooltip: 'pref_hero_02（注入召唤碑）' })
     heroPrefab02: Prefab | null = null;
 
-    @property({ type: Prefab, tooltip: '基础建造完成特效 pref_vfx_upgrade_blue；空则 resources.load' })
+    @property({ type: Prefab, tooltip: '基础建造完成特效 blue_upgradeEffect；空则 resources.load' })
     vfxUpgradeBluePrefab: Prefab | null = null;
 
-    @property({ type: Prefab, tooltip: '高级塔/英雄圣地完成特效 pref_vfx_upgrade_yellow；空则 resources.load' })
+    @property({ type: Prefab, tooltip: '高级塔/英雄圣地完成特效 yellow_upgradeEffect；空则 resources.load' })
     vfxUpgradeYellowPrefab: Prefab | null = null;
 
     @property({ type: Node, tooltip: 'Stairs 左墙生成锚点' })
@@ -445,8 +445,8 @@ export class BuildSystem extends Component {
         }
         // 强制走 HeroSelectUI（监听 HERO_SELECT_REQUESTED）
         shrine.autoSelectOnActivate = false;
-        shrine.onHeroSpawned = (heroNode: Node) => {
-            this._onHeroSpawned(heroNode);
+        shrine.onHeroSpawned = (heroNode: Node, spawnPoint: Node) => {
+            this._onHeroSpawned(heroNode, spawnPoint);
         };
         // 场景里 HeroSelect 常开局 inactive → onLoad 未跑、听不到事件；先挂监听再 activate
         this._ensureHeroSelectReady();
@@ -465,7 +465,11 @@ export class BuildSystem extends Component {
         ui?.ensureReady();
     }
 
-    private _onHeroSpawned(heroNode: Node): void {
+    private _onHeroSpawned(heroNode: Node, spawnPoint?: Node): void {
+        const vfxPosition = spawnPoint?.isValid
+            ? spawnPoint.worldPosition.clone()
+            : heroNode.worldPosition.clone();
+        this._playUpgradeVfx('blue', vfxPosition);
         const hero = heroNode.getComponent(Hero);
         if (hero) {
             let player = this.playerNode;
@@ -634,18 +638,21 @@ export class BuildSystem extends Component {
         if (!buildType) {
             return;
         }
-        const blueTypes: BuildPlotType[] = ['wall', 'towerBasic', 'barracks', 'expandArea'];
-        const yellowTypes: BuildPlotType[] = ['towerAdvanced', 'heroShrine'];
-        let kind: 'blue' | 'yellow' | null = null;
-        if (blueTypes.indexOf(buildType as BuildPlotType) >= 0) {
-            kind = 'blue';
-        } else if (yellowTypes.indexOf(buildType as BuildPlotType) >= 0) {
-            kind = 'yellow';
-        }
-        if (!kind) {
+        const buildingTypes: BuildPlotType[] = [
+            'wall',
+            'towerBasic',
+            'barracks',
+            'expandArea',
+            'towerAdvanced',
+            'heroShrine',
+        ];
+        if (buildingTypes.indexOf(buildType as BuildPlotType) < 0) {
             return;
         }
+        this._playUpgradeVfx('yellow', worldPos);
+    }
 
+    private _playUpgradeVfx(kind: 'blue' | 'yellow', worldPos?: Vec3): void {
         const clipName = kind === 'blue' ? 'upgrade_blue' : 'upgrade_yellow';
         const path = kind === 'blue' ? VFX_BLUE_PATH : VFX_YELLOW_PATH;
         const existing = kind === 'blue' ? this.vfxUpgradeBluePrefab : this.vfxUpgradeYellowPrefab;
@@ -657,8 +664,8 @@ export class BuildSystem extends Component {
             if (worldPos) {
                 node.setWorldPosition(worldPos);
             }
-            const visual = node.getChildByName('Visual') ?? node;
-            playAnimWithCallback(visual, clipName, () => {
+            // The Animation component is on the prefab root; its clip targets Visual.
+            playAnimWithCallback(node, clipName, () => {
                 if (node.isValid) {
                     node.destroy();
                 }

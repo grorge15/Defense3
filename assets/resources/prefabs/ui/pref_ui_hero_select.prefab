@@ -139,8 +139,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 750,
-      "height": 1300
+      "width": 2560,
+      "height": 1440
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -452,7 +452,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
+      "__uuid__": "846171a0-0fb1-4a1c-acbb-54df267c0193@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -728,7 +728,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
+      "__uuid__": "846171a0-0fb1-4a1c-acbb-54df267c0193@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 1,
@@ -913,8 +913,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 720,
-      "height": 1280
+      "width": 2560,
+      "height": 1440
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -940,11 +940,11 @@
       "__id__": 41
     },
     "cardStyle0": {
-      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
+      "__uuid__": "846171a0-0fb1-4a1c-acbb-54df267c0193@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "cardStyle1": {
-      "__uuid__": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
+      "__uuid__": "846171a0-0fb1-4a1c-acbb-54df267c0193@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "heroIcon0": {

@@ -36,8 +36,8 @@ export class HeroShrine extends Building {
     /** P5-002 UI 可注册此回调弹出二选一界面 */
     public onHeroSelectRequested: ((shrine: HeroShrine) => void) | null = null;
 
-    /** 英雄生成后回调，供 P4 跟随玩家等系统接入 */
-    public onHeroSpawned: ((heroNode: Node) => void) | null = null;
+    /** 英雄生成后回调，供 P4 跟随玩家等系统接入；第二参为实际生成点 */
+    public onHeroSpawned: ((heroNode: Node, spawnPoint: Node) => void) | null = null;
 
     private _isActivated = false;
     private _hasSelected = false;
@@ -94,7 +94,7 @@ export class HeroShrine extends Building {
         const heroNode = instantiate(prefab);
         spawnParent.addChild(heroNode);
 
-        const spawnPoint = this.heroSpawnPoint ?? this.node;
+        const spawnPoint = this._resolveHeroSpawnPoint();
         spawnPoint.getWorldPosition(this._spawnPos);
         heroNode.setWorldPosition(this._spawnPos);
 
@@ -105,7 +105,32 @@ export class HeroShrine extends Building {
             `[HeroShrine] spawned hero${heroIndex + 1} at (${this._spawnPos.x.toFixed(1)}, ${this._spawnPos.y.toFixed(1)})`,
         );
 
-        this.onHeroSpawned?.(heroNode);
+        this.onHeroSpawned?.(heroNode, spawnPoint);
+    }
+
+    private _resolveHeroSpawnPoint(): Node {
+        const fallback = this._findChildByName(this.node, 'HeroSpawnPoint');
+        if (fallback) {
+            this.heroSpawnPoint = fallback;
+            return fallback;
+        }
+        if (this.heroSpawnPoint?.isValid) {
+            return this.heroSpawnPoint;
+        }
+        return this.node;
+    }
+
+    private _findChildByName(root: Node, name: string): Node | null {
+        for (const child of root.children) {
+            if (child.name === name) {
+                return child;
+            }
+            const nested = this._findChildByName(child, name);
+            if (nested) {
+                return nested;
+            }
+        }
+        return null;
     }
 
     private _resolveSpawnParent(): Node {

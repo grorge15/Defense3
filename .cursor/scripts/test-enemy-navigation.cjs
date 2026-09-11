@@ -1696,6 +1696,101 @@ should('AC-CONTINUITY: retained settled route stays safe while a moving target r
     h.service.releaseUnit(unit); h.service.destroy();
 });
 
+should('AC-V2-GEOMETRY-CONTINUITY: distant construction keeps Minion and Boss moving on the last safe direction', () => {
+    for (const role of ['minion', 'boss']) {
+        const h = serviceFixture();
+        h.addBox(`airWall-v2-route-${role}`, { xMin: 20, xMax: 40, yMin: -20, yMax: 40 });
+        const unit = h.scene.add(eventNode(`v2-geometry-unit-${role}`, -80, 0));
+        const target = h.scene.add(eventNode(`v2-geometry-target-${role}`, 120, 0));
+        const request = { unit, target, role, speed: 20, dt: 1 / 60, body: body(10) };
+        currentFrame++; h.service.nextVelocity(request, outVec()); settleService(h.service);
+        currentFrame++;
+        assert.ok(Math.hypot(h.service.nextVelocity(request, outVec()).x, h.service.nextVelocity(request, outVec()).y) > 0,
+            `${role} did not establish a settled detour`);
+        const state = h.service._unitState.get(unit);
+        assert.ok(state.activeFieldId && state.lastSafeDirection, `${role} did not retain settled movement`);
+
+        h.addBox(`airWall-v2-city-distant-${role}`, { xMin: 150, xMax: 170, yMin: 130, yMax: 150 });
+        currentFrame++;
+        const afterBuild = h.service.nextVelocity(request, outVec());
+        assert.strictEqual(state.activeFieldId, '', `${role} must not keep an old-revision field`);
+        assert.ok(state.lastSafeDirection, `${role} lost its safe direction for a distant building`);
+        assert.ok(state.replacementReadiness === 'pending');
+        assert.ok(Math.hypot(afterBuild.x, afterBuild.y) > 0, `${role} stopped for a distant building`);
+        assert.ok(h.service.debugStats.schedulerLastWork <= 4096);
+        h.service.destroy();
+    }
+});
+
+should('AC-V2-SWEEP: obstacle approach clips only this frame while a nearby Log stops at its safe edge', () => {
+    const h = serviceFixture();
+    const unit = h.scene.add(eventNode('v2-sweep-unit', -80, 0));
+    const target = h.scene.add(eventNode('v2-sweep-target', 120, 0));
+    const logNode = h.scene.add(eventNode('v2-sweep-log'));
+    const log = new h.Log(); log.node = logNode; log.isValid = true; logNode.components.set(h.Log, log);
+    const box = new h.cc.BoxCollider2D(); box.node = logNode; box.enabled = true; box.isValid = true;
+    box.worldAABB = { xMin: 70, xMax: 90, yMin: -20, yMax: 20 };
+    log.box = box; logNode.components.set(h.cc.BoxCollider2D, box);
+    const request = { unit, target, role: 'minion', speed: 100, dt: 1, body: body(10) };
+    currentFrame++;
+    const route = { target: logNode, point: { x: 60, y: 0 } };
+    const distant = h.service.nextObstacleVelocity(request, route, outVec());
+    assert.ok(distant.x > 99, `distant physical blocker prematurely stopped obstacle approach: ${JSON.stringify(distant)}`);
+    const atEdge = outVec(); atEdge.set(100, 0);
+    h.service._constrainVelocity({ x: 60, y: 0 }, request.body, request.dt, atEdge);
+    assert.strictEqual(Math.hypot(atEdge.x, atEdge.y), 0, 'sweep must not enter the live Log collider');
+    h.service.destroy();
+});
+
+should('AC-V2-STARVATION: a completed old target-cell field makes interim progress while newest replacement is queued', () => {
+    const h = serviceFixture();
+    h.addBox('airWall-v2-churn', { xMin: 20, xMax: 40, yMin: -20, yMax: 40 });
+    const unit = h.scene.add(eventNode('v2-churn-unit', -80, 0));
+    const target = h.scene.add(eventNode('v2-churn-target', 120, 0));
+    const request = { unit, target, role: 'boss', speed: 20, dt: 1 / 60, body: body(10) };
+    currentFrame++; h.service.nextVelocity(request, outVec()); settleService(h.service);
+    currentFrame++; h.service.nextVelocity(request, outVec());
+    const state = h.service._unitState.get(unit);
+    assert.ok(state.activeFieldId);
+
+    target.set(150, 0); currentFrame++; h.service.nextVelocity(request, outVec());
+    const oldPending = state.pendingFieldId;
+    assert.ok(oldPending && state.replacementReadiness === 'pending');
+    settleService(h.service);
+    target.set(180, 0); currentFrame++;
+    const interim = h.service.nextVelocity(request, outVec());
+    assert.ok(Math.hypot(interim.x, interim.y) > 0, 'completed old cell field was discarded during target churn');
+    assert.ok(state.activeFieldId === oldPending, 'old completed field was not adopted as interim progress');
+    assert.ok(state.pendingFieldId && state.pendingFieldId !== oldPending, 'newest target replacement was not coalesced');
+    settleService(h.service);
+    currentFrame++;
+    h.service.nextVelocity(request, outVec());
+    assert.ok(state.activeFieldId === h.service._field.fieldIdFor({ x: 180, y: 0 }, request.body, h.service._planningArea));
+    assert.ok(h.service._field.debugEntries <= 32 && h.service._field.debugBytes <= 8388608);
+    h.service.destroy();
+});
+
+should('AC-V2-LIFECYCLE: target invalidation and a new collider at the unit clear retained direction ownership', () => {
+    const h = serviceFixture();
+    h.addBox('airWall-v2-life-route', { xMin: 20, xMax: 40, yMin: -20, yMax: 40 });
+    const unit = h.scene.add(eventNode('v2-life-unit', -80, 0));
+    const target = h.scene.add(eventNode('v2-life-target', 120, 0));
+    const request = { unit, target, role: 'minion', speed: 20, dt: 1 / 60, body: body(10) };
+    currentFrame++; h.service.nextVelocity(request, outVec()); settleService(h.service);
+    currentFrame++; h.service.nextVelocity(request, outVec());
+    const state = h.service._unitState.get(unit);
+    assert.ok(state.lastSafeDirection);
+    target.activeInHierarchy = false; currentFrame++; h.service.nextVelocity(request, outVec());
+    assert.strictEqual(state.lastSafeDirection, null, 'invalid target retained a stale direction');
+
+    target.activeInHierarchy = true; currentFrame++; h.service.nextVelocity(request, outVec()); settleService(h.service);
+    currentFrame++; h.service.nextVelocity(request, outVec());
+    h.addBox('airWall-v2-life-contact', { xMin: -85, xMax: -75, yMin: -5, yMax: 5 });
+    currentFrame++; h.service.nextVelocity(request, outVec());
+    assert.strictEqual(state.lastSafeDirection, null, 'overlapping new collider retained an invalid direction');
+    h.service.destroy();
+});
+
 if (process.env.NAV_HARNESS_ONLY !== '1' && !process.exitCode) console.log('enemy navigation core tests passed');
 if (process.env.NAV_HARNESS_ONLY !== '1') {
     const dir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/plans/reports/fix-enemy-navigation-rebuild-stalls-evidence/v3');

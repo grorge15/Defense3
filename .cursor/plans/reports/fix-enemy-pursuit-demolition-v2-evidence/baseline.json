@@ -1,0 +1,21 @@
+{
+  "planVersion": 2,
+  "baselineCommit": "62fcc4448bc5b7579e0d8359b282ed19345f9eb7",
+  "status": [
+    " M .cursor/plans/fix-enemy-pursuit-demolition.md",
+    " M openspec/changes/enemy-unified-navigation/specs/enemy-unified-navigation/spec.md",
+    " M openspec/changes/fix-enemy-pursuit-demolition/proposal.md",
+    " M openspec/changes/fix-enemy-pursuit-demolition/specs/enemy-pursuit-demolition/spec.md",
+    "?? .cursor/plans/reports/fix-enemy-pursuit-demolition-v2-evidence/"
+  ],
+  "heroHashes": [
+    "C1576385562CC6DD840397F17BBD0F44833A6BDEBA878749C6E219E71DA2CE8D",
+    "7368144775E59D2D76DB11CF10936D2548173732688941E0E06C31FDDD02A478"
+  ],
+  "cityRegionMarker": "not required; current-frame physical sweep and collider data are authoritative",
+  "sourceHashes": {
+    "EnemyNavigation": "6BE32E9588CBFA090655268D184BA378B0E3702306C41EFF018812795874D59A",
+    "FlowField": "A7CD74E423AEE857319B542140A7BBA8C4655B7A5C339520DBC24827F60F62F9",
+    "harness": "DFEE240C01614B0FDCEFDE82D97B04992C7D0C71945EB2DE2D3A6861C0DCEC32"
+  }
+}

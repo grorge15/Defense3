@@ -2,7 +2,7 @@
 
 ### Requirement: Moving-objective pursuit continuity
 
-The system SHALL distinguish a current-revision pending replacement route from a settled unreachable route. While a valid original objective moves, it SHALL continue using a bounded, settled prior route only when that route is safe against current physical geometry; it SHALL coalesce replacement requests and promptly switch to a settled current-objective route. It MUST stop when no current-safe route or direct motion is available.
+The system SHALL distinguish a current-revision pending replacement route from a settled unreachable route. While a valid original objective moves, it SHALL continue using a bounded, settled prior route or direction only when its next safe route segment and current-frame physical sweep remain safe against current geometry; it SHALL coalesce replacement requests and promptly switch to a settled current-objective route. A settled route for a recently superseded target cell MAY provide interim safe progress while a newer replacement is pending. It MUST stop when no current-safe route, direction, or direct motion is available.
 
 #### Scenario: Target crosses flow cells while an enemy is detouring
 - **WHEN** an ordinary enemy or Boss has a settled, collision-safe route and its original target continues crossing flow-field cells while a replacement field is pending
@@ -10,11 +10,23 @@ The system SHALL distinguish a current-revision pending replacement route from a
 
 #### Scenario: Geometry changes during retained pursuit
 - **WHEN** an obstacle is inserted, removed, moved, reclassified, enabled, disabled, or destroyed while a prior route is retained
-- **THEN** the retained route is rejected immediately unless it passes current collision, ground, and boundary checks, and the enemy never crosses the changed obstacle
+- **THEN** the system refreshes future routing work without globally clearing all retained directions, and each enemy continues only through its current-frame sweep and next safe route segment that pass current collision, ground, and boundary checks; it never crosses the changed obstacle
+
+#### Scenario: A new building is distant from this frame's movement
+- **WHEN** a building collider is created inside the city but does not intersect an enemy's current-frame sweep, next safe route segment, or direct movement
+- **THEN** the enemy keeps making its existing safe forward progress while replacement routing updates in the background
+
+#### Scenario: A completed route targets a recently old cell
+- **WHEN** the original target crosses flow-field cells again before a completed replacement for its earlier cell is consumed
+- **THEN** the enemy may use that completed route as bounded interim progress when it remains current-geometry-safe, and continues coalescing toward the newest target cell without waiting at zero velocity solely because the result is no longer the exact newest cell
 
 #### Scenario: Target becomes invalid or no safe route exists
 - **WHEN** the original target becomes invalid, or no direct or retained current-safe movement exists while route work is pending
 - **THEN** the enemy stops or follows its existing target-lifecycle behavior and does not treat pending work as a valid direction
+
+#### Scenario: A distant physical blocker lies on a direct pursuit line
+- **WHEN** Hard geometry or a live physical collider blocks a direct line farther away than the enemy can travel in its current frame
+- **THEN** the enemy advances only to the current-frame sweep's safe point, then uses the current route, demolition, or waiting behavior at the blocker; it does not return zero velocity solely because the full remaining direct line is blocked
 
 ### Requirement: Selected-route destructible obstacle pursuit
 

@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "aeffdf9b-4074-4923-ac13-bcce157f87a3",
+  "uuid": "5ed0ad76-e92c-4e55-9756-f1d509499c9a",
   "files": [
     ".json",
     ".png"
@@ -10,8 +10,8 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "aeffdf9b-4074-4923-ac13-bcce157f87a3@6c48a",
-      "displayName": "英雄卡牌背景",
+      "uuid": "5ed0ad76-e92c-4e55-9756-f1d509499c9a@6c48a",
+      "displayName": "frame_002",
       "id": "6c48a",
       "name": "texture",
       "userData": {
@@ -22,7 +22,7 @@
         "mipfilter": "none",
         "anisotropy": 0,
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "aeffdf9b-4074-4923-ac13-bcce157f87a3",
+        "imageUuidOrDatabaseUri": "5ed0ad76-e92c-4e55-9756-f1d509499c9a",
         "visible": false
       },
       "ver": "1.0.22",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "aeffdf9b-4074-4923-ac13-bcce157f87a3@f9941",
-      "displayName": "英雄卡牌背景",
+      "uuid": "5ed0ad76-e92c-4e55-9756-f1d509499c9a@f9941",
+      "displayName": "frame_002",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -45,10 +45,10 @@
         "offsetY": 0,
         "trimX": 0,
         "trimY": 0,
-        "width": 345,
-        "height": 466,
-        "rawWidth": 345,
-        "rawHeight": 466,
+        "width": 128,
+        "height": 64,
+        "rawWidth": 128,
+        "rawHeight": 64,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -172.5,
-            -233,
+            -64,
+            -32,
             0,
-            172.5,
-            -233,
+            64,
+            -32,
             0,
-            -172.5,
-            233,
+            -64,
+            32,
             0,
-            172.5,
-            233,
+            64,
+            32,
             0
           ],
           "indexes": [
@@ -83,12 +83,12 @@
           ],
           "uv": [
             0,
-            466,
-            345,
-            466,
+            64,
+            128,
+            64,
             0,
             0,
-            345,
+            128,
             0
           ],
           "nuv": [
@@ -102,18 +102,18 @@
             1
           ],
           "minPos": [
-            -172.5,
-            -233,
+            -64,
+            -32,
             0
           ],
           "maxPos": [
-            172.5,
-            233,
+            64,
+            32,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "aeffdf9b-4074-4923-ac13-bcce157f87a3@6c48a",
+        "imageUuidOrDatabaseUri": "5ed0ad76-e92c-4e55-9756-f1d509499c9a@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "fixAlphaTransparencyArtifacts": false,
     "hasAlpha": true,
-    "redirect": "aeffdf9b-4074-4923-ac13-bcce157f87a3@6c48a"
+    "redirect": "5ed0ad76-e92c-4e55-9756-f1d509499c9a@6c48a"
   }
 }

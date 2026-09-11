@@ -133,6 +133,14 @@
 | **原因** | `CoinUI` 飞币用图标世界/UI 坐标当起点。 |
 | **解决** | 飞币起点改为玩家世界坐标（再转换到 UI），终点仍为 CoinUI 图标。 |
 
+### v3（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 建造扣款时先在 UI 层生成金币 Sprite，与世界金币表现不一致。 |
+| **原因** | `CoinUI.playDeliverFly` 复制 HUD 图标并挂到 UI 父节点。 |
+| **解决** | 优先实例化 `CoinSystem.coinPrefab`（`pref_item_coin`），禁用其拾取脚本后挂到 `GameRoot/Effect`，使用世界坐标飞向建造地块；缺少 prefab 时才回退 HUD 图标。 |
+
 ---
 
 ## fix-boss-spawn-chase — Boss 生成时机与追玩家
@@ -402,6 +410,18 @@
 
 ---
 
+## fix-build-vfx-and-hero-spawn-point — 建造特效不播放且英雄生成点错误
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `blue_upgradeEffect` / `yellow_upgradeEffect` 实例化后不播放动画；英雄没有稳定生成在 `HeroSpawnPoint`。 |
+| **原因** | VFX 的 `Animation` 挂在 prefab 根节点，`BuildSystem` 却把 `Visual` 子节点传给播放函数；英雄生成逻辑未对动态实例的 `HeroSpawnPoint` 做兜底解析，且生成点没有传给生成后的 VFX。 |
+| **解决** | 对 VFX 根节点播放动画；六类建筑完成统一使用黄色特效；英雄生成时使用蓝色特效并取 `HeroSpawnPoint.worldPosition`；`HeroShrine` 增加递归挂点解析并以该世界坐标设置英雄初始位置。 |
+
+---
+
 ## fix-highplatform-airwall-no-collision — HighPlatform airWall 不挡玩家/滚木
 
 ### v1（2026-09-05）
@@ -536,6 +556,15 @@
 | **现象** | 英雄远程攻击看不到 `pref_projectile_hero_01/02`。 |
 | **原因** | 出手瞬间直接 `takeDamage`；弹道用 0.2s `setWorldPosition` 插值且无命中逻辑，几乎不可见；缺 prefab 时静默 return。 |
 | **解决** | 帧事件再生成弹道；`HeroProjectile` 按 `arrowSpeed` 飞行并 AABB 命中；`resources.load` 兜底加载弹道 prefab。 |
+
+### v2（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_projectile_hero_01/02` 飞行时不会绕 Z 轴朝向攻击方向。 |
+| **原因** | `HeroProjectile` 计算了目标方向但没有同步弹道节点旋转。 |
+| **解决** | 沿用 `Arrow` 的 180 度默认贴图偏移，在初始化和飞行更新时按方向设置 Z 轴旋转。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check` 通过。 |
 
 ---
 

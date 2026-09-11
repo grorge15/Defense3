@@ -13,6 +13,9 @@ export class HeroProjectile extends Component {
     @property({ type: Node, tooltip: 'Visual 子节点' })
     visualNode: Node | null = null;
 
+    @property({ tooltip: '弹道贴图默认朝向相对 +X 轴的角度偏移；贴图朝左填 180，朝右填 0' })
+    directionAngleOffset = 180;
+
     private _damage = 15;
     private _speed = GameConfig.arrowSpeed;
     private _alive = false;
@@ -41,6 +44,7 @@ export class HeroProjectile extends Component {
         } else {
             this._dir.normalize();
         }
+        this._faceMoveDirection();
     }
 
     update(dt: number): void {
@@ -54,6 +58,7 @@ export class HeroProjectile extends Component {
         this._pos.y += this._dir.y * step;
         this._pos.z += this._dir.z * step;
         this.node.setWorldPosition(this._pos);
+        this._faceMoveDirection();
 
         this._traveled += step;
         if (this._traveled >= GameConfig.arrowMaxDistance) {
@@ -106,5 +111,10 @@ export class HeroProjectile extends Component {
         if (this.node?.isValid) {
             this.node.destroy();
         }
+    }
+
+    private _faceMoveDirection(): void {
+        const angleDeg = Math.atan2(this._dir.y, this._dir.x) * 180 / Math.PI;
+        this.node.setRotationFromEuler(0, 0, angleDeg + this.directionAngleOffset);
     }
 }
