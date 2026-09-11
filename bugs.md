@@ -7,6 +7,19 @@
 
 ---
 
+## fix-barrier-hp-bar-damage-sync — pref_barrier_wall 受伤后血条不变化
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `pref_barrier_wall` 受到攻击后，嵌套 `pref_ui_hp_bar_player` 血条仍显示满血或不变化。 |
+| **原因** | `Barrier.takeDamage` 只修改内部 `_hp`，没有按 `HpBarUI` 使用的 `HP_CHANGED(node, hp, max)` 协议通知目标节点；同时该 prefab 的 `hpBarAnchor` 为空时，显隐更新直接跳过。 |
+| **解决** | 扣血后发送 `HP_CHANGED`，并在 `hpBarAnchor` 为空时回退查找嵌套 `pref_ui_hp_bar_player` 节点更新显隐；未修改 prefab/scene。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`。 |
+
+---
+
 ## fix-barracks-unlock-after-basic-towers — 兵营建造地块提前出现
 
 ### v1（2026-09-09）
@@ -179,6 +192,15 @@
 | **原因** | Arrow 的距离轮询和碰撞命中都将 Log 纳入伤害对象；固定碰撞盒跟随 Visual 尺寸，后续长度刷新也会覆盖尺寸。 |
 | **解决** | 从 Arrow 两条命中路径移除 Log，不消耗穿透次数；固定状态统一读 GameConfig，本地 offset=(-2,10)、size=(235,19)，不随视觉长度变化；未固定时保留原尺寸缩放和偏移，Boss 伤害不变。 |
 | **验证** | TypeScript 通过；mock 回归覆盖箭矢命中、固定长度 1/3/10、固定入口及未固定尺寸恢复。未做 Cocos 实机验证。 |
+
+### v4（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 电锯整体缩短滚木导致未被截短的一端漂移；滚木固定后未稳定定位到场景固定点，视觉和滚动碰撞几何也可能残留截短状态。 |
+| **原因** | `Log` 只按总长度刷新 Visual/BoxCollider2D，没有保存左右本地边界；`SawTrap` 未根据 Player 相对 Log 的本地 X 传递截短方向；固定分支缺少 `GameRoot/World/BuildPlots/LogFixPoint` 定位和固定态独立视觉几何。 |
+| **解决** | `Log.cutFromSide()` 按左右边界保留未截短端，并同步 Visual scale/position 与滚动 collider width/offset，最低长度保持有效；`SawTrap` 在轮询/接触命中中将 Saw 与 Player 转到 Log 本地坐标，按两者相对 X 位置选择截短侧，保留冷却与无 Player 防护；固定成功后定位 `LogFixPoint`，Visual X 使用 2.0 倍，固定 collider 使用既有 GameConfig 配置并设为 Static/non-sensor 后 apply；不写 Player 世界坐标。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`、OpenSpec 结构/源码断言通过；未修改场景、Prefab、Meta、Player 或 GameConfig。Cocos 实机手测未执行。 |
 
 ---
 
@@ -916,6 +938,19 @@
 
 ---
 
+## fix-hero-select-finger-hint-depth-and-position — HeroSelect 手指提示位置与层级
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | HeroSelect 的 Finger 提示被 Card 遮挡，且只固定在 Card0 附近。 |
+| **原因** | Finger 的 Z 轴范围为 `-50..0`，低于卡片层级；位置更新也没有在 Card0/Card1 之间交替。 |
+| **解决** | 保留 Card0/Card1 每秒交替提示，位置改为卡片局部坐标的 `(+50,+50)` 偏移，Z 轴改为 `5..50`。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check` 通过。 |
+
+---
+
 ## fix-log-rotation-x-unbounded — pref_log rotation.x 无限增长
 
 ### v1（2026-09-08）
@@ -1120,6 +1155,28 @@
 | **现象** | 英雄死亡播放死亡动画时，子节点 `角色通用投影1` 仍然显示。 |
 | **原因** | `Hero._die()` 只停止移动并播放死亡动画，没有处理投影节点显隐。 |
 | **解决** | 英雄死亡时查找 `角色通用投影1` 子节点并设为 inactive。 |
+
+---
+
+## fix-hero-spawn-at-shrine — 英雄从世界原点开始追随玩家
+
+### v1（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄从世界原点出现后才开始追随玩家，而不是在英雄碑的 `HeroSpawnPoint` 生成。 |
+| **原因** | 英雄 prefab 根节点带 Dynamic `RigidBody2D`；生成后直接 `addChild` 并设置世界坐标，首帧刚体同步可能用 prefab 初始位置覆盖生成坐标。 |
+| **解决** | 生成期间临时禁用根 `RigidBody2D`，按 `HeroSpawnPoint` 世界坐标定位，启用刚体后清零 `linearVelocity`；保留后续 Player 跟随绑定回调。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`。 |
+
+### v2（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | v1 后英雄选择期间生成的英雄仍可能在恢复世界时回到 prefab 的默认坐标。 |
+| **原因** | `HeroSelectUI` 通过 `director.pause()` 停止物理更新，但渲染帧仍会清除节点的 transform dirty 标记；已初始化的刚体无法收到暂停期间写入的出生坐标。 |
+| **解决** | 实例化后先设为 inactive，挂到世界节点并设置 `HeroSpawnPoint` 世界坐标，最后激活节点，使刚体首次创建时直接使用正确出生坐标；保留原有实时 Player 跟随。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check`，并覆盖两种英雄、不同父节点偏移和 0/1/10 个暂停渲染帧的生命周期模拟。 |
 
 ---
 
