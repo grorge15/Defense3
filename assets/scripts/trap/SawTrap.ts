@@ -15,7 +15,7 @@ import {
 import { Player } from '../character/Player';
 import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
-import { Log } from '../item/Log';
+import { Log, LogCutSide } from '../item/Log';
 
 const { ccclass, property } = _decorator;
 
@@ -40,6 +40,8 @@ export class SawTrap extends Component {
     private readonly _hitCooldown = new Set<string>();
     private readonly _selfPos = new Vec3();
     private readonly _otherPos = new Vec3();
+    private readonly _localPlayerPos = new Vec3();
+    private readonly _localSawPos = new Vec3();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -84,17 +86,17 @@ export class SawTrap extends Component {
             return;
         }
         this.node.getWorldPosition(this._selfPos);
+        const player = scene.getComponentInChildren(Player);
 
         for (const log of scene.getComponentsInChildren(Log)) {
             if (!log.node.activeInHierarchy || !log.canBeCutBySaw()) {
                 continue;
             }
-            if (this._overlaps(log.node, log.getBoxCollider())) {
-                this._hitLog(log);
+            if (player && this._overlaps(log.node, log.getBoxCollider())) {
+                this._hitLog(log, player);
             }
         }
 
-        const player = scene.getComponentInChildren(Player);
         if (player && !player.isDead && this._hitsPlayer(player)) {
             this._hitPlayer(player);
         }
@@ -148,7 +150,8 @@ export class SawTrap extends Component {
         }
         const log = other.getComponent(Log) ?? other.parent?.getComponent(Log) ?? null;
         if (log) {
-            this._hitLog(log);
+            const player = this.node.scene?.getComponentInChildren(Player) ?? null;
+            this._hitLog(log, player);
         }
     };
 
@@ -161,16 +164,36 @@ export class SawTrap extends Component {
         this._markCooldown(key);
     }
 
-    private _hitLog(log: Log): void {
-        if (!log.canBeCutBySaw()) {
+    private _hitLog(log: Log, player: Player | null): void {
+        if (!player || !log.canBeCutBySaw()) {
             return;
         }
         const key = `l:${log.node.uuid}`;
         if (this._hitCooldown.has(key)) {
             return;
         }
-        log.shrink();
+        const side = this._resolveCutSide(log, player);
+        if (!side) {
+            return;
+        }
+        log.cutFromSide(side);
         this._markCooldown(key);
+    }
+
+    private _resolveCutSide(log: Log, player: Player): LogCutSide | null {
+        player.node.getWorldPosition(this._otherPos);
+        log.node.inverseTransformPoint(this._localPlayerPos, this._otherPos);
+        log.node.inverseTransformPoint(this._localSawPos, this._selfPos);
+        const sawToPlayer = this._localSawPos.x - this._localPlayerPos.x;
+        if (Math.abs(sawToPlayer) > 0.001) {
+            return sawToPlayer < 0 ? 'left' : 'right';
+        }
+
+        // If Saw and Player overlap on the cutting axis, fall back to their side of the log.
+        if (Math.abs(this._localPlayerPos.x) <= 0.001) {
+            return null;
+        }
+        return this._localPlayerPos.x < 0 ? 'left' : 'right';
     }
 
     private _markCooldown(key: string): void {

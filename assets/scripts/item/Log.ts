@@ -23,6 +23,7 @@ import { HpBarUI } from '../ui/HpBarUI';
 const { ccclass, property } = _decorator;
 
 export type LogPhase = 'rolling' | 'charging' | 'fixed' | 'failed';
+export type LogCutSide = 'left' | 'right';
 
 @ccclass('Log')
 export class Log extends Component {
@@ -43,6 +44,7 @@ export class Log extends Component {
     private _baseColliderWidth = 100;
     private _baseColliderHeight = 76;
     private readonly _baseColliderOffset = new Vec2();
+    private readonly _baseVisualPosition = new Vec3();
     private _phase: LogPhase = 'rolling';
     private _currentLength = GameConfig.logInitialLength;
     private _isLocked = false;
@@ -59,6 +61,9 @@ export class Log extends Component {
     private _yellowTriggered = false;
     private _blueTriggered = false;
     private readonly _baseVisualScale = new Vec3(1, 1, 1);
+    private _rollingLeftEdge = -0.5;
+    private _rollingRightEdge = 0.5;
+    private _lastCutSide: LogCutSide | null = null;
     private _hp = GameConfig.logMaxHp;
     private _hpBarSpawned = false;
 
@@ -84,7 +89,9 @@ export class Log extends Component {
         }
         if (this.visualNode) {
             this._baseVisualScale.set(this.visualNode.scale);
+            this._baseVisualPosition.set(this.visualNode.position);
         }
+        this._resetRollingGeometry();
         this._refreshLengthVisual();
     }
 
@@ -99,6 +106,8 @@ export class Log extends Component {
         this._yellowTriggered = false;
         this._blueTriggered = false;
         this._currentLength = GameConfig.logInitialLength;
+        this._lastCutSide = null;
+        this._resetRollingGeometry();
         this._refreshLengthVisual();
         this._playRollAnim();
         if (this._pushPlayer) {
@@ -177,22 +186,52 @@ export class Log extends Component {
         if (this._currentLength >= GameConfig.logMaxLength) {
             return;
         }
+        const previousWidth = this._rollingWidth();
         this._currentLength = Math.min(
             this._currentLength + GameConfig.logExtendAmount,
             GameConfig.logMaxLength,
         );
+        const addedWidth = this._rollingWidthForLength(this._currentLength) - previousWidth;
+        if (addedWidth > 0) {
+            if (this._lastCutSide === 'left') {
+                this._rollingLeftEdge -= addedWidth;
+            } else if (this._lastCutSide === 'right') {
+                this._rollingRightEdge += addedWidth;
+            } else {
+                this._rollingLeftEdge -= addedWidth * 0.5;
+                this._rollingRightEdge += addedWidth * 0.5;
+            }
+        }
         this._refreshLengthVisual();
     }
 
     shrink(): void {
-        if (this._currentLength <= GameConfig.logMinLength) {
-            return;
+        this.cutFromSide('right');
+    }
+
+    cutFromSide(side: LogCutSide): boolean {
+        if (!this.canBeCutBySaw() || this._currentLength <= GameConfig.logMinLength) {
+            return false;
         }
-        this._currentLength = Math.max(
+
+        const nextLength = Math.max(
             this._currentLength - GameConfig.logShrinkAmount,
             GameConfig.logMinLength,
         );
+        const nextWidth = this._rollingWidthForLength(nextLength);
+        if (nextWidth <= 0.01) {
+            return false;
+        }
+
+        this._currentLength = nextLength;
+        if (side === 'left') {
+            this._rollingLeftEdge = this._rollingRightEdge - nextWidth;
+        } else {
+            this._rollingRightEdge = this._rollingLeftEdge + nextWidth;
+        }
+        this._lastCutSide = side;
         this._refreshLengthVisual();
+        return true;
     }
 
     enterChargeZone(): void {
@@ -212,9 +251,10 @@ export class Log extends Component {
         if (canLock) {
             this._phase = 'fixed';
             this._isLocked = true;
-            this.unbindPlayer();
+            this._resolveFixedPoint();
             this._stopRollAnim();
             this._enableAsSolidBarrier();
+            this.unbindPlayer();
             this._spawnHpBar();
             console.info(
                 `[Log] blue line LOCK OK length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength}`,
@@ -243,18 +283,17 @@ export class Log extends Component {
     /** 固定后使用独立的本地碰撞盒，不随 Visual 长度缩放。 */
     private _enableAsSolidBarrier(): void {
         this._freezeVisualRotation();
-        this._refreshLengthVisual();
-        if (this._collider) {
-            this._collider.sensor = false;
-            // 强制把尺寸写回物理世界（Static 切换后偶发不同步）
-            this._collider.apply();
-        }
         if (this._rb) {
             this._rb.type = ERigidBody2DType.Static;
             this._rb.linearVelocity = new Vec2(0, 0);
             this._rb.angularVelocity = 0;
             this._rb.fixedRotation = true;
             this._rb.enabledContactListener = true;
+        }
+        this._applyFixedGeometry();
+        if (this._collider) {
+            // 强制把尺寸写回物理世界（Static 切换后偶发不同步）
+            this._collider.apply();
         }
         this._hp = GameConfig.logMaxHp;
     }
@@ -386,6 +425,20 @@ export class Log extends Component {
         }
     }
 
+    private _resolveFixedPoint(): void {
+        const scene = this.node.scene;
+        const gameRoot = scene ? this._findNodeByName(scene, 'GameRoot') : null;
+        const world = gameRoot?.getChildByName('World') ?? null;
+        const buildPlots = world?.getChildByName('BuildPlots') ?? null;
+        const fixedPoint = buildPlots?.getChildByName('LogFixPoint') ?? null;
+        if (!fixedPoint) {
+            console.warn('[Log] fixed point not found: GameRoot/World/BuildPlots/LogFixPoint');
+            return;
+        }
+        fixedPoint.getWorldPosition(this._desiredPos);
+        this.node.setWorldPosition(this._desiredPos);
+    }
+
     private _findNodeByName(root: Node, name: string): Node | null {
         if (root.name === name) {
             return root;
@@ -441,27 +494,76 @@ export class Log extends Component {
     }
 
     private _refreshLengthVisual(): void {
-        const visualLengthScale = GameConfig.logVisualBaseScale
-            + this._currentLength * GameConfig.logVisualScalePerLength;
+        if (this._phase === 'fixed') {
+            this._applyFixedGeometry();
+            this._collider?.apply();
+            return;
+        }
+
+        const visualLengthScale = this._rollingWidthForLength(this._currentLength) / this._baseColliderWidth;
+        const centerOffsetX = (this._rollingLeftEdge + this._rollingRightEdge) * 0.5;
         if (this.visualNode) {
             this.visualNode.setScale(
                 this._baseVisualScale.x * visualLengthScale,
                 this._baseVisualScale.y,
                 this._baseVisualScale.z,
             );
+            this.visualNode.setPosition(
+                this._baseVisualPosition.x + centerOffsetX,
+                this._baseVisualPosition.y,
+                this._baseVisualPosition.z,
+            );
         }
         if (this._collider) {
-            const fixed = this._phase === 'fixed';
             this._collider.size = new Size(
-                fixed ? GameConfig.logFixedColliderWidth : this._baseColliderWidth * visualLengthScale,
-                fixed ? GameConfig.logFixedColliderHeight : this._baseColliderHeight,
+                Math.max(0.01, this._rollingWidth()),
+                this._baseColliderHeight,
             );
-            this._collider.offset = fixed
-                ? new Vec2(GameConfig.logFixedColliderOffsetX, GameConfig.logFixedColliderOffsetY)
-                : new Vec2(this._baseColliderOffset.x, this._baseColliderOffset.y);
+            this._collider.offset = new Vec2(
+                this._baseColliderOffset.x + centerOffsetX,
+                this._baseColliderOffset.y,
+            );
             // 拾取加长时必须 apply，否则物理盒仍是旧尺寸
             this._collider.apply();
         }
+    }
+
+    private _applyFixedGeometry(): void {
+        if (this.visualNode) {
+            this.visualNode.setScale(
+                this._baseVisualScale.x * 2.0,
+                this._baseVisualScale.y,
+                this._baseVisualScale.z,
+            );
+            this.visualNode.setPosition(this._baseVisualPosition);
+        }
+        if (this._collider) {
+            this._collider.size = new Size(
+                GameConfig.logFixedColliderWidth,
+                GameConfig.logFixedColliderHeight,
+            );
+            this._collider.offset = new Vec2(
+                GameConfig.logFixedColliderOffsetX,
+                GameConfig.logFixedColliderOffsetY,
+            );
+            this._collider.sensor = false;
+        }
+    }
+
+    private _resetRollingGeometry(): void {
+        const width = this._rollingWidthForLength(this._currentLength);
+        this._rollingLeftEdge = -width * 0.5;
+        this._rollingRightEdge = width * 0.5;
+    }
+
+    private _rollingWidthForLength(length: number): number {
+        const visualLengthScale = GameConfig.logVisualBaseScale
+            + length * GameConfig.logVisualScalePerLength;
+        return Math.max(0.01, this._baseColliderWidth * visualLengthScale);
+    }
+
+    private _rollingWidth(): number {
+        return Math.max(0.01, this._rollingRightEdge - this._rollingLeftEdge);
     }
 
     private _fadeOut(): void {
