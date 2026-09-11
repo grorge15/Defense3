@@ -1,6 +1,5 @@
 import {
     _decorator,
-    Camera,
     Component,
     instantiate,
     Label,
@@ -8,12 +7,12 @@ import {
     Sprite,
     Vec3,
     director,
-    tween,
 } from 'cc';
 import { EventManager } from '../core/EventManager';
 import { GameEvents } from '../core/GameEvents';
 import { TweenUtil } from '../core/TweenUtil';
 import { CoinSystem } from '../game/CoinSystem';
+import { Coin } from '../item/Coin';
 
 const { ccclass, property } = _decorator;
 
@@ -43,10 +42,6 @@ export class CoinUI extends Component {
     private _displayBalance = 0;
     private _targetBalance = 0;
     private _flyCd = 0;
-    private _camera: Camera | null = null;
-    private readonly _fromUi = new Vec3();
-    private readonly _toUi = new Vec3();
-    private readonly _flyOut = new Vec3();
 
     public static get instance(): CoinUI | null {
         return CoinUI._instance;
@@ -85,51 +80,47 @@ export class CoinUI extends Component {
 
     /** 从玩家世界坐标飞一枚视觉币到地块（余额已由 CoinSystem 扣减） */
     playDeliverFly(toWorld: Vec3, fromWorld?: Vec3 | null): void {
-        if (this._flyCd > 0 || !this.iconSprite) {
+        if (this._flyCd > 0) {
+            return;
+        }
+
+        const coinPrefab = CoinSystem.instance?.coinPrefab;
+        const fly = coinPrefab
+            ? instantiate(coinPrefab)
+            : this.iconSprite
+              ? instantiate(this.iconSprite.node)
+              : null;
+        if (!fly) {
             return;
         }
         this._flyCd = this.flyCooldown;
 
-        const parent = this.node.parent ?? this.node;
-        const fly = instantiate(this.iconSprite.node);
-        fly.setParent(parent);
-        this._resolveCamera();
-
-        const startWorld = fromWorld ?? this.iconSprite.node.worldPosition;
-        if (this._camera) {
-            this._camera.convertToUINode(startWorld, parent, this._fromUi);
-            this._camera.convertToUINode(toWorld, parent, this._toUi);
-            fly.setPosition(this._fromUi);
-            const start = this._fromUi.clone();
-            const end = this._toUi.clone();
-            const ctrl = new Vec3((start.x + end.x) * 0.5, Math.max(start.y, end.y) + 40, 0);
-            const state = { t: 0 };
-            tween(state)
-                .to(
-                    0.28,
-                    { t: 1 },
-                    {
-                        onUpdate: () => {
-                            TweenUtil.quadraticBezier(this._flyOut, start, ctrl, end, state.t);
-                            fly.setPosition(this._flyOut);
-                        },
-                    },
-                )
-                .call(() => {
-                    if (fly.isValid) {
-                        fly.destroy();
-                    }
-                })
-                .start();
-            return;
+        const coin = fly.getComponent(Coin) ?? fly.getComponentInChildren(Coin);
+        if (coin) {
+            coin.enabled = false;
         }
 
-        fly.setWorldPosition(startWorld);
+        const parent = this._resolveFlyParent();
+        parent.addChild(fly);
+        const playerWorld = fromWorld ?? CoinSystem.instance?.playerNode?.worldPosition ?? this.node.worldPosition;
+        fly.setWorldPosition(playerWorld);
         TweenUtil.hopToWorld(fly, toWorld, 0.28, 40, () => {
             if (fly.isValid) {
                 fly.destroy();
             }
         });
+    }
+
+    private _resolveFlyParent(): Node {
+        const gameRoot = director.getScene()?.getChildByName('GameRoot');
+        const effect = gameRoot?.getChildByName('Effect');
+        if (effect?.isValid) {
+            return effect;
+        }
+        if (gameRoot?.isValid) {
+            return gameRoot;
+        }
+        return this.node.parent ?? this.node;
     }
 
     private _onCoinChanged = (...args: unknown[]): void => {
@@ -153,16 +144,4 @@ export class CoinUI extends Component {
         this.amountLabel.string = String(Math.max(0, Math.floor(balance + 1e-6)));
     }
 
-    private _resolveCamera(): void {
-        if (this._camera?.isValid) {
-            return;
-        }
-        const scene = director.getScene();
-        const cams = scene?.getComponentsInChildren(Camera) ?? [];
-        this._camera =
-            cams.find((c) => c.node.name.toLowerCase().includes('main')) ??
-            cams.find((c) => c.projection === Camera.ProjectionType.PERSPECTIVE) ??
-            cams[0] ??
-            null;
-    }
 }
