@@ -434,6 +434,10 @@ export class Hero extends Component {
         this._canAct = false;
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.type = ERigidBody2DType.Static;
+        }
+        for (const collider of this.node.getComponentsInChildren(Collider2D)) {
+            collider.enabled = false;
         }
         const shadow = this.node.getChildByName('角色通用投影1');
         if (shadow) {
