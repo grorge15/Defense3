@@ -1181,6 +1181,15 @@
 | **原因** | 旧挂法按单个 Sprite/Visual 节点排序，根节点移动或存在多 Sprite 子树时，排序控制点不一致。 |
 | **解决** | 将 character/building 相关 prefab 的自定义 `SortingOrder2D` 迁移到 prefab 根节点；子 Sprite 继续由根节点脚本自动补/同步 `cc.Sorting2D`。全量扫描确认 `SortingOrder2D` 非根挂载数为 0。 |
 
+### v5（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 根节点 `SortingOrder2D` 更新其他 Sprite 的排序时，`CostLabel` 已有的 `Sorting2D.sortingOrder` 仍停留在 `-650`，未随根节点同步。 |
+| **原因** | 排序遍历只检测 `Sprite`，漏掉使用 `Label` 渲染的 `CostLabel`，因此其已有 `Sorting2D` 未被收集和更新。 |
+| **解决** | 导入 `Label`，同一根节点驱动的遍历同时检测 `Sprite` 或 `Label`，收集方法改名为 `_collectRendererSortings` 并更新注释；沿用 `Math.round(-node.worldPosition.y) + offset` 公式，复用已有 `Sorting2D`，保留 `UIRenderer.priority` 回退。 |
+| **验证** | 父代理已确认 `npx --no-install tsc --noEmit --pretty false` 与 `git diff --check` 均通过（退出码 0）；未做 Creator 实玩。 |
+
 ---
 
 ## fix-boss-cannot-hit-barracks — Boss 碰到兵营边缘但不攻击

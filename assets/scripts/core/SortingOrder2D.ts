@@ -1,9 +1,9 @@
-import { _decorator, Component, js, Node, Sprite, UIRenderer } from 'cc';
+import { _decorator, Component, js, Label, Node, Sprite, UIRenderer } from 'cc';
 
 const { ccclass, disallowMultiple, executeInEditMode, property } = _decorator;
 
 /**
- * 挂在对象根节点：根据根节点世界 Y 自动设置子 Sprite 的排序。
+ * 挂在对象根节点：根据根节点世界 Y 自动设置子 Sprite 和 Label 的排序。
  * 公式：sortingOrder = Math.round(-node.worldPosition.y) + offset
  */
 @ccclass('SortingOrder2D')
@@ -77,12 +77,12 @@ export class SortingOrder2D extends Component {
         this._sortings.length = 0;
         this._renderers.length = 0;
         this._sortingType = js.getClassByName('cc.Sorting2D') as (new () => Component) | null;
-        this._collectSpriteSortings(this.node);
+        this._collectRendererSortings(this.node);
     }
 
-    private _collectSpriteSortings(node: Node): void {
-        const hasSprite = node.getComponent(Sprite) !== null;
-        if (hasSprite) {
+    private _collectRendererSortings(node: Node): void {
+        const hasRenderer = node.getComponent(Sprite) !== null || node.getComponent(Label) !== null;
+        if (hasRenderer) {
             if (this._sortingType) {
                 let sorting = node.getComponent(this._sortingType);
                 if (!sorting) {
@@ -98,7 +98,7 @@ export class SortingOrder2D extends Component {
         }
 
         for (const child of node.children) {
-            this._collectSpriteSortings(child);
+            this._collectRendererSortings(child);
         }
     }
 }
