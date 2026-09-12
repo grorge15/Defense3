@@ -285,6 +285,12 @@ export class EnemyNavigation {
         this.releaseUnit(unit);
     }
 
+    isReplacementPending(unit: Node | null, target: Node | null): boolean {
+        if (!unit || !target) return false;
+        const state = this._unitState.get(unit);
+        return state?.target === target && state.replacementReadiness === 'pending';
+    }
+
     // Retained only to deserialize older scene references. Unified navigation ignores it.
     setEntranceOpen(_id: number, _open: boolean): void {}
     // Retained only to deserialize older scene references. Collider snapshots handle walls.

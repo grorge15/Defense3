@@ -105,6 +105,8 @@ export class EnemyBoss extends Component {
     private readonly _lastPos = new Vec3();
     private readonly _velocity = new Vec2();
     private readonly _physicsVelocity = new Vec2();
+    private readonly _retainedNavigationVelocity = new Vec2();
+    private _retainedNavigationTarget: Node | null = null;
     private readonly _facingDir = new Vec2(0, 1);
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
@@ -168,6 +170,7 @@ export class EnemyBoss extends Component {
 
     onDestroy(): void {
         this._blockingObstacle = null;
+        this._clearRetainedNavigationVelocity();
         this._lifeGeneration += 1;
         this._isAttacking = false;
         EventManager.instance.offEvent(
@@ -181,6 +184,7 @@ export class EnemyBoss extends Component {
     onDisable(): void {
         this._blockingObstacle = null;
         this._lockedTarget = null;
+        this._clearRetainedNavigationVelocity();
         this._attackTimer = 0;
         this._lifeGeneration += 1;
         this._isAttacking = false;
@@ -364,9 +368,13 @@ export class EnemyBoss extends Component {
         const lockedAlive =
             !!this._lockedTarget?.isValid && this._isTargetAlive(this._lockedTarget);
         if (!lockedAlive || this._retargetTimer <= 0) {
-            this._lockedTarget = this.pickTarget();
+            const nextTarget = this.pickTarget();
+            if (nextTarget !== this._lockedTarget) {
+                this._lockedTarget = nextTarget;
+                this._clearRetainedNavigationVelocity();
+                EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
+            }
             this._retargetTimer = GameConfig.bossRetargetInterval;
-            EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
         }
         return this._lockedTarget;
     }
@@ -422,6 +430,7 @@ export class EnemyBoss extends Component {
             if (hit || !valid() || !this._isAttacking) return;
             hit = true; this._applyCircleAttack();
         };
+        this._clearRetainedNavigationVelocity();
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
         if (this.visualNode) {
@@ -466,6 +475,7 @@ export class EnemyBoss extends Component {
 
     reset(): void {
         this._blockingObstacle = null;
+        this._clearRetainedNavigationVelocity();
         this._lifeGeneration += 1;
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.bossMaxHp;
@@ -513,6 +523,7 @@ export class EnemyBoss extends Component {
         }
 
         if (this._isAttacking) {
+            this._clearRetainedNavigationVelocity();
             this._stopMovement();
             return;
         }
@@ -523,6 +534,7 @@ export class EnemyBoss extends Component {
         const target = this._resolveChaseTarget(dt);
         if (!target) {
             this._blockingObstacle = null;
+            this._clearRetainedNavigationVelocity();
             EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
             this._velocity.set(0, 0);
             this._stopMovement();
@@ -538,7 +550,6 @@ export class EnemyBoss extends Component {
             dt, body: size, stopDistance: melee };
         const ordinaryObstacle = target.getComponent(Log) || target.getComponent(Barrier) || target.getComponent(Building) ? target : null;
         const diversion = nav?.blockingObstacle(request, melee) ?? null;
-        if (this._blockingObstacle !== (diversion?.target ?? null)) nav?.resetUnit(this.node);
         this._blockingObstacle = diversion?.target ?? null;
         const obstacle = this._blockingObstacle ?? ordinaryObstacle;
         if (obstacle && nav) {
@@ -550,7 +561,7 @@ export class EnemyBoss extends Component {
             else this._velocity.set(0,0);
             this._applyNavigationVelocity();
             this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
-            this._updateLocomotionAnim(true); return;
+            this._updateLocomotionAnim(this._velocity.length() > 0.001); return;
         }
 
         this.node.getWorldPosition(this._selfPos);
@@ -572,7 +583,7 @@ export class EnemyBoss extends Component {
             return;
         }
 
-        EnemyNavigation.get(this.node.scene)?.nextVelocity(
+        nav?.nextVelocity(
             {
                 unit: this.node,
                 target,
@@ -584,10 +595,29 @@ export class EnemyBoss extends Component {
             },
             this._velocity,
         );
+        if (nav) {
+            if (Math.hypot(this._velocity.x, this._velocity.y) > 0.001) {
+                nav.constrainFinalVelocity(this.node, size, dt, navigationSpeed, this._velocity);
+                if (Math.hypot(this._velocity.x, this._velocity.y) > 0.001) {
+                    this._retainedNavigationVelocity.set(this._velocity.x, this._velocity.y);
+                    this._retainedNavigationTarget = target;
+                }
+            } else if (nav.isReplacementPending(this.node, target) &&
+                this._retainedNavigationTarget === target &&
+                Math.hypot(this._retainedNavigationVelocity.x, this._retainedNavigationVelocity.y) > 0.001) {
+                this._velocity.set(this._retainedNavigationVelocity.x, this._retainedNavigationVelocity.y);
+                nav.constrainFinalVelocity(this.node, size, dt, navigationSpeed, this._velocity);
+                if (Math.hypot(this._velocity.x, this._velocity.y) <= 0.001) {
+                    this._clearRetainedNavigationVelocity();
+                }
+            } else if (!nav.isReplacementPending(this.node, target)) {
+                this._clearRetainedNavigationVelocity();
+            }
+        }
         this._applyNavigationVelocity();
         this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
         this._updateStuck(centerDist);
-        this._updateLocomotionAnim(true);
+        this._updateLocomotionAnim(this._velocity.length() > 0.001);
     }
 
     private _scanTargetsByInterval(dt: number): void {
@@ -821,6 +851,11 @@ export class EnemyBoss extends Component {
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
+    }
+
+    private _clearRetainedNavigationVelocity(): void {
+        this._retainedNavigationVelocity.set(0, 0);
+        this._retainedNavigationTarget = null;
     }
 
     private _applyNavigationVelocity(): void {

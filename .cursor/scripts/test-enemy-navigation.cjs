@@ -1275,6 +1275,88 @@ should('AC-ACTUAL: EnemyBoss pickTarget keeps real priority and generation inval
     assert.strictEqual(boss._rb.linearVelocity.y, 0);
 });
 
+should('AC-BOSS-RETAINED-NAVIGATION: retarget, obstacle candidates, and pending velocity keep only safe state', () => {
+    clearLoaded(['assets/scripts/enemy/EnemyBoss.ts']);
+    let resets = 0;
+    let pending = false;
+    let nextVelocity = { x: 2, y: 0 };
+    let acceptRetainedVelocity = true;
+    let diversion = null;
+    const nav = {
+        resetUnit() { resets++; },
+        releaseUnit() {},
+        blockingObstacle() { return diversion; },
+        canAttackObstacle() { return false; },
+        obstacleRoute() { return { point: { x: 100, y: 0 } }; },
+        nextObstacleVelocity(_request, _route, out) { out.set(1, 0); return out; },
+        nextVelocity(_request, out) { out.set(nextVelocity.x, nextVelocity.y); return out; },
+        isReplacementPending() { return pending; },
+        constrainFinalVelocity(_unit, _body, _dt, _speed, out) {
+            if (!acceptRetainedVelocity) out.set(0, 0);
+        },
+    };
+    const base = actualScriptMocks({
+        [path.join(root, 'assets/scripts/core/EnemyNavigation.ts')]: {
+            EnemyNavigation: {
+                get: () => nav,
+                worldSpeedForPhysicsVelocity: value => value,
+                writePhysicsVelocity: (value, out) => { out.set(value.x, value.y); return out; },
+            },
+        },
+    });
+    const { EnemyBoss } = loadTs('assets/scripts/enemy/EnemyBoss.ts', base.mocks);
+    const boss = new EnemyBoss();
+    boss.node = componentNode('retained-boss', 0, 0);
+    boss._rb = { linearVelocity: new base.cc.Vec2() };
+    boss._scanTargetsByInterval = () => {};
+    const target = componentNode('retained-target', 200, 0, new Map([[base.classes.Player, new base.classes.Player()]]));
+    const replacement = componentNode('retained-replacement', 200, 0, new Map([[base.classes.Player, new base.classes.Player()]]));
+
+    boss._lockedTarget = target;
+    boss._retargetTimer = 0;
+    boss.pickTarget = () => target;
+    assert.strictEqual(boss._resolveChaseTarget(1), target);
+    assert.strictEqual(resets, 0, 'same-node retarget must not reset navigation');
+
+    boss._retainedNavigationVelocity.set(2, 0);
+    boss._retainedNavigationTarget = target;
+    boss._retargetTimer = 0;
+    boss.pickTarget = () => replacement;
+    assert.strictEqual(boss._resolveChaseTarget(1), replacement);
+    assert.strictEqual(resets, 1, 'new target must reset navigation');
+    assert.strictEqual(boss._retainedNavigationVelocity.x, 0, 'new target retained velocity was not cleared');
+
+    boss._resolveChaseTarget = () => target;
+    diversion = { target: componentNode('candidate-a', 80, 0), point: { x: 80, y: 0 } };
+    boss.update(1 / 60);
+    diversion = { target: componentNode('candidate-b', 80, 0), point: { x: 80, y: 0 } };
+    boss.update(1 / 60);
+    assert.strictEqual(resets, 1, 'transient blocking candidates must not reset navigation');
+
+    diversion = null;
+    nextVelocity = new base.cc.Vec2(2, 0);
+    pending = false;
+    boss.update(1 / 60);
+    assert.strictEqual(boss._retainedNavigationVelocity.x, 2, 'constrained direct velocity was not retained');
+    nextVelocity = new base.cc.Vec2(0, 0);
+    pending = true;
+    boss.update(1 / 60);
+    assert.strictEqual(boss._rb.linearVelocity.x, 2, 'pending zero output did not reuse safe retained velocity');
+
+    acceptRetainedVelocity = false;
+    boss.update(1 / 60);
+    assert.strictEqual(boss._rb.linearVelocity.x, 0, 'unsafe retained velocity was applied');
+    assert.strictEqual(boss._retainedNavigationVelocity.x, 0, 'unsafe retained velocity was not cleared');
+
+    acceptRetainedVelocity = true;
+    boss._retainedNavigationVelocity.set(2, 0);
+    boss._retainedNavigationTarget = target;
+    boss._isAttacking = true;
+    boss.update(1 / 60);
+    assert.strictEqual(boss._retainedNavigationVelocity.x, 0, 'attack lock retained movement velocity');
+    assert.strictEqual(boss._rb.linearVelocity.x, 0, 'attack lock did not stop movement');
+});
+
 should('AC-ACTUAL: EnemySpawner stale pool callback does not respawn reused minion', () => {
     clearLoaded(['assets/scripts/enemy/EnemySpawner.ts']);
     class EnemyMinionStub {}

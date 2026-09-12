@@ -73,7 +73,7 @@ export class GameConfig {
      */
     static readonly heroFollowLeash = 0;
     /** Boss 重新索敌间隔（秒） */
-    static readonly bossRetargetInterval = 3;
+    static readonly bossRetargetInterval = 2;
     /** Boss 扫描场景中新防守目标的间隔（秒） */
     static readonly bossTargetScanInterval = 1.0;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
@@ -137,7 +137,7 @@ export class GameConfig {
     static readonly logVisualBaseScale = 0.4;
     static readonly logVisualScalePerLength = 0.2;
     /** 蓝线固定所需最小滚木长度 */
-    static readonly blueLineMinLogLength = 3;
+    static readonly blueLineMinLogLength = 6;
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 15;

@@ -679,6 +679,24 @@
 | **原因** | `tryAttack` 的帧命中和恢复回调、死亡延迟回调没有生命周期 generation 校验。 |
 | **解决** | Boss 增加 `_lifeGeneration`，在 reset/death/disable/destroy 时失效旧回调；攻击锁期间始终停移，测试覆盖目标移动和旧回调失效。 |
 
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 在共享流场替换 pending 时会因周期性同目标重选、临时阻挡候选抖动和本帧零速度而出现断续移动。 |
+| **原因** | 同一有效目标也会 `resetUnit`，候选变化会无条件重置导航；Boss 没有保存并再次验证最近安全的世界速度。 |
+| **解决** | 仅在有效目标节点实际变化时重置；候选抖动不再单独释放状态；pending 零输出时仅复用同目标且经 `constrainFinalVelocity` 当前帧复验通过的 Boss 私有速度。攻击、死亡、禁用、复位、无目标和目标变化都会清除该速度。 |
+| **验证** | `npx tsc --noEmit --pretty false`、`node .cursor/scripts/test-enemy-navigation.cjs`、`npx openspec validate fix-boss-retained-navigation --strict` 与 `git diff --check` 均通过。 |
+
+### v5（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 在普通寻路或绕障路线本帧返回零速度时，仍会播放 `walk`，表现为原地走路。 |
+| **原因** | 两条导航分支在写入并约束 `_velocity` 后，仍无条件向 `_updateLocomotionAnim` 传入 `true`。 |
+| **解决** | 两条分支统一以最终 `_velocity.length() > 0.001` 判定移动；超过小阈值才播放 `walk`，零速度播放 `idle`，不改导航、速度、攻击距离、碰撞或流场逻辑。 |
+| **验证** | `npx tsc --noEmit --pretty false` 与 `git diff --check` 通过。 |
+
 ---
 
 ## fix-hero-cannot-reach-follow — 英雄有时跟不到位
@@ -1206,6 +1224,15 @@
 | **现象** | 英雄死亡播放死亡动画时，子节点 `角色通用投影1` 仍然显示。 |
 | **原因** | `Hero._die()` 只停止移动并播放死亡动画，没有处理投影节点显隐。 |
 | **解决** | 英雄死亡时查找 `角色通用投影1` 子节点并设为 inactive。 |
+
+### v2（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 英雄死亡后仍可能被物理碰撞推动，且子节点碰撞体仍参与碰撞。 |
+| **原因** | `Hero._die()` 只清零根刚体速度，没有禁用碰撞体或停止刚体模拟。 |
+| **解决** | 死亡时清零 `linearVelocity`、将刚体改为 `Static`，并关闭 Hero 根节点及所有子节点的 `Collider2D`；死亡动画、事件和投影处理保持不变。 |
+| **验证** | `npx tsc --noEmit --pretty false`、针对性文本检查与 `git diff --check`。 |
 
 ---
 
