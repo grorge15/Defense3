@@ -5,6 +5,7 @@ import {
     Collider2D,
     Component,
     ERigidBody2DType,
+    Animation,
     Node,
     Prefab,
     RigidBody2D,
@@ -810,15 +811,20 @@ export class EnemyBoss extends Component {
         }
         EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
         if (this.visualNode) {
-            playAnim(this.visualNode, 'die');
-        }
-        const generation = this._lifeGeneration;
-        this.scheduleOnce(() => {
-            if (this._lifeGeneration !== generation) {
+            const animation = this.visualNode.getComponent(Animation);
+            if (animation?.getState('die')) {
+                const generation = this._lifeGeneration;
+                animation.once(Animation.EventType.FINISHED, () => {
+                    if (this._lifeGeneration === generation && this._isDead) {
+                        this.node.active = false;
+                    }
+                });
+                playAnim(this.visualNode, 'die');
                 return;
             }
-            this.node.active = false;
-        }, 0.8);
+            playAnim(this.visualNode, 'die');
+        }
+        this.node.active = false;
     }
 
     private _bindEmbeddedHpBar(): HpBarUI | null {

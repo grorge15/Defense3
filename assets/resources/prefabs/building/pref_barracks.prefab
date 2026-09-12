@@ -122,8 +122,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 2.121,
-      "y": 0,
+      "x": 8.694,
+      "y": -26.702,
       "z": 0
     },
     "_lrot": {
@@ -934,7 +934,7 @@
     "__prefab": {
       "__id__": 41
     },
-    "tag": 0,
+    "tag": 1.1,
     "_group": 16,
     "_density": 1,
     "_sensor": false,
@@ -942,13 +942,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": -4.9,
-      "y": 68.1
+      "x": 1.6,
+      "y": 32.6
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 205.9,
-      "height": 96.7
+      "width": 205.3,
+      "height": 80.2
     },
     "_id": ""
   },
