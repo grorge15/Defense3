@@ -344,7 +344,8 @@ export class EnemyMinion extends Component {
         const diversion = nav?.blockingObstacle(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
         if (trace) trace.diversion = diversion ? { target: debugNode(diversion.target), point: { ...diversion.point } } : null;
         if (this._blockingObstacle !== (diversion?.target ?? null)) {
-            if (trace) trace.blockerChanged = true;
+            if (trace) trace.resetForBlockerChange = true;
+            nav?.resetUnit(this.node);
             this._inAttackHysteresis = false;
         }
         this._blockingObstacle = diversion?.target ?? null;

@@ -64,16 +64,6 @@ type ObstacleSnapshot = {
     rects: FlowRect[];
 };
 
-type ObstacleCommitment = {
-    originalTarget: Node;
-    bodyKey: string;
-    range: number;
-    role: EnemyNavRole;
-    version: number;
-    origin: string;
-    route: BlockingObstacleRoute;
-};
-
 type NavigationCollider = BoxCollider2D | PolygonCollider2D;
 
 const sceneServices = new WeakMap<Scene, EnemyNavigation>();
@@ -89,15 +79,11 @@ export class EnemyNavigation {
         if (!nav) return null;
         const state = nav._unitState.get(unit);
         const log = nav._contactLog;
-        const commitment = nav._obstacleCommitments.get(unit);
         return {
             version: nav._obstacles.version, planningVersion: nav._planningArea.obstacleVersion,
             groundConfigured: nav._hasGroundConfigured(), dirty: nav._dirty,
             preparedFrame: nav._lastPreparedFrame, geometryFrame: nav._lastGeometryFrame,
             route: state ? { ...state, target: state.target?.uuid ?? null } : null,
-            commitment: commitment ? { originalTarget: commitment.originalTarget.uuid,
-                obstacle: commitment.route.target.uuid, point: { ...commitment.route.point },
-                bodyKey: commitment.bodyKey, version: commitment.version, origin: commitment.origin } : null,
             pendingJobs: nav._field.debugPendingJobs, jobs: { ...nav._field.debugJobStats },
             stats: { ...nav.debugStats }, fieldBuilds: nav._field.buildCount,
             log: log?.node.isValid ? { id: log.node.uuid, phase: log.getPhase(),
@@ -166,8 +152,6 @@ export class EnemyNavigation {
             cells: GameConfig.enemyFlowMaxCells ?? 262144 },
     );
     private readonly _unitState = new Map<Node, UnitRouteState>();
-    // Field replacement is independent of the unit/target lifecycle that owns demolition.
-    private readonly _obstacleCommitments = new Map<Node, ObstacleCommitment>();
     private readonly _registeredUnits = new Set<Node>();
     private readonly _unitPositions = new Map<Node, FlowPoint>();
     private readonly _buckets = new Map<string, Node[]>();
@@ -249,7 +233,6 @@ export class EnemyNavigation {
         EventManager.instance.offEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED, this.invalidate, this);
         this._field.clear();
         this._unitState.clear();
-        this._obstacleCommitments.clear();
         this._registeredUnits.clear();
         this._unitPositions.clear();
         this._buckets.clear();
@@ -307,7 +290,6 @@ export class EnemyNavigation {
         const state = this._unitState.get(unit);
         if (state?.activeFieldId) this._field.release(state.activeFieldId);
         this._unitState.delete(unit);
-        this._obstacleCommitments.delete(unit);
         this._registeredUnits.delete(unit);
         const pos = this._unitPositions.get(unit);
         if (pos) {
@@ -494,55 +476,8 @@ export class EnemyNavigation {
         const trace = EnemyNavigation.diagnosticFrame?.unit === request.unit ? EnemyNavigation.diagnosticFrame.data : null;
         if (trace) trace.blockerQuery = 'invalid-target-or-ground';
         this._prepareFrame();
-        if (!request.unit?.isValid || !request.unit.activeInHierarchy || !request.target?.isValid ||
-            !request.target.activeInHierarchy || !this._hasGroundConfigured()) {
-            this._obstacleCommitments.delete(request.unit); return null;
-        }
+        if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured()) return null;
         const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
-        const bodyKey = this._bodySignature(body), origin = this._surfaceOrigin(from, body);
-        // Only the FULL physical line to the original target ends an unnecessary diversion.
-        if (this._field.lineClear(from, target, body, this._area)) {
-            this._obstacleCommitments.delete(request.unit);
-            if (trace) trace.blockerQuery = 'original-target-direct';
-            return null;
-        }
-        const committed = this._obstacleCommitments.get(request.unit);
-        if (committed) {
-            let valid = committed.originalTarget === request.target && committed.bodyKey === bodyKey &&
-                committed.range === range && committed.role === request.role &&
-                committed.route.target.isValid && committed.route.target.activeInHierarchy &&
-                this._isDestructibleNode(committed.route.target);
-            const changed = committed.version !== this._obstacles.version;
-            const walkable = this._field.pointWalkable(from, body, this._area);
-            let pending = false;
-            if (valid && changed) {
-                const rects = this._obstacleRects(committed.route.target);
-                valid = rects.some(rect => this._surfaceHit(committed.route.point, rect, body, this._area, range));
-            }
-            // Contact cannot prove disconnection: retain the decision and let movement recover.
-            if (valid && walkable && (changed || committed.origin !== origin)) {
-                const approach = this._field.reachability(from, committed.route.point, body, this._area);
-                const objective = changed ? this._field.reachability(from, target, body, this._planningArea) : 'reachable';
-                valid = approach !== 'unreachable' && objective !== 'unreachable';
-                pending = approach === 'pending' || objective === 'pending';
-            }
-            if (valid) {
-                if (walkable && !pending) { committed.version = this._obstacles.version; committed.origin = origin; }
-                this.debugStats.selectedCacheHits++;
-                if (trace) trace.blockerQuery = pending ? 'commitment-pending' : walkable ? 'commitment-retained' : 'commitment-overlap';
-                return committed.route;
-            }
-            this._obstacleCommitments.delete(request.unit);
-            if (trace) trace.commitmentReleased = 'target-body-obstacle-or-topology-changed';
-        }
-        const remember = (route: BlockingObstacleRoute | null): BlockingObstacleRoute | null => {
-            if (route) {
-                this._registeredUnits.add(request.unit);
-                this._obstacleCommitments.set(request.unit, { originalTarget: request.target!, bodyKey, range,
-                    role: request.role, version: this._obstacles.version, origin, route });
-            }
-            return route;
-        };
         if (!this._field.pointWalkable(from, body, this._area)) {
             if (trace) trace.blockerQuery = 'self-not-walkable';
             return null;
@@ -557,7 +492,7 @@ export class EnemyNavigation {
         }
         if (selected.blocked || selected.reached) return null;
         const key = `selected-blocker:${request.role}:${range}:${request.target.uuid}:${selected.fieldId || 'direct'}:` +
-            `${selected.waypoint.x},${selected.waypoint.y}:v${this._obstacles.version}:${origin}`;
+            `${selected.waypoint.x},${selected.waypoint.y}:v${this._obstacles.version}`;
         const selectFirst = (): FlowQueryResult<BlockingObstacleRoute | null> => {
             this.debugStats.blockingScans++;
             const first = this._firstPhysicalBlocker(from, selected.waypoint, body);
@@ -576,7 +511,7 @@ export class EnemyNavigation {
             const cached = this._selectedBlockerCache.get(directKey);
             if (cached !== undefined) {
                 if (trace) trace.blockerQuery = cached ? 'settled-selected-cache' : 'settled-none-cache';
-                this.debugStats.selectedCacheHits++; return remember(cached);
+                this.debugStats.selectedCacheHits++; return cached;
             }
             this.debugStats.selectedCacheMisses++;
             const direct = selectFirst();
@@ -589,12 +524,12 @@ export class EnemyNavigation {
                 if (oldest !== undefined) this._selectedBlockerCache.delete(oldest);
             }
             this._selectedBlockerCache.set(directKey, direct.value);
-            return remember(direct.value);
+            return direct.value;
         }
         const query = this._field.sharedQueryState(from, body, this._area, key, selectFirst);
         if (trace) trace.blockerQuery = query.readiness === 'pending' ? 'shared-connectivity-or-surface-pending' :
             query.value ? 'settled-selected' : 'settled-none';
-        return remember(query.readiness === 'settled' ? query.value ?? null : null);
+        return query.readiness === 'settled' ? query.value ?? null : null;
     }
 
     blockingLog(request: EnemyMoveRequest, range: number): BlockingLogRoute | null {
@@ -608,8 +543,7 @@ export class EnemyNavigation {
         const rects = this._obstacleRects(target);
         if (!rects.length || !this._isDestructibleNode(target)) return null;
         const from = nodePoint(unit);
-        const query = this._field.sharedQueryState(from, body, this._area,
-            `surface:${range}:${target.uuid}:${this._surfaceOrigin(from, body)}`,
+        const query = this._field.sharedQueryState(from, body, this._area, `surface:${range}:${target.uuid}`,
             () => {
                 let pending = false;
                 for (const rect of rects) {
@@ -649,15 +583,8 @@ export class EnemyNavigation {
         }
         const result = this._field.direction(from, route.point, request.body, this._area);
         if (trace) { trace.path = 'obstacle-direction'; trace.directionResult = { ...result }; }
-        if (result.blocked) return out;
-        const distance = Math.hypot(route.point.x - from.x, route.point.y - from.y);
-        // Flow arrival tolerance can stop outside attack range; finish the safe terminal segment.
-        if (result.reached) {
-            if (distance < 0.001 || !this._field.lineClear(from, route.point, request.body, this._area)) return out;
-            result.x = (route.point.x - from.x) / distance;
-            result.y = (route.point.y - from.y) / distance;
-        }
-        const speed = Math.min(request.speed, distance / request.dt);
+        if (result.blocked || result.reached) return out;
+        const speed = Math.min(request.speed, Math.hypot(route.point.x - from.x, route.point.y - from.y) / request.dt);
         out.set(result.x * speed, result.y * speed);
         if (trace) trace.candidateWorldVelocity = { x: out.x, y: out.y };
         this._registeredUnits.add(request.unit); this._insertUnitIntoBuckets(request.unit);
@@ -782,32 +709,17 @@ export class EnemyNavigation {
                 candidates.push({x:left,y},{x:right,y});
             });
         }
-        // Direct legal faces take priority. The fallback uses shared connectivity, not one field per candidate.
-        candidates.sort((a, b) => Math.hypot(a.x-from.x,a.y-from.y)-Math.hypot(b.x-from.x,b.y-from.y));
-        const legal: FlowPoint[] = [];
+        // Stable ordering lets the selected surface be shared by an entire connected region.
+        let pending = false;
         for (const point of candidates) {
             if (rootRange && Math.hypot(point.x-Math.max(rect.xMin,Math.min(point.x,rect.xMax)),
                 point.y-Math.max(rect.yMin,Math.min(point.y,rect.yMax))) > range) continue;
             if (!this._surfaceHit(point, rect, body, area, range)) continue;
-            if (this._field.lineClear(from, point, body, area)) return { readiness: 'settled', value: point };
-            legal.push(point);
-        }
-        let pending = false;
-        for (const point of legal) {
             const reachability = this._field.reachability(from, point, body, area);
             if (reachability === 'reachable') return { readiness: 'settled', value: point };
             pending ||= reachability === 'pending';
         }
         return pending ? { readiness: 'pending' } : { readiness: 'settled', value: null };
-    }
-
-    private _bodySignature(body: FlowBody): string {
-        return `${body.width},${body.height},${body.offsetX ?? 0},${body.offsetY ?? 0}`;
-    }
-
-    private _surfaceOrigin(from: FlowPoint, body: FlowBody): string {
-        const cell = this._field.worldToCell(from, this._area.bounds);
-        return `${cell.x},${cell.y}:${this._bodySignature(body)}`;
     }
 
     hasLineOfSight(from: Node | null, to: Node | null, body: FlowBody): boolean {

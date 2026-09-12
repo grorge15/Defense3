@@ -1,0 +1,6 @@
+ M assets/scripts/core/EnemyNavigation.ts
+ M assets/scripts/enemy/EnemyMinion.ts
+ M bugs.md
+?? .cursor/plans/fix-minion-log-route-oscillation.md
+?? .cursor/plans/reports/fix-minion-log-route-oscillation-evidence/
+?? openspec/changes/fix-minion-log-route-oscillation/

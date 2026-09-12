@@ -539,6 +539,7 @@ should('AC-RUNTIME-CONTRACT: a sealed hard component produces a reachable bounda
 
 function makeCcStub() {
     class Vec2 {
+        length() { return Math.hypot(this.x, this.y); }
         constructor(x = 0, y = 0) {
             this.x = x;
             this.y = y;

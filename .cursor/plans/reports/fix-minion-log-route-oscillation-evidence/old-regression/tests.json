@@ -1,0 +1,110 @@
+{
+  "results": [
+    {
+      "name": "AC-REPLAY: observed planning waypoints cannot undo a valid Minion commitment",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: temporary waypoint changes reversed the committed branch\n\n30 !== 0\n\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:65:12\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:23:52)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:37:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    },
+    {
+      "name": "AC-SURFACE: opposite sides in one component choose directly reachable local faces",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: cached face requires crossing/detouring around the Log\n    at C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:79:9\n    at test (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:23:52)\n    at Object.<anonymous> (C:\\Users\\Admin\\Defense3\\.cursor\\scripts\\test-minion-log-route-oscillation.cjs:71:1)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)\n    at Function._load (node:internal/modules/cjs/loader:1282:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)"
+    }
+  ],
+  "measurements": {
+    "replay": {
+      "injection": "FlowField.direction, planning area only; fixed observed origin isolates branch logic",
+      "waypoints": [
+        {
+          "x": 81.69900000000007,
+          "y": 1616.367
+        },
+        {
+          "x": -8.30099999999993,
+          "y": 1706.367
+        }
+      ],
+      "position": {
+        "x": -90.11053466796875,
+        "y": 1764.2559814453125,
+        "z": 0
+      },
+      "target": {
+        "x": 73.01343536376953,
+        "y": 1336.4056396484375,
+        "z": 0
+      },
+      "body": {
+        "width": 38.88,
+        "height": 38.88,
+        "offsetX": 2.88,
+        "offsetY": 19.200000000000003
+      },
+      "frames": 60,
+      "branches": [
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move",
+        "obstacle-move",
+        "target-move"
+      ],
+      "switches": 30,
+      "resets": 60
+    }
+  }
+}

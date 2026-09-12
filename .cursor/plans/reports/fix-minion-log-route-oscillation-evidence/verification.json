@@ -1,0 +1,16 @@
+{
+  "planVersion": 3,
+  "head": "88ed805db0685114cba25ec041d3084dc831248d",
+  "checks": [
+    {"command": "node .cursor/scripts/test-enemy-navigation.cjs", "exitCode": 0, "passed": 55, "total": 55, "evidence": "navigation/logic-results-v3.json"},
+    {"command": "node .cursor/scripts/test-enemy-break-blocking-log.cjs", "exitCode": 0, "passed": 27, "total": 27, "evidence": "demolition/tests.json"},
+    {"command": "node .cursor/scripts/test-minion-log-route-oscillation.cjs", "exitCode": 0, "passed": 12, "total": 12, "evidence": "regression/tests.json"},
+    {"command": "npx --no-install tsc --noEmit --pretty false", "exitCode": 0},
+    {"command": "openspec validate fix-minion-log-route-oscillation --strict", "exitCode": 0},
+    {"command": "git diff --check", "exitCode": 0}
+  ],
+  "initialReproduction": {"exitCode": 1, "switches": 30, "resets": 60, "evidence": "old-regression/tests.json"},
+  "play": "not run; optional",
+  "constructionBenchmark": "not run; no focused budget anomaly",
+  "NAV_EVIDENCE_DIR": "task-local in child processes; parent environment unchanged"
+}

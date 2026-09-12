@@ -11,7 +11,6 @@ const evidenceDir = path.resolve(root, process.env.NAV_EVIDENCE_DIR || '.cursor/
 fs.mkdirSync(evidenceDir, { recursive: true });
 const script = name => path.join(root, `assets/scripts/${name}.ts`);
 const base = h.actualScriptMocks();
-base.cc.Animation = class { static EventType = { FINISHED: 'finished' }; };
 base.cc.CircleCollider2D ??= class {};
 base.mocks[script('game/CoinSystem')] = { CoinSystem: class { static instance = null; } };
 base.mocks[script('core/TweenUtil')] = { TweenUtil: { fadeOutOpacity(_n, _t, cb) { cb?.(); } } };
@@ -196,19 +195,12 @@ for(const Type of [EnemyMinion,EnemyBoss]) {
     });
     test(`AC-POOL: ${Type.name} old hit/recovery/death cannot affect reused unit`,()=>{
         const f=fixture(),e=enemy(f,Type);advanceToAttack(f,e);const hit=base.getHit(),recover=recovery(e);let returns=0;
-        let finished;
-        if(Type===EnemyBoss)e.visualNode.components.set(base.cc.Animation, {
-            getState: name=>name==='die' ? {} : null,
-            once(event,cb){assert.strictEqual(event,base.cc.Animation.EventType.FINISHED);finished=cb;},
-        });
         e.onReturnedToPool=()=>returns++;e.takeDamage(999999);
-        const death=Type===EnemyMinion ? e._scheduled.find(s=>s.delay===.5).cb : finished;
-        assert.strictEqual(typeof death,'function');e.onDisable();e.reset();
+        const death=e._scheduled.find(s=>s.delay===(Type===EnemyMinion ? .5 : .8)).cb;e.onDisable();e.reset();
         if(Type===EnemyMinion){e.setTarget(f.target);e.setForceChaseTarget(true);}
         else{e._lockedTarget=f.target;e._retargetTimer=999;e._targetScanTimer=999;}
         advanceToAttack(f,e);const hp=f.log.c._hp;hit();recover();death();death();
         assert.strictEqual(f.log.c._hp,hp);assert(e._isAttacking);assert.strictEqual(returns,0);
-        assert(f.unit.active,'old death callback hid the reused unit');
         base.getHit()();assert(f.log.c._hp<hp);e.onDestroy();assert(!f.nav._registeredUnits.has(f.unit));f.nav.destroy();
     });
     test(`AC-DAMAGE: ${Type.name} no Visual hits once through real fallback`,()=>{

@@ -1,0 +1,601 @@
+diff --git a/assets/scripts/core/EnemyNavigation.ts b/assets/scripts/core/EnemyNavigation.ts
+index 97f896a..45a1b2e 100644
+--- a/assets/scripts/core/EnemyNavigation.ts
++++ b/assets/scripts/core/EnemyNavigation.ts
+@@ -71,6 +71,26 @@ const _tmpA = new Vec3();
+ const _tmpB = new Vec3();
+ 
+ export class EnemyNavigation {
++    /** Temporary, opt-in capture owned by EnemyMinion; never performs navigation queries. */
++    static diagnosticFrame: { unit: Node; data: Record<string, any> } | null = null;
++
++    static diagnosticSnapshot(unit: Node): Record<string, unknown> | null {
++        const nav = unit.scene && sceneServices.get(unit.scene);
++        if (!nav) return null;
++        const state = nav._unitState.get(unit);
++        const log = nav._contactLog;
++        return {
++            version: nav._obstacles.version, planningVersion: nav._planningArea.obstacleVersion,
++            groundConfigured: nav._hasGroundConfigured(), dirty: nav._dirty,
++            preparedFrame: nav._lastPreparedFrame, geometryFrame: nav._lastGeometryFrame,
++            route: state ? { ...state, target: state.target?.uuid ?? null } : null,
++            pendingJobs: nav._field.debugPendingJobs, jobs: { ...nav._field.debugJobStats },
++            stats: { ...nav.debugStats }, fieldBuilds: nav._field.buildCount,
++            log: log?.node.isValid ? { id: log.node.uuid, phase: log.getPhase(),
++                position: { ...log.node.worldPosition }, rects: nav._obstacleRects(log.node) } : null,
++        };
++    }
++
+     // Cocos Box2D expresses linear velocity in meters/sec while this navigation map uses world pixels.
+     private static readonly _physicsPixelsPerMeter = 32;
+ 
+@@ -297,6 +317,8 @@ export class EnemyNavigation {
+     syncClosedEntranceFromPlot(_plotRoot: Node | null, _spawnSide?: string): void {}
+ 
+     nextVelocity(request: EnemyMoveRequest, out: Vec2 = this._velocity): Vec2 {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === request.unit ? EnemyNavigation.diagnosticFrame.data : null;
++        if (trace) { trace.path = 'invalid-request'; trace.body = { ...request.body }; }
+         out.set(0, 0);
+         const unit = request.unit;
+         if (!unit?.isValid || !request.target?.isValid || !request.target.activeInHierarchy || request.speed <= 0 || request.dt <= 0) {
+@@ -326,12 +348,14 @@ export class EnemyNavigation {
+         const self = { x: this._self.x, y: this._self.y };
+         const finalTarget = { x: this._target.x, y: this._target.y };
+         if (!this._field.pointWalkable(self, request.body, this._area)) {
++            if (trace) trace.path = 'overlap-recovery';
+             this._releaseField(unit);
+             this._recoveryVelocity(self, request.body, request.dt, request.speed, out);
+             return out;
+         }
+         const diagnosticStart = GameConfig.enemyNavDiagnostics ? Date.now() : 0;
+         const routeTarget = this._resolveRouteTarget(request, self, finalTarget);
++        if (trace) { trace.routePoint = routeTarget; trace.path = 'no-route-point'; }
+         if (GameConfig.enemyNavDiagnostics) {
+             this._diagnosticQueries++;
+             this._diagnosticQueryMs += Date.now() - diagnosticStart;
+@@ -353,23 +377,28 @@ export class EnemyNavigation {
+         const dx = routeTarget.point.x - self.x;
+         const dy = routeTarget.point.y - self.y;
+         if (routeTarget.final && stop > 0 && dx * dx + dy * dy <= stop * stop) {
++            if (trace) trace.path = 'route-stop-distance';
+             this._releaseField(unit);
+             return out;
+         }
+ 
+         const direct = this._field.lineClear(self, routeTarget.point, request.body, this._planningArea);
+         if (direct) {
++            if (trace) trace.path = 'direct';
+             this._releaseField(unit);
+             const directBlocker = this._firstPhysicalBlocker(self, routeTarget.point, request.body);
+             if (directBlocker && this._isDestructibleNode(directBlocker.node)) {
++                if (trace) { trace.path = 'direct-destructible-stop'; trace.physicalBlocker = directBlocker.node.uuid; }
+                 return out;
+             }
+             const directResult = this._field.direction(self, routeTarget.point, request.body, this._planningArea);
++            if (trace) trace.directionResult = { ...directResult };
+             if (directResult.blocked || directResult.reached) return out;
+             return this._applyCandidateVelocity(state, self, finalTarget, request, directResult.x, directResult.y, out);
+         }
+ 
+         const wantedId = this._field.fieldIdFor(routeTarget.point, request.body, this._planningArea);
++        if (trace) { trace.path = 'field'; trace.wantedFieldId = wantedId; }
+         let result: ReturnType<FlowField['settledDirection']> = null;
+         let resultTarget: FlowPoint = { ...routeTarget.point };
+         if (state.pendingFieldId) {
+@@ -385,6 +414,7 @@ export class EnemyNavigation {
+                     resultTarget = completedTarget;
+                     if (completedId !== wantedId) {
+                         const replacement = this._field.fieldStateFor(routeTarget.point, request.body, this._planningArea);
++                        if (trace) trace.fieldRequest = { ...replacement };
+                         if (replacement.readiness !== 'settled') {
+                             state.pendingFieldId = replacement.fieldId;
+                             state.pendingTarget = { ...routeTarget.point };
+@@ -396,6 +426,7 @@ export class EnemyNavigation {
+         }
+         if (!result && !state.pendingFieldId) {
+             const replacement = this._field.fieldStateFor(routeTarget.point, request.body, this._planningArea);
++            if (trace) trace.fieldRequest = { ...replacement };
+             if (replacement.readiness === 'settled') {
+                 result = this._field.settledDirection(self, replacement.fieldId, request.body, this._planningArea);
+             } else {
+@@ -406,12 +437,14 @@ export class EnemyNavigation {
+         }
+         if (result?.blocked && routeTarget.final && !state.pendingFieldId && this._field.debugPendingJobs === 0) {
+             const approach = this._reachableApproach(self, finalTarget, request.body, true, this._planningArea);
++            if (trace) trace.fallbackApproach = approach;
+             if (approach) {
+                 if (this._field.lineClear(self, approach.point, request.body, this._planningArea)) {
+                     result = this._field.direction(self, approach.point, request.body, this._planningArea);
+                     resultTarget = { ...approach.point };
+                 } else {
+                     const fallback = this._field.fieldStateFor(approach.point, request.body, this._planningArea);
++                    if (trace) trace.fieldRequest = { ...fallback };
+                     if (fallback.readiness === 'settled') {
+                         result = this._field.settledDirection(self, fallback.fieldId, request.body, this._planningArea);
+                         resultTarget = { ...approach.point };
+@@ -423,6 +456,7 @@ export class EnemyNavigation {
+                 }
+             }
+         }
++        if (trace) trace.directionResult = result ? { ...result } : null;
+         if (result && !result.blocked && !result.reached) {
+             this._setActiveField(state, result.fieldId, resultTarget);
+             if (!state.pendingFieldId) state.replacementReadiness = 'idle';
+@@ -432,27 +466,42 @@ export class EnemyNavigation {
+         if (!result || result.blocked || result.reached) return out;
+         const routeBlocker = this._firstPhysicalBlocker(self, result.waypoint, request.body);
+         if (routeBlocker && this._isDestructibleNode(routeBlocker.node)) {
++            if (trace) { trace.path = 'waypoint-destructible-stop'; trace.physicalBlocker = routeBlocker.node.uuid; }
+             return out;
+         }
+         return this._applyCandidateVelocity(state, self, finalTarget, request, result.x, result.y, out);
+     }
+ 
+     blockingObstacle(request: EnemyMoveRequest, range: number): BlockingObstacleRoute | null {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === request.unit ? EnemyNavigation.diagnosticFrame.data : null;
++        if (trace) trace.blockerQuery = 'invalid-target-or-ground';
+         this._prepareFrame();
+         if (!request.target?.isValid || !request.target.activeInHierarchy || !this._hasGroundConfigured()) return null;
+         const from = nodePoint(request.unit), target = nodePoint(request.target), body = request.body;
+-        if (!this._field.pointWalkable(from, body, this._area)) return null;
++        if (!this._field.pointWalkable(from, body, this._area)) {
++            if (trace) trace.blockerQuery = 'self-not-walkable';
++            return null;
++        }
+         const selected = this._field.direction(from, target, body, this._planningArea);
++        // FlowDirectionResult itself cannot distinguish pending from settled blocked.
++        if (trace) {
++            trace.blockerDirection = { ...selected };
++            trace.blockerQuery = selected.reached ? 'settled-reached' : selected.fieldId ?
++                'settled-direction-blocked' : 'direction-unavailable-readiness-unknown';
++            trace.blockerPendingJobs = this._field.debugPendingJobs;
++        }
+         if (selected.blocked || selected.reached) return null;
+         const key = `selected-blocker:${request.role}:${range}:${request.target.uuid}:${selected.fieldId || 'direct'}:` +
+             `${selected.waypoint.x},${selected.waypoint.y}:v${this._obstacles.version}`;
+         const selectFirst = (): FlowQueryResult<BlockingObstacleRoute | null> => {
+             this.debugStats.blockingScans++;
+             const first = this._firstPhysicalBlocker(from, selected.waypoint, body);
++            if (trace) trace.firstBlocker = first ? { id: first.node.uuid, rect: { ...first.rect } } : null;
+             if (!first || first.node === request.target || !this._isDestructibleNode(first.node)) {
+                 return { readiness: 'settled' as const, value: null };
+             }
+             const surface = this._surface(from, first.rect, body, this._area, range);
++            if (trace) trace.surfaceReadiness = surface.readiness;
+             return surface.readiness === 'pending' ? surface : { readiness: 'settled' as const,
+                 value: surface.value ? { target: first.node, point: surface.value } : null };
+         };
+@@ -460,9 +509,14 @@ export class EnemyNavigation {
+             const cell = this._field.worldToCell(from, this._area.bounds);
+             const directKey = `${key}:${cell.x},${cell.y}`;
+             const cached = this._selectedBlockerCache.get(directKey);
+-            if (cached !== undefined) { this.debugStats.selectedCacheHits++; return cached; }
++            if (cached !== undefined) {
++                if (trace) trace.blockerQuery = cached ? 'settled-selected-cache' : 'settled-none-cache';
++                this.debugStats.selectedCacheHits++; return cached;
++            }
+             this.debugStats.selectedCacheMisses++;
+             const direct = selectFirst();
++            if (trace) trace.blockerQuery = direct.readiness === 'pending' ? 'surface-pending' :
++                direct.value ? 'settled-selected' : 'settled-none';
+             if (direct.readiness !== 'settled') return null;
+             const limit = GameConfig.enemyFlowCacheEntries ?? 32;
+             if (this._selectedBlockerCache.size >= limit) {
+@@ -473,6 +527,8 @@ export class EnemyNavigation {
+             return direct.value;
+         }
+         const query = this._field.sharedQueryState(from, body, this._area, key, selectFirst);
++        if (trace) trace.blockerQuery = query.readiness === 'pending' ? 'shared-connectivity-or-surface-pending' :
++            query.value ? 'settled-selected' : 'settled-none';
+         return query.readiness === 'settled' ? query.value ?? null : null;
+     }
+ 
+@@ -512,17 +568,25 @@ export class EnemyNavigation {
+     }
+ 
+     nextObstacleVelocity(request: EnemyMoveRequest, route: BlockingObstacleRoute, out: Vec2 = this._velocity): Vec2 {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === request.unit ? EnemyNavigation.diagnosticFrame.data : null;
++        if (trace) {
++            trace.path = 'obstacle-invalid-request'; trace.routePoint = { ...route.point };
++            trace.body = { ...request.body }; trace.fieldReleasedForObstacle = true;
++        }
+         out.set(0, 0); this._prepareFrame(); this._releaseField(request.unit);
+         if (!this._obstacleRects(route.target).length || request.dt <= 0 || request.speed <= 0) return out;
+         const from = nodePoint(request.unit);
+         if (!this._field.pointWalkable(from, request.body, this._area)) {
++            if (trace) trace.path = 'obstacle-overlap-recovery';
+             this._recoveryVelocity(from, request.body, request.dt, request.speed, out);
+             return out;
+         }
+         const result = this._field.direction(from, route.point, request.body, this._area);
++        if (trace) { trace.path = 'obstacle-direction'; trace.directionResult = { ...result }; }
+         if (result.blocked || result.reached) return out;
+         const speed = Math.min(request.speed, Math.hypot(route.point.x - from.x, route.point.y - from.y) / request.dt);
+         out.set(result.x * speed, result.y * speed);
++        if (trace) trace.candidateWorldVelocity = { x: out.x, y: out.y };
+         this._registeredUnits.add(request.unit); this._insertUnitIntoBuckets(request.unit);
+         this._applyLocalAvoidance(request.unit, from, request.body, request.speed, out);
+         this._constrainVelocity(from, request.body, request.dt, out);
+@@ -1033,16 +1097,20 @@ export class EnemyNavigation {
+         request: EnemyMoveRequest,
+         out: Vec2,
+     ): Vec2 {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === request.unit ? EnemyNavigation.diagnosticFrame.data : null;
++        if (trace) trace.retained = 'none';
+         if (state.replacementReadiness !== 'pending') return out;
+         if (state.activeFieldId && state.activeTarget && this._withinRetainedDrift(state.activeTarget, finalTarget)) {
+             const retained = this._field.settledDirection(self, state.activeFieldId, request.body, this._planningArea);
+             if (retained && !retained.blocked && !retained.reached) {
++                if (trace) { trace.retained = 'active-field'; trace.directionResult = { ...retained }; }
+                 return this._applyCandidateVelocity(state, self, finalTarget, request, retained.x, retained.y, out);
+             }
+         }
+         if (!state.lastSafeDirection || !state.lastSafeTarget || !this._withinRetainedDrift(state.lastSafeTarget, finalTarget)) {
+             return out;
+         }
++        if (trace) trace.retained = 'last-safe-direction';
+         return this._applyCandidateVelocity(state, self, finalTarget, request,
+             state.lastSafeDirection.x, state.lastSafeDirection.y, out);
+     }
+@@ -1062,6 +1130,9 @@ export class EnemyNavigation {
+         out: Vec2,
+     ): Vec2 {
+         out.set(directionX * request.speed, directionY * request.speed);
++        if (EnemyNavigation.diagnosticFrame?.unit === request.unit) {
++            EnemyNavigation.diagnosticFrame.data.candidateWorldVelocity = { x: out.x, y: out.y };
++        }
+         this._applyLocalAvoidance(request.unit, self, request.body, request.speed, out);
+         this._constrainVelocity(self, request.body, request.dt, out);
+         if (Math.hypot(out.x, out.y) > 0.001) {
+@@ -1089,10 +1160,16 @@ export class EnemyNavigation {
+     }
+ 
+     constrainFinalVelocity(unit: Node, body: FlowBody, dt: number, speed: number, out: Vec2): void {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === unit ? EnemyNavigation.diagnosticFrame.data : null;
++        if (trace) { trace.beforeFinalSweep = { x: out.x, y: out.y }; trace.finalConstraint = 'sweep'; }
+         this._prepareFrame();
+-        if (dt <= 0 || !this._hasGroundConfigured()) { out.set(0, 0); return; }
++        if (dt <= 0 || !this._hasGroundConfigured()) {
++            if (trace) trace.finalConstraint = 'invalid-dt-or-ground';
++            out.set(0, 0); return;
++        }
+         unit.getWorldPosition(this._self);
+         if (!this._field.pointWalkable(this._self, body, this._area)) {
++            if (trace) trace.finalConstraint = 'overlap-recovery';
+             this._recoveryVelocity(this._self, body, dt, speed, out);
+             return;
+         }
+diff --git a/assets/scripts/enemy/EnemyMinion.ts b/assets/scripts/enemy/EnemyMinion.ts
+index 5952325..d23a04e 100644
+--- a/assets/scripts/enemy/EnemyMinion.ts
++++ b/assets/scripts/enemy/EnemyMinion.ts
+@@ -4,6 +4,7 @@ import {
+     CircleCollider2D,
+     Collider2D,
+     Component,
++    director,
+     ERigidBody2DType,
+     Node,
+     Prefab,
+@@ -195,6 +196,10 @@ export class EnemyMinion extends Component {
+     }
+ 
+     reset(): void {
++        if (minionDebug.enabled) {
++            minionDebug.candidates.delete(this);
++            if (minionDebug.selected === this) minionDebug.stop('selected-reset');
++        }
+         this._lifeGeneration++;
+         this._blockingObstacle = null;
+         this._ensureRuntimeRefs();
+@@ -232,12 +237,83 @@ export class EnemyMinion extends Component {
+     }
+ 
+     update(_dt: number): void {
++        if (!minionDebug.enabled) { this._updateMovement(_dt); return; }
++        const selected = minionDebug.selected;
++        if (selected && (!selected.isValid || !selected.node.activeInHierarchy || selected._isDead ||
++            selected._lifeGeneration !== minionDebug.life)) {
++            minionDebug.stop('selected-life-ended');
++        }
++        if (minionDebug.enabled && !minionDebug.selected && this.onReturnedToPool && !this._isDead &&
++            this._target?.isValid && !this._isAttacking) {
++            // Only cheap positions for at most 16 candidates; no scene scan or navigation query.
++            let candidate = minionDebug.candidates.get(this);
++            const p = this.node.worldPosition;
++            if (!candidate && minionDebug.candidates.size < 16) {
++                candidate = { x: p.x, y: p.y, seconds: 0, life: this._lifeGeneration };
++                minionDebug.candidates.set(this, candidate);
++            }
++            if (candidate) {
++                candidate.seconds += Math.max(0, _dt);
++                if (candidate.life !== this._lifeGeneration) minionDebug.candidates.delete(this);
++                else if (candidate.seconds >= 1) {
++                    const target = this._target.worldPosition;
++                    if (Math.hypot(p.x - candidate.x, p.y - candidate.y) < 6 &&
++                        Math.hypot(p.x - target.x, p.y - target.y) > GameConfig.enemyMinionAttackExitRange) {
++                        minionDebug.choose(this, 'auto-low-net-displacement', { ...candidate });
++                    } else minionDebug.candidates.delete(this);
++                }
++            }
++        }
++        if (!minionDebug.enabled || minionDebug.selected !== this) { this._updateMovement(_dt); return; }
++        const position = debugPosition(this.node);
++        const previous = minionDebug.previous;
++        const data: Record<string, any> = {
++            frame: director.getTotalFrames(), dt: _dt, seconds: minionDebug.seconds,
++            branch: 'cannot-move-or-dead', position, target: debugNode(this._target),
++            blockerBefore: debugNode(this._blockingObstacle), attackingBefore: this._isAttacking,
++            hysteresisBefore: this._inAttackHysteresis, forceChase: this._forceChaseTarget,
++            rigidbodyBefore: this._rb ? { x: this._rb.linearVelocity.x, y: this._rb.linearVelocity.y } : null,
++            // Physics happens between updates. Compare this displacement to the PREVIOUS command.
++            previousFrame: previous?.frame ?? null,
++            actualDisplacement: previous ? { x: position.x - previous.position.x, y: position.y - previous.position.y } : null,
++            expectedDisplacement: previous?.commandWorld ? {
++                x: previous.commandWorld.x * _dt, y: previous.commandWorld.y * _dt,
++            } : null,
++        };
++        EnemyNavigation.diagnosticFrame = { unit: this.node, data };
++        try {
++            this._updateMovement(_dt);
++        } finally {
++            const scale = data.branch === 'fallback-move' ? EnemyNavigation.worldSpeedForPhysicsVelocity(1) : 1;
++            data.finalWorldVelocity = { x: this._velocity.x * scale, y: this._velocity.y * scale };
++            const rb = this._rb?.linearVelocity;
++            data.commandPhysics = rb ? { x: rb.x, y: rb.y } : null;
++            data.commandWorld = rb ? { x: EnemyNavigation.worldSpeedForPhysicsVelocity(rb.x),
++                y: EnemyNavigation.worldSpeedForPhysicsVelocity(rb.y) } : null;
++            data.blockerAfter = debugNode(this._blockingObstacle);
++            data.attackingAfter = this._isAttacking;
++            data.hysteresisAfter = this._inAttackHysteresis;
++            data.navigation = EnemyNavigation.diagnosticSnapshot(this.node);
++            // Snapshot now: route points and geometry are mutable in subsequent frames.
++            minionDebug.records[minionDebug.cursor] = JSON.parse(JSON.stringify(data));
++            minionDebug.cursor = (minionDebug.cursor + 1) % 900;
++            minionDebug.total++;
++            minionDebug.previous = data;
++            minionDebug.seconds += Math.max(0, _dt);
++            EnemyNavigation.diagnosticFrame = null;
++            if (minionDebug.seconds >= 15) minionDebug.stop('15-game-seconds-captured');
++        }
++    }
++
++    private _updateMovement(_dt: number): void {
++        const trace = EnemyNavigation.diagnosticFrame?.unit === this.node ? EnemyNavigation.diagnosticFrame.data : null;
+         this._ensureRuntimeRefs();
+         if (!this._canMove || this._isDead) {
+             return;
+         }
+ 
+         if (!this._target?.isValid || !this._target.activeInHierarchy || this._target.getComponent(Player)?.isDead) {
++            if (trace) trace.branch = 'invalid-target';
+             this._blockingObstacle = null;
+             EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+             this._halt(false);
+@@ -252,6 +328,7 @@ export class EnemyMinion extends Component {
+         const dist = Math.sqrt(dx * dx + dy * dy);
+ 
+         if (!this._forceChaseTarget && dist > GameConfig.minionAggroRange) {
++            if (trace) trace.branch = 'outside-aggro';
+             this._halt(false);
+             return;
+         }
+@@ -260,18 +337,26 @@ export class EnemyMinion extends Component {
+         const navigationSpeed = EnemyNavigation.worldSpeedForPhysicsVelocity(GameConfig.minionMoveSpeed);
+         const request = { unit: this.node, target: this._target, role: 'minion' as const,
+             speed: navigationSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
+-        if (this._isAttacking && this._blockingObstacle) { this._halt(false); return; }
++        if (this._isAttacking && this._blockingObstacle) {
++            if (trace) trace.branch = 'obstacle-attack-lock';
++            this._halt(false); return;
++        }
+         const diversion = nav?.blockingObstacle(request, GameConfig.enemyMinionAttackEnterRange) ?? null;
++        if (trace) trace.diversion = diversion ? { target: debugNode(diversion.target), point: { ...diversion.point } } : null;
+         if (this._blockingObstacle !== (diversion?.target ?? null)) {
++            if (trace) trace.resetForBlockerChange = true;
+             nav?.resetUnit(this.node);
+             this._inAttackHysteresis = false;
+         }
+         this._blockingObstacle = diversion?.target ?? null;
+         if (diversion && nav) {
++            if (trace) trace.branch = 'obstacle-move';
+             if (nav.canAttackObstacle(this.node, diversion.target, size, GameConfig.enemyMinionAttackEnterRange)) {
++                if (trace) trace.branch = 'obstacle-attack-range';
+                 this._halt(true); return;
+             }
+             nav.nextObstacleVelocity(request, diversion, this._velocity);
++            if (trace) trace.requestedWorldVelocity = { x: this._velocity.x, y: this._velocity.y };
+             this._adjustVelocityAgainstLog(true);
+             nav.constrainFinalVelocity(this.node, size, _dt, navigationSpeed, this._velocity);
+             this._applyNavigationVelocity();
+@@ -282,14 +367,17 @@ export class EnemyMinion extends Component {
+         const shouldHoldForAttack = resolveMinionAttackHysteresis(this._inAttackHysteresis, dist);
+         this._inAttackHysteresis = shouldHoldForAttack;
+         if (dist <= GameConfig.enemyMinionAttackEnterRange) {
++            if (trace) trace.branch = 'target-attack-range';
+             this._halt(true);
+             return;
+         }
+         if (shouldHoldForAttack) {
++            if (trace) trace.branch = 'target-attack-hysteresis';
+             this._halt(false);
+             return;
+         }
+ 
++        if (trace) trace.branch = nav ? 'target-move' : 'fallback-move';
+         if (nav) {
+             nav.nextVelocity(
+                 {
+@@ -317,6 +405,10 @@ export class EnemyMinion extends Component {
+             this._velocity.y *= GameConfig.minionMoveSpeed;
+         }
+ 
++        if (trace) {
++            const scale = nav ? 1 : EnemyNavigation.worldSpeedForPhysicsVelocity(1);
++            trace.requestedWorldVelocity = { x: this._velocity.x * scale, y: this._velocity.y * scale };
++        }
+         this._biasVelocityAwayFromPlayer();
+         this._adjustVelocityAgainstLog(!!nav);
+         // Preserve legal rolling-log carry speed, but never let post-processing bypass the map sweep.
+@@ -471,6 +563,10 @@ export class EnemyMinion extends Component {
+     }
+ 
+     private _die(): void {
++        if (minionDebug.enabled) {
++            minionDebug.candidates.delete(this);
++            if (minionDebug.selected === this) minionDebug.stop('selected-died');
++        }
+         const life = ++this._lifeGeneration;
+         this._blockingObstacle = null;
+         this._isAttacking = false;
+@@ -507,6 +603,10 @@ export class EnemyMinion extends Component {
+     }
+ 
+     onDisable(): void {
++        if (minionDebug.enabled) {
++            minionDebug.candidates.delete(this);
++            if (minionDebug.selected === this) minionDebug.stop('selected-disabled');
++        }
+         this._lifeGeneration++;
+         this._blockingObstacle = null;
+         this._isAttacking = false;
+@@ -586,3 +686,118 @@ export class EnemyMinion extends Component {
+         return { ...fallback, width: fallback.w, height: fallback.h, offsetX: 0, offsetY: 0 };
+     }
+ }
++
++function debugPosition(node: Node): { x: number; y: number; z: number } {
++    const p = node.worldPosition;
++    return { x: p.x, y: p.y, z: p.z };
++}
++
++function debugNode(node: Node | null): unknown {
++    return node?.isValid ? { id: node.uuid, name: node.name, active: node.activeInHierarchy,
++        position: debugPosition(node) } : null;
++}
++
++// Browser Console: EnemyNavDebug.start(); EnemyNavDebug.list(); EnemyNavDebug.select('uuid');
++// EnemyNavDebug.stop(); copy(EnemyNavDebug.export()); or EnemyNavDebug.download().
++const minionDebug = {
++    enabled: false,
++    selected: null as EnemyMinion | null,
++    life: 0,
++    candidates: new Map<EnemyMinion, { x: number; y: number; seconds: number; life: number }>(),
++    records: [] as Record<string, any>[],
++    previous: null as Record<string, any> | null,
++    cursor: 0, total: 0, seconds: 0,
++    selection: null as Record<string, unknown> | null,
++    reason: 'disabled',
++    startedAt: '',
++    choose(unit: EnemyMinion, reason: string, evidence: unknown = null): void {
++        this.selected = unit;
++        this.life = unit['_lifeGeneration'];
++        this.selection = { ...debugNode(unit.node) as object, life: this.life, reason, evidence };
++        this.candidates.clear();
++        this.reason = 'capturing';
++        console.info('[EnemyNavDebug] selected', this.selection);
++    },
++    stop(reason = 'manual-stop'): void {
++        this.enabled = false;
++        this.selected = null;
++        this.candidates.clear();
++        this.previous = null;
++        EnemyNavigation.diagnosticFrame = null;
++        this.reason = reason;
++        console.info('[EnemyNavDebug] stopped', reason, this.records.length, 'records; export() or download()');
++    },
++};
++
++function debugMinions(): EnemyMinion[] {
++    return (director.getScene()?.getComponentsInChildren(EnemyMinion) ?? [])
++        .filter(unit => unit.node.activeInHierarchy && !unit.isDead);
++}
++
++const enemyNavDebugApi = {
++    start(): string {
++        minionDebug.enabled = true;
++        minionDebug.selected = null;
++        minionDebug.candidates.clear();
++        minionDebug.records = [];
++        minionDebug.previous = null;
++        minionDebug.cursor = minionDebug.total = minionDebug.seconds = 0;
++        minionDebug.selection = null;
++        minionDebug.reason = 'waiting-for-stalled-spawned-minion';
++        minionDebug.startedAt = new Date().toISOString();
++        return 'Armed: auto-select after 1s with <6 world units net movement, outside attack range. list()/select(id) overrides.';
++    },
++    stop(): void { minionDebug.stop(); },
++    status(): unknown {
++        return { enabled: minionDebug.enabled, reason: minionDebug.reason,
++            selection: minionDebug.selection, records: minionDebug.records.length,
++            seconds: minionDebug.seconds, candidates: minionDebug.candidates.size };
++    },
++    list(): unknown[] {
++        return debugMinions().map(unit => ({ ...debugNode(unit.node) as object,
++            spawned: !!unit.onReturnedToPool, selected: minionDebug.selected === unit }));
++    },
++    select(id: string): string {
++        const unit = debugMinions().find(candidate => candidate.node.uuid === id);
++        if (!unit) return 'No active minion with that UUID. Call list() again.';
++        this.start();
++        minionDebug.choose(unit, 'manual');
++        return 'Selected; fresh capture, automatic stop after 15 game seconds.';
++    },
++    export(): string {
++        const records = minionDebug.total > 900 ? minionDebug.records.slice(minionDebug.cursor)
++            .concat(minionDebug.records.slice(0, minionDebug.cursor)) : minionDebug.records.slice();
++        const branches: Record<string, number> = {}, switches: Record<string, number> = {};
++        let previous = '';
++        for (const record of records) {
++            const key = [record.branch, record.path ?? '-', record.blockerQuery ?? '-', record.retained ?? '-'].join('|');
++            branches[key] = (branches[key] ?? 0) + 1;
++            if (previous && key !== previous) {
++                const transition = `${previous} -> ${key}`;
++                switches[transition] = (switches[transition] ?? 0) + 1;
++            }
++            previous = key;
++        }
++        return JSON.stringify({ schema: 'EnemyNavDebug-v1', startedAt: minionDebug.startedAt,
++            enabled: minionDebug.enabled, reason: minionDebug.reason, selection: minionDebug.selection,
++            totalFrames: minionDebug.total, droppedFrames: Math.max(0, minionDebug.total - 900),
++            limits: { records: 900, captureGameSeconds: 15, autoCandidates: 16 },
++            limitations: 'Minions only. Auto selection is heuristic; no detailed pre-selection history. Unknown direction readiness is not settled-none; global job counts are not per-unit readiness.',
++            units: 'positions/displacement/worldVelocity: world units; commandPhysics/rigidbodyBefore: meters/s (x32). Displacement belongs to previousFrame; expected uses current dt, not fixed physics steps.',
++            thresholds: { attackEnter: GameConfig.enemyMinionAttackEnterRange, attackExit: GameConfig.enemyMinionAttackExitRange,
++                moveSpeedPhysics: GameConfig.minionMoveSpeed, cellSize: GameConfig.enemyFlowCellSize },
++            branches, switches, records }, null, 2);
++    },
++    download(): void {
++        const url = URL.createObjectURL(new Blob([this.export()], { type: 'application/json' }));
++        const anchor = document.createElement('a');
++        anchor.href = url;
++        anchor.download = 'enemy-nav-debug.json';
++        anchor.click();
++        setTimeout(() => URL.revokeObjectURL(url), 1000);
++    },
++};
++
++if (typeof window !== 'undefined') {
++    (window as unknown as { EnemyNavDebug: typeof enemyNavDebugApi }).EnemyNavDebug = enemyNavDebugApi;
++}
+diff --git a/bugs.md b/bugs.md
+index d0fa7f6..58ddde5 100644
+--- a/bugs.md
++++ b/bugs.md
+@@ -1427,3 +1427,16 @@
+ | **验证** | 原44项+专用31项、tsc、OpenSpec strict及范围检查通过；200敌人×300帧预热后扫描/建图增量零，缓存压力在统一预算内。报告：`.cursor/plans/reports/enemy-break-blocking-log-report.md`。本轮真实 Creator 实玩与 FPS 未验证。 |
+ 
+ ---
++
++## fix-boss-death-animation-cutoff — Boss 死亡动画未播放完就消失
++
++### v1（2026-09-12）
++
++| 项 | 说明 |
++|---|---|
++| **现象** | Boss 播放死亡动画时，动画尚未结束节点就被隐藏。 |
++| **原因** | `EnemyBoss._die()` 使用固定 `0.8s` 延时执行 `node.active = false`，没有等待死亡动画完成事件。 |
++| **解决** | 死亡动画存在时监听 `Animation.EventType.FINISHED`，仅在 `die` 动画播放完成后隐藏 Boss；无可用死亡动画时才直接隐藏。保留生命周期代数校验，避免旧动画回调影响重置后的 Boss。 |
++| **验证** | `npx tsc --noEmit --pretty false`、`git diff --check` 通过；未进行 Creator 实玩。 |
++
++---
