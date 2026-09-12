@@ -1,6 +1,7 @@
 import { _decorator, Animation, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
 import { Player } from '../character/Player';
 import { playAttackWithFrameHit } from '../core/AnimUtil';
+import { AttackReservation, type AttackReservationToken } from '../core/AttackReservation';
 import { GameConfig } from '../core/GameConfig';
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
@@ -39,6 +40,8 @@ export class CombatSystem extends Component {
     private _cooldown = 0;
     private _loadingArrow = false;
     private _pendingTarget: Node | null = null;
+    private _pendingReservation: AttackReservationToken | null = null;
+    private _attackSequence = 0;
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
 
@@ -47,6 +50,21 @@ export class CombatSystem extends Component {
             this.attackRange = GameConfig.playerAttackRange;
         }
         this._ensureArrowPrefab();
+    }
+
+    onDisable(): void {
+        this.cancelPendingAttack();
+    }
+
+    onDestroy(): void {
+        this.onDisable();
+    }
+
+    public cancelPendingAttack(): void {
+        this._attackSequence += 1;
+        this._pendingTarget = null;
+        this._releasePendingReservation();
+        this._resolvePlayer()?.setAttacking(false);
     }
 
     private _resolvePlayer(): Player | null {
@@ -109,15 +127,24 @@ export class CombatSystem extends Component {
             return;
         }
 
+        const targetComponent = this._enemyComponent(target);
+        if (!targetComponent) {
+            return;
+        }
+
         const animDuration = this._resolveMeleeDuration(player);
         this._cooldown = Math.max(GameConfig.playerAttackInterval, animDuration + 0.05);
         this._pendingTarget = target;
+        this._releasePendingReservation();
+        this._pendingReservation = AttackReservation.reserve(this, targetComponent, GameConfig.playerAttackDamage);
+        const sequence = ++this._attackSequence;
         player.faceTarget(target);
         player.setAttacking(true);
 
         const visual = player.visualNode;
         if (!visual) {
-            this._spawnArrow(target);
+            const reservation = this._takePendingReservation();
+            this._spawnArrow(target, reservation);
             this._pendingTarget = null;
             player.setAttacking(false);
             return;
@@ -127,24 +154,38 @@ export class CombatSystem extends Component {
             visual,
             'meleeAttack',
             () => {
+                if (sequence !== this._attackSequence) {
+                    return;
+                }
                 const t = this._pendingTarget;
                 this._pendingTarget = null;
                 if (t?.isValid && !player.isDead) {
-                    this._spawnArrow(t);
+                    this._spawnArrow(t, this._takePendingReservation());
+                } else {
+                    this._releasePendingReservation();
                 }
             },
             PLAYER_ATTACK_HIT_FALLBACK,
             () => {
-                player.setAttacking(false);
+                if (sequence === this._attackSequence) {
+                    this._pendingTarget = null;
+                    this._releasePendingReservation();
+                    player.setAttacking(false);
+                }
             },
         );
 
         // FINISHED 丢失时按 clip 时长解锁（略长于 duration）
         this.unschedule(this._unlockAttacking);
-        this.scheduleOnce(this._unlockAttacking, animDuration + 0.12);
+        this.scheduleOnce(() => this._unlockAttacking(sequence), animDuration + 0.12);
     }
 
-    private _unlockAttacking = (): void => {
+    private _unlockAttacking = (sequence: number): void => {
+        if (sequence !== this._attackSequence) {
+            return;
+        }
+        this._pendingTarget = null;
+        this._releasePendingReservation();
         const player = this._resolvePlayer();
         if (player?.isAttacking) {
             player.setAttacking(false);
@@ -191,19 +232,23 @@ export class CombatSystem extends Component {
             return bestBoss;
         }
 
-        let nearest: Node | null = null;
-        let nearestDist = range;
+        const candidates: Array<{ minion: EnemyMinion; distance: number; index: number }> = [];
+        let index = 0;
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
             if (!minion.node.activeInHierarchy || minion.isDead) {
                 continue;
             }
             const dist = this._distTo(minion.node);
-            if (dist <= nearestDist) {
-                nearestDist = dist;
-                nearest = minion.node;
+            if (dist <= range) {
+                candidates.push({ minion, distance: dist, index: index++ });
             }
         }
-        return nearest;
+        candidates.sort((a, b) => a.distance - b.distance || b.index - a.index);
+        return AttackReservation.selectMinion(
+            candidates.map((candidate) => candidate.minion),
+            GameConfig.playerAttackDamage,
+            (minion) => minion.currentHp,
+        )?.node ?? null;
     }
 
     private _distTo(node: Node): number {
@@ -214,9 +259,10 @@ export class CombatSystem extends Component {
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    private _spawnArrow(target: Node): void {
+    private _spawnArrow(target: Node, reservation: AttackReservationToken | null): void {
         const player = this._resolvePlayer();
         if (!this.arrowPrefab || !player) {
+            AttackReservation.release(reservation);
             return;
         }
 
@@ -225,6 +271,7 @@ export class CombatSystem extends Component {
             this.projectileRoot ?? player.node.parent ?? this.node.scene;
         if (!parent) {
             arrowNode.destroy();
+            AttackReservation.release(reservation);
             return;
         }
         arrowNode.setParent(parent);
@@ -232,7 +279,25 @@ export class CombatSystem extends Component {
 
         const arrow = arrowNode.getComponent(Arrow);
         if (arrow) {
-            arrow.init(target, GameConfig.playerAttackDamage, GameConfig.arrowSpeed);
+            arrow.init(target, GameConfig.playerAttackDamage, GameConfig.arrowSpeed, reservation);
+        } else {
+            arrowNode.destroy();
+            AttackReservation.release(reservation);
         }
+    }
+
+    private _enemyComponent(target: Node): EnemyMinion | EnemyBoss | null {
+        return target.getComponent(EnemyBoss) ?? target.getComponent(EnemyMinion);
+    }
+
+    private _takePendingReservation(): AttackReservationToken | null {
+        const reservation = this._pendingReservation;
+        this._pendingReservation = null;
+        return reservation;
+    }
+
+    private _releasePendingReservation(): void {
+        AttackReservation.release(this._pendingReservation);
+        this._pendingReservation = null;
     }
 }

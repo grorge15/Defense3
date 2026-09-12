@@ -1,13 +1,18 @@
 ## ADDED Requirements
 
-### Requirement: Ultimate finale synchronizes lock, camera, VFX, clear, and victory
+### Requirement: Ultimate finale synchronizes lock, completed camera pullback, VFX, clear, and victory
 
-The system SHALL execute the ultimate finale in a deterministic order: player lock and camera pullback first, synchronized BigMove playback at all valid configured points second, enemy clearing after BigMove completion, and the existing win settlement last. The system MUST keep the finale single-shot once it has started.
+The system SHALL execute the ultimate finale in a deterministic order: player lock and camera pullback first, synchronized BigMove playback at all valid configured points after a usable camera has applied its final pullback state second, enemy clearing after BigMove completion, and the existing win settlement last. When no usable camera is present, the BigMove path MUST begin immediately. The system MUST keep the finale single-shot once it has started.
 
 #### Scenario: Configured points play the ultimate VFX together
 
 - **WHEN** the ultimate finale is triggered and `SceneSetup` provides one or more valid point nodes
-- **THEN** the system locks player movement, starts the existing camera pullback, creates one `Vfx_BigMove` instance at every valid point, and starts the `BigMove` animation once on all created instances in the same finale start
+- **THEN** the system locks player movement, starts the existing camera pullback, creates no BigMove instance before the pullback has applied its final state, then creates one `Vfx_BigMove` instance at every valid point and starts the `BigMove` animation once on all created instances in that completion frame
+
+#### Scenario: Missing camera bypasses the pullback wait
+
+- **WHEN** the ultimate finale is triggered without a usable camera
+- **THEN** the system records the existing diagnostic and begins the BigMove path immediately
 
 #### Scenario: Enemy clearing waits for BigMove completion
 
@@ -22,4 +27,4 @@ The system SHALL execute the ultimate finale in a deterministic order: player lo
 #### Scenario: Missing point or VFX data does not deadlock victory
 
 - **WHEN** the configured point list is empty/invalid or the existing VFX/BigMove resource cannot be resolved
-- **THEN** the system records a diagnostic, skips only the unavailable VFX work, and continues to the existing enemy-clear and win settlement path without leaving the player permanently locked in an unfinished finale
+- **THEN** the system records a diagnostic, skips only the unavailable VFX work, and continues to the existing enemy-clear and win settlement path without leaving the player permanently locked in an unfinished finale; with a usable camera, this fallback begins only after its final pullback state is applied

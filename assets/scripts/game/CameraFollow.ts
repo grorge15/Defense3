@@ -25,6 +25,7 @@ export class CameraFollow extends Component {
     private _zoomElapsed = 0;
     private _zoomDuration = 0;
     private _zooming = false;
+    private _zoomOnComplete: (() => void) | null = null;
 
     start(): void {
         this._snapToTarget();
@@ -43,6 +44,7 @@ export class CameraFollow extends Component {
             if (t >= 1) {
                 this._zooming = false;
                 this._zoomExtraZ = this._zoomTo;
+                this._completeZoom();
             }
         }
 
@@ -86,14 +88,27 @@ export class CameraFollow extends Component {
     /**
      * 大招拉远：在默认 follow offset 上再沿 +Z 缓动 `distance`。
      */
-    zoomOut(distance: number, duration: number): void {
+    zoomOut(distance: number, duration: number, onComplete?: () => void): void {
+        this._zoomOnComplete = null;
         this._zoomFrom = this._zoomExtraZ;
         this._zoomTo = this._zoomExtraZ + Math.max(0, distance);
         this._zoomDuration = Math.max(0, duration);
         this._zoomElapsed = 0;
         this._zooming = this._zoomDuration > 0;
+        this._zoomOnComplete = onComplete ?? null;
         if (!this._zooming) {
             this._zoomExtraZ = this._zoomTo;
+            this._completeZoom();
         }
+    }
+
+    onDestroy(): void {
+        this._zoomOnComplete = null;
+    }
+
+    private _completeZoom(): void {
+        const onComplete = this._zoomOnComplete;
+        this._zoomOnComplete = null;
+        onComplete?.();
     }
 }

@@ -9,6 +9,7 @@ import {
 } from 'cc';
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
+import { AttackReservation, type AttackReservationToken } from '../core/AttackReservation';
 import { GameConfig } from '../core/GameConfig';
 
 const { ccclass, property } = _decorator;
@@ -18,11 +19,13 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('Arrow')
 export class Arrow extends Component {
+    public static readonly DEFAULT_DIRECTION_ANGLE_OFFSET = 180;
+
     @property({ type: Node, tooltip: 'Visual 子节点' })
     visualNode: Node | null = null;
 
     @property({ tooltip: '箭矢贴图默认朝向相对 +X 轴的角度偏移；贴图朝左填 180，朝右填 0' })
-    directionAngleOffset = 180;
+    directionAngleOffset = Arrow.DEFAULT_DIRECTION_ANGLE_OFFSET;
 
     private _collider: Collider2D | null = null;
     private _damage = GameConfig.playerAttackDamage;
@@ -33,6 +36,7 @@ export class Arrow extends Component {
     private readonly _dir = new Vec3();
     private readonly _pos = new Vec3();
     private readonly _enemyPos = new Vec3();
+    private _reservation: AttackReservationToken | null = null;
 
     onLoad(): void {
         this._collider = this.getComponent(Collider2D);
@@ -43,13 +47,21 @@ export class Arrow extends Component {
     }
 
     onDestroy(): void {
+        this._releaseReservation();
         if (this._collider) {
             this._collider.off(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this);
         }
     }
 
     /** 由 CombatSystem 调用：朝首目标方向直线飞行 */
-    init(target: Node, damage?: number, speed?: number): void {
+    init(
+        target: Node,
+        damage?: number,
+        speed?: number,
+        reservation: AttackReservationToken | null = null,
+    ): void {
+        this._releaseReservation();
+        this._reservation = reservation;
         this._damage = damage ?? GameConfig.playerAttackDamage;
         this._speed = speed ?? GameConfig.arrowSpeed;
         this._alive = true;
@@ -152,12 +164,20 @@ export class Arrow extends Component {
             // 命中节点树上 Boss 优先于小怪（与索敌一致）
             const boss = cur.getComponent(EnemyBoss);
             if (boss) {
+                const resolvesReservation = this._reservation?.target === boss;
                 this._damageEnemy(cur.uuid, (damage) => boss.takeDamage(damage, 'player-arrow'));
+                if (resolvesReservation) {
+                    this._releaseReservation();
+                }
                 return;
             }
             const minion = cur.getComponent(EnemyMinion);
             if (minion) {
+                const resolvesReservation = this._reservation?.target === minion;
                 this._damageEnemy(cur.uuid, (damage) => minion.takeDamage(damage, 'player-arrow'));
+                if (resolvesReservation) {
+                    this._releaseReservation();
+                }
                 return;
             }
             cur = cur.parent;
@@ -187,11 +207,33 @@ export class Arrow extends Component {
 
     private _destroySelf(): void {
         this._alive = false;
+        this._releaseReservation();
         this.node.destroy();
     }
 
+    private _releaseReservation(): void {
+        AttackReservation.release(this._reservation);
+        this._reservation = null;
+    }
+
+    /** Shared by player arrows and tower projectile presentation. */
+    public static rotationZForDirection(
+        direction: Readonly<Vec3>,
+        directionAngleOffset = Arrow.DEFAULT_DIRECTION_ANGLE_OFFSET,
+    ): number {
+        const x = direction.x;
+        const y = direction.y;
+        const angleDeg = x * x + y * y < 0.0001
+            ? 90
+            : Math.atan2(y, x) * 180 / Math.PI;
+        return angleDeg + directionAngleOffset;
+    }
+
     private _faceMoveDirection(): void {
-        const angleDeg = Math.atan2(this._dir.y, this._dir.x) * 180 / Math.PI;
-        this.node.setRotationFromEuler(0, 0, angleDeg + this.directionAngleOffset);
+        this.node.setRotationFromEuler(
+            0,
+            0,
+            Arrow.rotationZForDirection(this._dir, this.directionAngleOffset),
+        );
     }
 }

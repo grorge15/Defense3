@@ -47,6 +47,10 @@ export class UltimateSystem extends Component {
     private _castCount = 0;
     private _finishing = false;
     private _finaleSettled = false;
+    private _bigMoveStarted = false;
+    private _enemyCleanupStarted = false;
+    private _enemyCleanupSettled = false;
+    private _victoryScheduled = false;
 
     setBigMovePoints(points: Node[]): void {
         this.bigMovePoints = points;
@@ -77,10 +81,15 @@ export class UltimateSystem extends Component {
         }
     }
 
-    /** 清场：停刷怪并 deactivate 场景内 Minion/Boss */
+    /** Final cleanup: stop future spawns, wait for death presentation, then deactivate one batch. */
     clearAllEnemies(): void {
+        if (this._enemyCleanupStarted) {
+            return;
+        }
+        this._enemyCleanupStarted = true;
         const scene = this.node.scene;
         if (!scene) {
+            this._completeEnemyCleanup([]);
             return;
         }
 
@@ -90,22 +99,34 @@ export class UltimateSystem extends Component {
             spawner.unscheduleAllCallbacks();
         }
 
-        const minions = scene.getComponentsInChildren(EnemyMinion);
-        for (const m of minions) {
-            if (!m.node.active) {
-                continue;
-            }
-            m.unscheduleAllCallbacks();
-            m.node.active = false;
+        const selected = [
+            ...scene.getComponentsInChildren(EnemyMinion),
+            ...scene.getComponentsInChildren(EnemyBoss),
+        ].filter((enemy) => enemy.isValid && enemy.node?.isValid && enemy.node.activeInHierarchy);
+        let pending = selected.length;
+        if (pending === 0) {
+            this._completeEnemyCleanup(selected);
+            return;
         }
 
-        const bosses = scene.getComponentsInChildren(EnemyBoss);
-        for (const b of bosses) {
-            if (!b.node.active) {
-                continue;
+        for (const enemy of selected) {
+            let resolved = false;
+            const resolve = (): void => {
+                if (resolved) {
+                    return;
+                }
+                resolved = true;
+                pending -= 1;
+                if (pending === 0) {
+                    this._completeEnemyCleanup(selected);
+                }
+            };
+            try {
+                enemy.playFinalDeath(resolve);
+            } catch (error) {
+                console.warn('[UltimateSystem] final enemy death presentation failed', error);
+                resolve();
             }
-            b.unscheduleAllCallbacks();
-            b.node.active = false;
         }
     }
 
@@ -159,14 +180,27 @@ export class UltimateSystem extends Component {
 
         const dist = GameConfig.ultimateZoomDistance;
         const dur = GameConfig.ultimateZoomDuration;
-        if (this.cameraFollow) {
-            this.cameraFollow.zoomOut(dist, dur);
+        const startBigMove = (): void => {
+            if (
+                !this.isValid ||
+                !this.enabled ||
+                !this._finishing ||
+                this._finaleSettled ||
+                this._bigMoveStarted
+            ) {
+                return;
+            }
+            this._bigMoveStarted = true;
+            this._playBigMoveAndFinish();
+        };
+        if (this.cameraFollow && this.cameraFollow.isValid) {
+            this.cameraFollow.zoomOut(dist, dur, startBigMove);
         } else {
             console.warn('[UltimateSystem] cameraFollow missing — skip zoomOut');
+            startBigMove();
         }
 
         console.log('[UltimateSystem] finale started — locked move and zoomed out');
-        this._playBigMoveAndFinish();
     }
 
     private _playBigMoveAndFinish(): void {
@@ -262,7 +296,10 @@ export class UltimateSystem extends Component {
             return;
         }
         resources.load(BIG_MOVE_VFX_PATH, Prefab, (err, prefab) => {
-            if (err || !prefab || !this.isValid) {
+            if (!this.isValid || !this.enabled || !this._finishing || this._finaleSettled) {
+                return;
+            }
+            if (err || !prefab) {
                 console.warn(`[UltimateSystem] missing BigMove VFX path=${BIG_MOVE_VFX_PATH}`, err);
                 this._finishFinale();
                 return;
@@ -273,15 +310,37 @@ export class UltimateSystem extends Component {
     }
 
     private _finishFinale(): void {
-        if (this._finaleSettled) {
+        if (!this.isValid || !this.enabled || this._finaleSettled) {
             return;
         }
         this._finaleSettled = true;
         this.clearAllEnemies();
-        console.log('[UltimateSystem] BigMove finished — cleared enemies');
+        console.log('[UltimateSystem] BigMove finished — began final enemy cleanup');
+    }
 
+    private _completeEnemyCleanup(selected: Array<EnemyMinion | EnemyBoss>): void {
+        if (this._enemyCleanupSettled) {
+            return;
+        }
+        this._enemyCleanupSettled = true;
+        for (const enemy of selected) {
+            if (enemy.node?.isValid) {
+                enemy.node.active = false;
+            }
+        }
+        this._scheduleVictorySettlement();
+    }
+
+    private _scheduleVictorySettlement(): void {
+        if (this._victoryScheduled) {
+            return;
+        }
+        this._victoryScheduled = true;
         const delay = GameConfig.ultimateGameOverDelay;
         this.scheduleOnce(() => {
+            if (!this.isValid || !this.enabled) {
+                return;
+            }
             GameManager.instance?.setGameOver('win');
             this.player?.setCanMove(false);
             console.log('[UltimateSystem] setGameOver');

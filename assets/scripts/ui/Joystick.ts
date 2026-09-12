@@ -34,6 +34,8 @@ export class Joystick extends Component {
     private _touchId: number | null = null;
     private _rootTransform: UITransform | null = null;
     private _enabledInput = true;
+    private _effectiveInput = false;
+    private _parkourInputUnlocked = false;
 
     onLoad(): void {
         this._rootTransform = this.getComponent(UITransform);
@@ -59,8 +61,17 @@ export class Joystick extends Component {
         this._clearInput();
     }
 
+    onDisable(): void {
+        this._clearInput();
+        this._effectiveInput = false;
+    }
+
     bindPlayer(player: Player | null): void {
         this._player = player;
+        if (this._mode === 'parkour') {
+            this._parkourInputUnlocked = false;
+            this._player?.beginParkourInputGate();
+        }
         this._applyDirectionToPlayer();
     }
 
@@ -71,6 +82,11 @@ export class Joystick extends Component {
 
     setMode(mode: JoystickMode): void {
         this._mode = mode;
+        if (mode === 'parkour') {
+            this._parkourInputUnlocked = false;
+            this._effectiveInput = false;
+            this._player?.beginParkourInputGate();
+        }
         if (this._touchId !== null) {
             this._constrainAndApply(this._direction.x * this.maxRadius, this._direction.y * this.maxRadius);
         } else {
@@ -92,6 +108,11 @@ export class Joystick extends Component {
 
     isActive(): boolean {
         return this._touchId !== null;
+    }
+
+    /** True only while the current constrained direction can move the Player. */
+    hasEffectiveInput(): boolean {
+        return this._effectiveInput;
     }
 
     private _resolveVisualNodes(): void {
@@ -184,12 +205,18 @@ export class Joystick extends Component {
             this._direction.set(this._tmpDir.x / radius, this._tmpDir.y / radius);
             this._setKnobOffset(this._tmpDir.x, this._tmpDir.y);
         }
+        this._effectiveInput = this._direction.lengthSqr() > 0.0001;
+        if (this._effectiveInput && this._mode === 'parkour' && !this._parkourInputUnlocked) {
+            this._parkourInputUnlocked = true;
+            this._player?.unlockParkourMovement();
+        }
         this._applyDirectionToPlayer();
     }
 
     private _clearInput(): void {
         this._touchId = null;
         this._direction.set(0, 0);
+        this._effectiveInput = false;
         this._setKnobOffset(0, 0);
         this._setVisualVisible(false);
         this._applyDirectionToPlayer();

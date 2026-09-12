@@ -1,5 +1,6 @@
 import {
     _decorator,
+    Animation,
     BoxCollider2D,
     CircleCollider2D,
     Collider2D,
@@ -15,6 +16,7 @@ import {
     Vec3,
 } from 'cc';
 import { AirWallAabb } from '../core/AirWallAabb';
+import { AttackReservation } from '../core/AttackReservation';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { EnemyNavigation } from '../core/EnemyNavigation';
@@ -88,6 +90,8 @@ export class EnemyMinion extends Component {
     private _inAttackHysteresis = false;
     private _currentLocomotionClip = '';
     private readonly _visualFacing = new VisualFacing();
+    private _finalDeathActive = false;
+    private readonly _finalDeathCallbacks: Array<() => void> = [];
 
     /** 死亡收进对象池时回调（EnemySpawner 监听并 5s 后重生） */
     public onReturnedToPool: ((minion: EnemyMinion) => void) | null = null;
@@ -178,6 +182,95 @@ export class EnemyMinion extends Component {
         return this._isDead;
     }
 
+    get currentHp(): number {
+        return this._hp;
+    }
+
+    /** Clears only transient combat state before BuildSystem moves this live unit. */
+    public relocateForExpansion(worldPosition: Readonly<Vec3>): boolean {
+        this._ensureRuntimeRefs();
+        if (this._isDead || !this.node.isValid || !this.node.activeInHierarchy) {
+            return false;
+        }
+        this._attackGeneration += 1;
+        this._blockingObstacle = null;
+        this._inAttackHysteresis = false;
+        this._isAttacking = false;
+        this._velocity.set(0, 0);
+        this._physicsVelocity.set(0, 0);
+        // EnemyAI.reset only clears its cooldown; its target remains owned by this minion.
+        this._ai?.reset();
+        EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
+        this.node.setWorldPosition(worldPosition);
+        if (this._rb) {
+            this._rb.linearVelocity = new Vec2(0, 0);
+        }
+        this._updateLocomotionAnim(false);
+        return true;
+    }
+
+    /** Ultimate-only death presentation. It intentionally bypasses normal reward and pool behavior. */
+    public playFinalDeath(onComplete: () => void): void {
+        let completed = false;
+        const completeOnce = (): void => {
+            if (completed) {
+                return;
+            }
+            completed = true;
+            try {
+                onComplete();
+            } catch (error) {
+                console.warn('[EnemyMinion] final-death completion callback failed', error);
+            }
+        };
+        if (!this.isValid || !this.node?.isValid || !this.node.activeInHierarchy) {
+            completeOnce();
+            return;
+        }
+        this._finalDeathCallbacks.push(completeOnce);
+        if (this._finalDeathActive) {
+            return;
+        }
+
+        this._ensureRuntimeRefs();
+        AttackReservation.releaseForTarget(this);
+        this._finalDeathActive = true;
+        const life = ++this._lifeGeneration;
+        this._attackGeneration += 1;
+        this.unscheduleAllCallbacks();
+        this._blockingObstacle = null;
+        this._target = null;
+        this._ai?.setTarget(null);
+        this._ai?.reset();
+        this._isAttacking = false;
+        this._isDead = true;
+        this._canMove = false;
+        this._halt(false);
+        if (this._collider) {
+            this._collider.enabled = false;
+        }
+        EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
+
+        const animation = this.visualNode?.getComponent(Animation);
+        const state = animation?.getState('die');
+        if (!animation || !state) {
+            this._completeFinalDeath();
+            return;
+        }
+        const finish = (_event?: unknown, finishedState?: unknown): void => {
+            if (this._lifeGeneration !== life || !this._finalDeathActive) {
+                return;
+            }
+            if (finishedState && finishedState !== state) {
+                return;
+            }
+            this._completeFinalDeath();
+        };
+        animation.once(Animation.EventType.FINISHED, finish);
+        playAnim(this.visualNode!, 'die');
+        this.scheduleOnce(finish, this._finalDeathFallbackDelay(state));
+    }
+
     takeDamage(amount: number, source: EnemyHitSource = 'hero'): void {
         if (this._isDead) {
             return;
@@ -200,6 +293,8 @@ export class EnemyMinion extends Component {
             minionDebug.candidates.delete(this);
             if (minionDebug.selected === this) minionDebug.stop('selected-reset');
         }
+        AttackReservation.releaseForTarget(this);
+        this._completeFinalDeath();
         this._lifeGeneration++;
         this._blockingObstacle = null;
         this._ensureRuntimeRefs();
@@ -566,6 +661,7 @@ export class EnemyMinion extends Component {
             minionDebug.candidates.delete(this);
             if (minionDebug.selected === this) minionDebug.stop('selected-died');
         }
+        AttackReservation.releaseForTarget(this);
         const life = ++this._lifeGeneration;
         this._blockingObstacle = null;
         this._isAttacking = false;
@@ -602,6 +698,8 @@ export class EnemyMinion extends Component {
     }
 
     onDisable(): void {
+        AttackReservation.releaseForTarget(this);
+        this._completeFinalDeath();
         if (minionDebug.enabled) {
             minionDebug.candidates.delete(this);
             if (minionDebug.selected === this) minionDebug.stop('selected-disabled');
@@ -626,6 +724,28 @@ export class EnemyMinion extends Component {
         }
         this._currentLocomotionClip = clip;
         playAnim(this.visualNode, clip);
+    }
+
+    private _completeFinalDeath(): void {
+        if (!this._finalDeathActive && this._finalDeathCallbacks.length === 0) {
+            return;
+        }
+        this._finalDeathActive = false;
+        const callbacks = this._finalDeathCallbacks.splice(0);
+        for (const callback of callbacks) {
+            callback();
+        }
+    }
+
+    private _finalDeathFallbackDelay(state: { speed: number; clip?: { duration?: number } | null; duration?: number }): number {
+        const speed = Number(state.speed);
+        const effectiveSpeed = Number.isFinite(speed) && Math.abs(speed) > 0 ? Math.abs(speed) : 1;
+        const clipDuration = Number(state.clip?.duration);
+        const stateDuration = Number(state.duration);
+        const duration = Number.isFinite(clipDuration) && clipDuration > 0
+            ? clipDuration
+            : stateDuration;
+        return Math.max(Number.isFinite(duration) && duration > 0 ? duration / effectiveSpeed : 0.1, 0.1);
     }
 
     private _bindEmbeddedHpBar(): void {

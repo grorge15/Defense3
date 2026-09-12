@@ -9,18 +9,21 @@ import {
     Node,
     Prefab,
     RigidBody2D,
+    Sprite,
     Vec2,
     Vec3,
 } from 'cc';
 import { EnemyMinion } from '../enemy/EnemyMinion';
 import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
+import { AttackReservation, type AttackReservationToken } from '../core/AttackReservation';
 import { EventManager } from '../core/EventManager';
 import type { EnemyHitSource } from '../core/EnemyHitVfx';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { PathAgent } from '../core/PathAgent';
 import { VisualFacing } from '../core/VisualFacing';
+import { Arrow } from '../projectile/Arrow';
 import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
@@ -34,6 +37,8 @@ type SoldierAttackTarget = EnemyMinion | BossLike;
 
 @ccclass('Soldier')
 export class Soldier extends Component {
+    private static _warnedMissingProjectileVisual = false;
+
     @property({ tooltip: 'Visual 子节点，挂有 Animation 组件' })
     visualNode: Node | null = null;
 
@@ -67,6 +72,7 @@ export class Soldier extends Component {
     private _attackSequence = 0;
     private _currentLocomotionClip = '';
     private _lockedAttackTarget: SoldierAttackTarget | null = null;
+    private _attackReservation: AttackReservationToken | null = null;
     private _retargetTimer = 0;
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
@@ -144,6 +150,7 @@ export class Soldier extends Component {
 
     deactivate(): void {
         this._attackSequence += 1;
+        this._releaseAttackReservation();
         this._isAttacking = false;
         this._canAct = false;
         this._velocity.set(0, 0);
@@ -158,7 +165,9 @@ export class Soldier extends Component {
             return;
         }
 
-        const enemy = this._resolveAttackTarget();
+        const enemy = this._deployment === 'tower'
+            ? this._selectTowerTarget()
+            : this._resolveAttackTarget();
         if (!enemy) {
             return;
         }
@@ -167,6 +176,9 @@ export class Soldier extends Component {
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
         const sequence = ++this._attackSequence;
+        if (this._deployment === 'tower') {
+            this._attackReservation = AttackReservation.reserve(this, enemy, this.attackDamage);
+        }
         const isCurrent = (): boolean =>
             sequence === this._attackSequence && this._canAct && !this._isDead;
         const clipName = this._deployment === 'tower' ? 'remote_attack' : 'melee_attack';
@@ -186,10 +198,15 @@ export class Soldier extends Component {
                     this.visualNode,
                     'remoteAttack',
                     () => {
-                        if (isCurrent() && enemy.node.isValid && !enemy.isDead) {
-                            this._spawnProjectile(enemy.node);
-                            enemy.takeDamage(this.attackDamage, 'soldier-ranged');
+                        if (!isCurrent()) {
+                            return;
                         }
+                        const hitTarget = this._resolveTowerHitTarget(enemy);
+                        if (hitTarget) {
+                            this._spawnProjectile(hitTarget.node);
+                            hitTarget.takeDamage(this.attackDamage, 'soldier-ranged');
+                        }
+                        this._releaseAttackReservation();
                     },
                     0.9,
                     unlock,
@@ -197,6 +214,7 @@ export class Soldier extends Component {
             } else {
                 this._spawnProjectile(enemy.node);
                 enemy.takeDamage(this.attackDamage, 'soldier-ranged');
+                this._releaseAttackReservation();
                 unlock();
             }
         } else if (this.visualNode && state) {
@@ -239,6 +257,7 @@ export class Soldier extends Component {
 
     reset(): void {
         this._attackSequence += 1;
+        this._releaseAttackReservation();
         this.unscheduleAllCallbacks();
         this._hp = GameConfig.soldierMaxHp;
         this._target = null;
@@ -353,6 +372,30 @@ export class Soldier extends Component {
         return this._findPreferredTarget(range);
     }
 
+    private _selectTowerTarget(): SoldierAttackTarget | null {
+        const normalTarget = this._resolveAttackTarget();
+        if (!normalTarget) {
+            return null;
+        }
+        if (!(normalTarget instanceof EnemyMinion)) {
+            return normalTarget;
+        }
+        return this._findReservedMinion(this.attackRange);
+    }
+
+    private _resolveTowerHitTarget(captured: SoldierAttackTarget): SoldierAttackTarget | null {
+        if (this._isTowerTargetLegal(captured)) {
+            return captured;
+        }
+        this._releaseAttackReservation();
+        const replacement = this._findReservedMinion(this.attackRange);
+        if (!replacement || !this._isTowerTargetLegal(replacement)) {
+            return null;
+        }
+        this._attackReservation = AttackReservation.reserve(this, replacement, this.attackDamage);
+        return replacement;
+    }
+
     private _resolveMeleeChaseTarget(dt: number): SoldierAttackTarget | null {
         this._retargetTimer -= dt;
         if (
@@ -434,6 +477,46 @@ export class Soldier extends Component {
         return nearest;
     }
 
+    private _findReservedMinion(maxRange: number): EnemyMinion | null {
+        const scene = this.node.scene;
+        if (!scene) {
+            return null;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        const candidates: Array<{ minion: EnemyMinion; distanceSq: number; index: number }> = [];
+        let index = 0;
+        const maxRangeSq = maxRange * maxRange;
+        for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
+            if (!minion.node.activeInHierarchy || minion.isDead) {
+                continue;
+            }
+            minion.node.getWorldPosition(this._targetPos);
+            const dx = this._targetPos.x - this._selfPos.x;
+            const dy = this._targetPos.y - this._selfPos.y;
+            const distanceSq = dx * dx + dy * dy;
+            if (distanceSq <= maxRangeSq) {
+                candidates.push({ minion, distanceSq, index: index++ });
+            }
+        }
+        candidates.sort((a, b) => a.distanceSq - b.distanceSq || b.index - a.index);
+        return AttackReservation.selectMinion(
+            candidates.map((candidate) => candidate.minion),
+            this.attackDamage,
+            (minion) => minion.currentHp,
+        );
+    }
+
+    private _isTowerTargetLegal(target: SoldierAttackTarget): boolean {
+        if (!this._isAttackTargetAlive(target)) {
+            return false;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        target.node.getWorldPosition(this._targetPos);
+        const dx = this._targetPos.x - this._selfPos.x;
+        const dy = this._targetPos.y - this._selfPos.y;
+        return dx * dx + dy * dy <= this.attackRange * this.attackRange;
+    }
+
     private _isAttackTargetAlive(target: SoldierAttackTarget | null): boolean {
         return !!target?.node?.isValid && target.node.activeInHierarchy && !target.isDead;
     }
@@ -450,6 +533,19 @@ export class Soldier extends Component {
 
         const start = this.node.worldPosition.clone();
         const end = target.worldPosition.clone();
+        const arrow = projectile.getComponent(Arrow);
+        const sprite = projectile.getComponentInChildren(Sprite);
+        if (arrow || sprite) {
+            const offset = arrow?.directionAngleOffset ?? Arrow.DEFAULT_DIRECTION_ANGLE_OFFSET;
+            projectile.setRotationFromEuler(
+                0,
+                0,
+                Arrow.rotationZForDirection(new Vec3(end.x - start.x, end.y - start.y, 0), offset),
+            );
+        } else if (!Soldier._warnedMissingProjectileVisual) {
+            Soldier._warnedMissingProjectileVisual = true;
+            console.warn('[Soldier] tower projectile has no Arrow or Sprite visual; keeping unrotated flight');
+        }
         let elapsed = 0;
         const duration = 0.2;
 
@@ -473,6 +569,7 @@ export class Soldier extends Component {
 
     private _die(): void {
         this._attackSequence += 1;
+        this._releaseAttackReservation();
         this._isAttacking = false;
         this._isDead = true;
         this._canAct = false;
@@ -512,5 +609,20 @@ export class Soldier extends Component {
         bar.hideWhenDead = true;
         bar.bindTarget(this.node);
         bar.applyHp(this._hp, GameConfig.soldierMaxHp, true);
+    }
+
+    onDisable(): void {
+        this._attackSequence += 1;
+        this._releaseAttackReservation();
+    }
+
+    onDestroy(): void {
+        this.onDisable();
+    }
+
+    private _releaseAttackReservation(): void {
+        AttackReservation.release(this._attackReservation);
+        AttackReservation.releaseForAttacker(this);
+        this._attackReservation = null;
     }
 }

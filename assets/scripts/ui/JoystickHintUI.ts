@@ -1,4 +1,4 @@
-import { _decorator, Component, EventTouch, input, Input, Node, Vec3 } from 'cc';
+import { _decorator, Component, Node, Vec3 } from 'cc';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -40,18 +40,14 @@ export class JoystickHintUI extends Component {
         }
         this._basePos.set(this.hintRoot.position);
         this._knobBasePos.set(this.knob?.position ?? Vec3.ZERO);
-        this._setVisible(false);
+        this._resetHint(true);
         EventManager.instance.onEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
         EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
-        input.on(Input.EventType.TOUCH_START, this._onAnyInput, this);
-        input.on(Input.EventType.TOUCH_MOVE, this._onAnyInput, this);
     }
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
         EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
-        input.off(Input.EventType.TOUCH_START, this._onAnyInput, this);
-        input.off(Input.EventType.TOUCH_MOVE, this._onAnyInput, this);
     }
 
     bindJoystick(joystick: Joystick | null): void {
@@ -85,13 +81,7 @@ export class JoystickHintUI extends Component {
     }
 
     private _hasJoystickInput(): boolean {
-        if (!this.joystick) {
-            return false;
-        }
-        if (this.joystick.isActive()) {
-            return true;
-        }
-        return this.joystick.getDirection().lengthSqr() > 0.0001;
+        return this.joystick?.hasEffectiveInput() ?? false;
     }
 
     private _setVisible(visible: boolean): void {
@@ -111,12 +101,12 @@ export class JoystickHintUI extends Component {
         }
     }
 
-    private _resetHint(): void {
+    private _resetHint(showImmediately = false): void {
         this._idleTimer = 0;
         this._figureT = 0;
         this.knob?.setPosition(this._knobBasePos);
         this.hintRoot?.setPosition(this._basePos);
-        this._setVisible(false);
+        this._setVisible(showImmediately);
     }
 
     private _onPhaseChanged = (...args: unknown[]): void => {
@@ -124,7 +114,7 @@ export class JoystickHintUI extends Component {
         if (phase === 'parkour' || phase === 'run_parkour' || phase === GamePhase.RunParkour) {
             this._suppressed = false;
             this._mode = 'parkour';
-            this._resetHint();
+            this._resetHint(true);
             return;
         }
         if (
@@ -149,11 +139,6 @@ export class JoystickHintUI extends Component {
         this._suppressed = false;
         this._mode = 'defense';
         this._resetHint();
-    };
-
-    private _onAnyInput = (_event: EventTouch): void => {
-        this._idleTimer = 0;
-        this._setVisible(false);
     };
 
     private _updateParkourMotion(): void {

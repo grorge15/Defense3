@@ -154,6 +154,15 @@
 | **原因** | ① BuildPlot 三参 `(delta,paid,cost)` 被 CoinUI 当成 balance；② `isAttackable` 在固定后为 false，collider 仍是 sensor，无血量；③ Boss 无 HealthSystem，`bindTarget` 写成 1/1，`visualNode` 常空；④ Label 写死 `hp/max`。 |
 | **解决** | BuildPlot 直接 `CoinSystem.addCoins` + `CoinUI` 渐变与飞币；固定后滚木改 Static 固体、可攻击、玩家血条模板；Boss 解析 Visual、emit 满血、放大过小攻击距离；`showMaxInLabel=false` 只显示当前血量。 |
 
+### v2（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 建造地块在接受分数金币支付后，绿色填充和金币反馈会更新，但费用文本仍显示原始总价。 |
+| **原因** | `BuildPlot` 的费用刷新路径固定读取 `getBuildCost()`，付款进度更新后只刷新 fill bar，未将已支付金额纳入 Label。 |
+| **解决** | 费用 Label 统一显示 `Math.ceil(getRemainingCost())`；每次已接受 payment 后与既有 fill 更新同一周期刷新，保留扣币、飞币和完成流程。 |
+| **验证** | `node .cursor/scripts/test-build-cost-ultimate-timing.cjs`（37 assertions）、`npx tsc --noEmit --pretty false`、`npx openspec validate fix-build-cost-and-finale-timing --strict` 与 `git diff --check` 均退出 0。 |
+
 ---
 
 ## fix-enemy-pool-boss-chase-log-block — 小怪池/Boss 追人/滚木挡玩家
@@ -403,6 +412,24 @@
 | **现象** | `Vfx_BigMove` 播放速度调为 0.3 倍时，特效尚未播放完就被兜底回调销毁。 |
 | **原因** | 兜底调度只使用 `AnimationState.duration`，没有按 `AnimationState.speed` 换算有效播放时长。 |
 | **解决** | 兜底时间优先使用 clip/state 时长除以 `abs(speed)`；速度为非有限值或零时按 1 处理。保留 `Animation.EventType.FINISHED` 正常回调、重复回调保护和空资源兜底。 |
+
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 大招请求镜头拉远后立即创建并播放 BigMove，拉远无法完整作为特效前导；延迟回调还可能在无效组件上继续收尾。 |
+| **原因** | `CameraFollow.zoomOut` 没有最终状态完成通知，`UltimateSystem` 在调用拉远后直接进入 BigMove 路径。 |
+| **解决** | `zoomOut` 增加一次性完成回调，在最终 zoom 值写入且 `_zooming` 清除后触发；大招在有效相机完成时才启动同帧 BigMove，无相机立即兜底，并保护重复、禁用和销毁后的回调。 |
+| **验证** | `node .cursor/scripts/test-build-cost-ultimate-timing.cjs`（37 assertions）、`npx tsc --noEmit --pretty false`、两个相关 OpenSpec strict 验证与 `git diff --check` 均退出 0。 |
+
+### v5（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | BigMove 完成后敌人会立即隐藏，死亡演出被跳过，且无法以所有活跃敌人的完成状态作为胜利结算边界。 |
+| **原因** | `UltimateSystem.clearAllEnemies()` 直接停用 Minion/Boss，未区分最终清场演出与普通战斗死亡的奖励、对象池和 Boss FINISHED 路径。 |
+| **解决** | 最终清场先停刷并令选中敌人静止，调用无奖励的 final-death API，等待每个一次性完成回调后统一 deactivate，再只安排一次既有胜利延迟；缺视觉、禁用、销毁、同步/重复/抛错回调均收敛。 |
+| **验证** | `node .cursor/scripts/test-tower-arrow-ultimate-death-cleanup.cjs`（40 assertions）、`node .cursor/scripts/test-build-cost-ultimate-timing.cjs`（37 assertions）、`npx tsc --noEmit --pretty false`、两个 strict OpenSpec 验证与 `git diff --check` 均退出 0。 |
 
 ---
 
@@ -897,6 +924,15 @@
 | **原因** | v4 按反向语义更新，且隐藏脚本根节点会让组件停止 update，无法靠空闲计时重新显示。 |
 | **解决** | `JoystickHintUI` 改回有输入隐藏、空闲超过 `GameConfig.joystickHintDelay` 显示；组件根节点保持 active，只隐藏/显示可视子节点，并用 `PARKOUR_FINISHED` 切到塔防倒 8 逻辑。 |
 
+### v6（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 跑酷开局提示不能立即出现；一次点击、零向量或仅垂直拖拽会被当作首次移动输入，Player 会在未产生横向方向前起步。 |
+| **原因** | Hint 监听全局 touch 活动而非摇杆约束后的方向，Player 也没有区分 parkour 的输入接收门槛。 |
+| **解决** | 跑酷进入时立即显示 Hint；Joystick 仅在约束后的方向非零时标记有效输入，并在首次有效水平输入时先解锁 Player 再下发方向。Hint 只观察该有效状态，输入后隐藏、静止三秒重显，保留塔防倒 8 与 ultimate/game-over suppress。 |
+| **验证** | `node .cursor/scripts/test-friendly-target-reservation-and-joystick-onboarding.cjs`（45 assertions）、`npx tsc --noEmit --pretty false`、OpenSpec strict 与 `git diff --check` 均退出 0。 |
+
 ---
 
 ## fix-enemy-spawner-not-starting — EnemySpawner 不出怪
@@ -1089,6 +1125,15 @@
 | **现象** | `pref_build_plot` 根据建筑类型替换图片时改到了 Background，而不是 `PreviewIcon`。 |
 | **原因** | `BuildPlot._applyBackgroundSprite` 读取类型图后写入 `backgroundSprite` 的 Sprite。 |
 | **解决** | 类型图改为应用到 `previewIcon` 的 Sprite；保留原序列化字段名，避免丢失 Inspector 中已配置的 SpriteFrame。 |
+
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 塔载远程 Soldier 的定时箭矢会飞向目标但没有按玩家 Arrow 的贴图朝向约定旋转。 |
+| **原因** | Soldier 的独立 0.2 秒插值路径没有复用 Arrow 的 XY 角度与序列化方向偏移计算。 |
+| **解决** | Arrow 暴露共享 Z 轴朝向计算；Soldier 在 spawn 时以不可变起终点方向应用 Arrow 实例偏移，Sprite 缺 Arrow 时用默认偏移，无视觉时仅一次诊断并保留原飞行与伤害。 |
+| **验证** | `node .cursor/scripts/test-tower-arrow-ultimate-death-cleanup.cjs`（40 assertions）、`npx tsc --noEmit --pretty false`、两个 ultimate OpenSpec strict 验证与 `git diff --check` 均退出 0。 |
 
 ---
 
@@ -1358,6 +1403,23 @@
 | **解决** | 移到 `_onExpandComplete` 激活扩展内容后执行；保留 `hideWhenExpandUnlocked` 字段及 Inspector 引用，更新 tooltip。 |
 | **验证** | TypeScript 通过；mock 验证完成入口会隐藏，静态检查英雄生成入口不再隐藏。 |
 
+### v3（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 拓展区建成后，已经站在新拓展区内的小怪和 Boss 会留在新防线内侧。 |
+| **原因** | `_onExpandComplete` 只切换墙体、地块和隐藏节点，没有按场景标记处理已经生成的敌人。 |
+| **解决** | 扩展完成后一次性按 `ExpandAreaCollider` 的 Sensor `BoxCollider2D` 筛选存活敌人，并将其实际碰撞框完整、分散地迁移到 `SetPos` 的 Sensor 区域；标记无效或容量不足时诊断并保留全部候选敌人原位。迁移保留生命值与既有目标，清除旧攻击、速度和导航瞬态状态。 |
+| **验证** | `node .cursor/scripts/test-expand-enemy-clear-area.cjs`（25 assertions）、`npx tsc --noEmit --pretty false`、`npx openspec validate expand-enemy-clear-area --strict` 与 `git diff --check` 均通过。 |
+
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 拓展完成时预览报 Box2D `b2TreeNode.get`，堆栈经过 `SetTransformVec`、`FindNewContacts` 和 `RigidBody2D.syncSceneToPhysics`。 |
+| **原因** | 清场在启用新墙的同一帧直接传送 Dynamic 敌人；两个大尺寸、默认物理组的 Sensor 标记仍参与接触配对，传送同步会立刻创建这些接触。 |
+| **解决** | 清场延后一帧，并在读取 `ExpandAreaCollider`、`SetPos` 的 AABB 后禁用其仅作标记用途的 Collider fixture，再迁移敌人。场景节点、Sensor 配置和寻路规则不变。 |
+
 ---
 
 ## fix-soldier-ranged-attack-interrupted — 远程兵攻击动画被下一轮攻击打断
@@ -1370,6 +1432,28 @@
 | **原因** | 动画时长 1.1 秒，默认冷却 1 秒；tryAttack 未检查攻击锁，固定延迟解锁回调也可能影响后续攻击。 |
 | **解决** | 同时检查攻击锁与冷却；有效 clip 通过完成回调解锁，移除固定延迟解锁；攻击序号隔离旧命中/完成回调，reset、deactivate、死亡时作废；缺少动画时直接结算并解锁。 |
 | **验证** | TypeScript 和 mock 回归通过，覆盖提前冷却、动画完成、旧回调、缺少动画、reset 与死亡。实际动画观感待 Cocos 手测。 |
+
+### v2（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 塔载远程 Soldier 起攻后，原目标在命中帧前死亡、隐藏或离开射程时仍可能结算旧目标，或无目标时留下过期的待结算伤害。 |
+| **原因** | 延迟帧回调只检查最初捕获目标的生命状态，没有以当前范围重新验证/分配，也没有统一管理攻击者、目标和取消路径的 pending damage。 |
+| **解决** | Tower hit frame 先验证目标的有效、激活、存活和射程；失效时释放旧预约、重选合法范围内 Minion，无替代则只取消本次伤害/展示。reset、deactivate、death、disable/destroy 一并释放。 |
+| **验证** | `node .cursor/scripts/test-friendly-target-reservation-and-joystick-onboarding.cjs`（45 assertions）、`npx tsc --noEmit --pretty false`、OpenSpec strict 与 `git diff --check` 均退出 0。 |
+
+---
+
+## fix-friendly-target-reservation — 友军低血小怪重复过杀
+
+### v1（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Player 和塔兵会独立锁定同一低血 Minion，多次已在路上的攻击造成可避免的过量伤害。 |
+| **原因** | 延迟攻击和 Player Arrow 没有共享的 pending-damage 账本，索敌只按既有距离顺序，不知道同目标的未结算伤害。 |
+| **解决** | 新增无场景依赖的 `AttackReservation` 服务。Player Arrow 与 Tower Soldier 起攻均登记预约；多 Minion 时优先预约后仍可承受本次伤害的稳定距离候选，唯一 Minion 仍允许并发，Boss 保持原自然集火。命中、超距、销毁、目标生命周期和攻击者取消均一次性释放。 |
+| **验证** | `node .cursor/scripts/test-friendly-target-reservation-and-joystick-onboarding.cjs`（45 assertions）、`npx tsc --noEmit --pretty false`、`npx openspec validate fix-friendly-target-reservation-and-joystick-onboarding --strict` 与 `git diff --check` 均退出 0。 |
 
 ---
 

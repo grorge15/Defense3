@@ -49,6 +49,7 @@ export class Player extends Component {
     private _currentLocomotionClip = '';
     private _boundLog: Log | null = null;
     private _parkourCharging = false;
+    private _parkourInputUnlocked = false;
     private readonly _visualFacing = new VisualFacing();
 
     onLoad(): void {
@@ -92,8 +93,13 @@ export class Player extends Component {
     }
 
     onDestroy(): void {
+        this._combat?.cancelPendingAttack();
         EventManager.instance.offEvent(GameEvents.PHASE_CHANGED, this._onPhaseChanged, this);
         EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
+    }
+
+    onDisable(): void {
+        this._combat?.cancelPendingAttack();
     }
 
     get hasBow(): boolean {
@@ -117,11 +123,40 @@ export class Player extends Component {
     }
 
     setMoveDirection(dir: Vec2): void {
+        if (this._mode === 'parkour' && !this._parkourInputUnlocked) {
+            this._moveDir.set(0, 0);
+            return;
+        }
         this._moveDir.set(dir);
     }
 
     setMode(mode: PlayerMode): void {
         this._mode = mode;
+        if (mode === 'parkour') {
+            this.beginParkourInputGate();
+        } else {
+            this._parkourInputUnlocked = true;
+        }
+    }
+
+    /** Joystick calls this before delivering the first constrained horizontal direction. */
+    beginParkourInputGate(): void {
+        this._parkourInputUnlocked = false;
+        this._moveDir.set(0, 0);
+        this._velocity.set(0, 0);
+        if (this._rb) {
+            this._rb.linearVelocity = new Vec2(0, 0);
+        }
+    }
+
+    unlockParkourMovement(): void {
+        if (this._mode === 'parkour') {
+            this._parkourInputUnlocked = true;
+        }
+    }
+
+    get isParkourMovementUnlocked(): boolean {
+        return this._parkourInputUnlocked;
     }
 
     setHasBow(hasBow: boolean): void {
@@ -211,6 +246,13 @@ export class Player extends Component {
         }
 
         if (this._mode === 'parkour') {
+            if (!this._parkourInputUnlocked) {
+                this._velocity.set(0, 0);
+                if (this._rb) {
+                    this._rb.linearVelocity = this._velocity;
+                }
+                return;
+            }
             this._velocity.x = this._moveDir.x * GameConfig.playerMoveSpeed;
             const charging =
                 this._parkourCharging || this._boundLog?.getPhase() === 'charging';
@@ -270,6 +312,7 @@ export class Player extends Component {
             return;
         }
         this._isDead = true;
+        this._combat?.cancelPendingAttack();
         this._canMove = false;
         this._velocity.set(0, 0);
         if (this._rb) {

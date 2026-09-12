@@ -141,11 +141,11 @@ export class GameConfig {
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 15;
-    static readonly farSpawnInterval = 1.6;
+    static readonly farSpawnInterval = 0.8;
     /** 场上同时存活小怪上限（含侧路） */
     static readonly farSpawnMaxAlive = 50;
     /** 小怪死亡后回池并在 SpawnPoint 重生的延迟（秒） */
-    static readonly enemyRespawnDelay = 5;
+    static readonly enemyRespawnDelay = 4;
     static readonly joystickHintDelay = 3;
     /** 倒 8 字动画振幅（UI 本地像素） */
     static readonly joystickHintFigure8Amp = 28;
@@ -170,17 +170,17 @@ export class GameConfig {
     static readonly guideTargetArrowScale = 0.5;
 
     // --- 建造（调试期统一 10 金）---
-    static readonly wallBuildCost = 20;
-    static readonly towerBasicBuildCost = 20;
-    static readonly towerAdvancedBuildCost = 10;
-    static readonly barracksBuildCost = 30;
-    static readonly heroShrineBuildCost = 40;
-    static readonly expandAreaBuildCost = 50;
+    static readonly wallBuildCost = 10;
+    static readonly towerBasicBuildCost = 30;
+    static readonly towerAdvancedBuildCost = 40;
+    static readonly barracksBuildCost = 40;
+    static readonly heroShrineBuildCost = 50;
+    static readonly expandAreaBuildCost = 60;
     static readonly barracksSpawnInterval = 3;
 
     // --- 金币 ---
     /** 小怪死亡掉落面额 */
-    static readonly coinDropAmount = 1;
+    static readonly coinDropAmount = 2;
     /** 吸附飞向玩家的速度（世界单位/秒） */
     static readonly coinMagnetSpeed = 420;
     /**
@@ -222,7 +222,7 @@ export class GameConfig {
     /** 拉远缓动时长（秒） */
     static readonly ultimateZoomDuration = 1.5;
     /** 拉远结束后再切 GameOver 的额外延迟（秒） */
-    static readonly ultimateGameOverDelay = 0.2;
+    static readonly ultimateGameOverDelay = 1;
 
     /** Boss 血条白缓冲条逼近红条的速度（越大越快） */
     static readonly hpBarBufferLerpSpeed = 4;

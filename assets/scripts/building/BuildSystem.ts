@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node, Prefab, resources, Vec3 } from 'cc';
+import { _decorator, BoxCollider2D, Collider2D, Component, instantiate, Node, Prefab, Rect, resources, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
 import { playAnimWithCallback } from '../core/AnimUtil';
@@ -6,6 +6,8 @@ import { EventManager } from '../core/EventManager';
 import { EnemyNavigation } from '../core/EnemyNavigation';
 import { GameEvents } from '../core/GameEvents';
 import { BossSpawner } from '../enemy/BossSpawner';
+import { EnemyBoss } from '../enemy/EnemyBoss';
+import { EnemyMinion } from '../enemy/EnemyMinion';
 import { CoinSystem } from '../game/CoinSystem';
 import { GameManager } from '../game/GameManager';
 import { GamePhase } from '../game/GamePhase';
@@ -22,6 +24,17 @@ const { ccclass, property } = _decorator;
 
 const VFX_BLUE_PATH = 'prefabs/VFX/blue_upgradeEffect';
 const VFX_YELLOW_PATH = 'prefabs/VFX/yellow_upgradeEffect';
+const EXPAND_CLEAR_MARKER_NAME = 'ExpandAreaCollider';
+const EXPAND_DROP_MARKER_NAME = 'SetPos';
+const EXPAND_DROP_GAP = 2;
+
+type ExpansionClearCandidate = {
+    enemy: EnemyMinion | EnemyBoss;
+    kind: 'boss' | 'minion';
+    aabb: Rect;
+    centerOffsetX: number;
+    centerOffsetY: number;
+};
 
 type BuildCompletePayload = {
     buildType?: BuildPlotType | string;
@@ -127,6 +140,7 @@ export class BuildSystem extends Component {
     private _advRightDone = false;
     private _advBuiltCount = 0;
     private _bothAdvEmitted = false;
+    private _expandEnemyClearAttempted = false;
     private readonly _spawnPos = new Vec3();
 
     onLoad(): void {
@@ -517,8 +531,179 @@ export class BuildSystem extends Component {
         this._revealPlots(this.towerAdvancedPlots, 'towerAdvanced');
         this._hideExpandUnlockNodes();
         this._invalidateEnemyNavigation();
+        if (!this._expandEnemyClearAttempted) {
+            this._expandEnemyClearAttempted = true;
+            // Let newly enabled static colliders finish their Box2D sync before teleporting Dynamic enemies.
+            this.scheduleOnce(() => {
+                if (this.isValid && this.node.activeInHierarchy) {
+                    this._clearExpansionEnemies();
+                }
+            }, 0);
+        }
         // 拓展完成 → 防守拓展阶段
         GameManager.instance?.setPhase(GamePhase.DefensePhase);
+    }
+
+    /** Uses the scene-authored sensor markers without serializing new scene references. */
+    private _clearExpansionEnemies(): void {
+        const clearMarker = this._resolveExpansionMarker(EXPAND_CLEAR_MARKER_NAME);
+        const dropMarker = this._resolveExpansionMarker(EXPAND_DROP_MARKER_NAME);
+        if (!clearMarker || !dropMarker) {
+            return;
+        }
+
+        // These authored sensors are geometry markers only. Leaving their large default-group fixtures
+        // enabled makes every relocated Dynamic body enter a new Box2D contact during its transform sync.
+        const clearAabb = new Rect(
+            clearMarker.worldAABB.x,
+            clearMarker.worldAABB.y,
+            clearMarker.worldAABB.width,
+            clearMarker.worldAABB.height,
+        );
+        const dropAabb = new Rect(
+            dropMarker.worldAABB.x,
+            dropMarker.worldAABB.y,
+            dropMarker.worldAABB.width,
+            dropMarker.worldAABB.height,
+        );
+        clearMarker.enabled = false;
+        dropMarker.enabled = false;
+        const candidates = this._collectExpansionClearCandidates(clearAabb);
+        if (candidates.length === 0) {
+            return;
+        }
+
+        const destinations = this._planExpansionDropPositions(candidates, dropAabb);
+        if (!destinations) {
+            console.warn(
+                `[BuildSystem] ${EXPAND_DROP_MARKER_NAME} cannot contain ${candidates.length} expansion enemies; none were moved`,
+            );
+            return;
+        }
+
+        for (let index = 0; index < candidates.length; index += 1) {
+            candidates[index].enemy.relocateForExpansion(destinations[index]);
+        }
+    }
+
+    private _resolveExpansionMarker(name: string): BoxCollider2D | null {
+        const scene = this.node.scene;
+        if (!scene) {
+            console.warn(`[BuildSystem] ${name} marker cannot be resolved without a scene`);
+            return null;
+        }
+        const matches = scene.getComponentsInChildren(BoxCollider2D)
+            .filter((collider) => collider.node?.name === name);
+        if (matches.length !== 1) {
+            console.warn(`[BuildSystem] expected exactly one ${name} BoxCollider2D marker, found ${matches.length}`);
+            return null;
+        }
+        const marker = matches[0];
+        const aabb = marker.worldAABB;
+        if (!marker.enabled || !marker.sensor || !marker.node.activeInHierarchy ||
+            !Number.isFinite(aabb.width) || !Number.isFinite(aabb.height) ||
+            aabb.width <= 0 || aabb.height <= 0) {
+            console.warn(`[BuildSystem] ${name} marker must be active, enabled, sensor, and have a positive AABB`);
+            return null;
+        }
+        return marker;
+    }
+
+    private _collectExpansionClearCandidates(clearAabb: Rect): ExpansionClearCandidate[] {
+        const scene = this.node.scene;
+        if (!scene) {
+            return [];
+        }
+        const candidates: ExpansionClearCandidate[] = [];
+        const append = (enemy: EnemyMinion | EnemyBoss, kind: 'boss' | 'minion'): void => {
+            if (!enemy.node.activeInHierarchy || enemy.isDead) {
+                return;
+            }
+            const collider = enemy.node.getComponent(Collider2D);
+            if (!collider?.enabled) {
+                return;
+            }
+            const aabb = collider.worldAABB;
+            if (!this._aabbTouches(aabb, clearAabb) || aabb.width <= 0 || aabb.height <= 0) {
+                return;
+            }
+            const centerX = (aabb.xMin + aabb.xMax) * 0.5;
+            const centerY = (aabb.yMin + aabb.yMax) * 0.5;
+            candidates.push({
+                enemy,
+                kind,
+                aabb: new Rect(aabb.x, aabb.y, aabb.width, aabb.height),
+                centerOffsetX: centerX - enemy.node.worldPosition.x,
+                centerOffsetY: centerY - enemy.node.worldPosition.y,
+            });
+        };
+
+        for (const boss of scene.getComponentsInChildren(EnemyBoss)) {
+            append(boss, 'boss');
+        }
+        for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
+            append(minion, 'minion');
+        }
+        candidates.sort((left, right) => {
+            const kindOrder = (left.kind === 'boss' ? 0 : 1) - (right.kind === 'boss' ? 0 : 1);
+            if (kindOrder !== 0) return kindOrder;
+            const areaOrder = right.aabb.width * right.aabb.height - left.aabb.width * left.aabb.height;
+            if (areaOrder !== 0) return areaOrder;
+            return left.enemy.node.uuid.localeCompare(right.enemy.node.uuid);
+        });
+        return candidates;
+    }
+
+    private _planExpansionDropPositions(candidates: ExpansionClearCandidate[], dropAabb: Rect): Vec3[] | null {
+        const placed: Rect[] = [];
+        const destinations: Vec3[] = [];
+        for (const candidate of candidates) {
+            const width = candidate.aabb.width;
+            const height = candidate.aabb.height;
+            if (width > dropAabb.width || height > dropAabb.height) {
+                return null;
+            }
+            const xOrigins = [dropAabb.xMin, ...placed.map((rect) => rect.xMax + EXPAND_DROP_GAP)];
+            const yOrigins = [dropAabb.yMin, ...placed.map((rect) => rect.yMax + EXPAND_DROP_GAP)];
+            let destinationRect: Rect | null = null;
+            for (const y of [...new Set(yOrigins)].sort((left, right) => left - right)) {
+                for (const x of [...new Set(xOrigins)].sort((left, right) => left - right)) {
+                    const proposed = new Rect(x, y, width, height);
+                    if (!this._aabbIsInside(proposed, dropAabb) ||
+                        placed.some((occupied) => this._aabbOverlapsWithGap(proposed, occupied))) {
+                        continue;
+                    }
+                    destinationRect = proposed;
+                    break;
+                }
+                if (destinationRect) break;
+            }
+            if (!destinationRect) {
+                return null;
+            }
+            placed.push(destinationRect);
+            destinations.push(new Vec3(
+                destinationRect.x + width * 0.5 - candidate.centerOffsetX,
+                destinationRect.y + height * 0.5 - candidate.centerOffsetY,
+                candidate.enemy.node.worldPosition.z,
+            ));
+        }
+        return destinations;
+    }
+
+    private _aabbTouches(left: Rect, right: Rect): boolean {
+        return left.xMin <= right.xMax && left.xMax >= right.xMin &&
+            left.yMin <= right.yMax && left.yMax >= right.yMin;
+    }
+
+    private _aabbIsInside(inner: Rect, outer: Rect): boolean {
+        return inner.xMin >= outer.xMin && inner.xMax <= outer.xMax &&
+            inner.yMin >= outer.yMin && inner.yMax <= outer.yMax;
+    }
+
+    private _aabbOverlapsWithGap(left: Rect, right: Rect): boolean {
+        return left.xMin < right.xMax + EXPAND_DROP_GAP && left.xMax + EXPAND_DROP_GAP > right.xMin &&
+            left.yMin < right.yMax + EXPAND_DROP_GAP && left.yMax + EXPAND_DROP_GAP > right.yMin;
     }
 
     /** 高级塔建成追踪；两侧齐备后 emit + setPhase(Ultimate) */

@@ -230,7 +230,7 @@ export class BuildPlot extends Component {
             from.set(this._selfPos);
         }
         CoinUI.instance?.playDeliverFly(this._selfPos, from);
-        this._updateFillBar();
+        this._refreshCostDisplay();
 
         if (this._paidAmount >= totalCost) {
             this._completeBuild();
@@ -309,7 +309,7 @@ export class BuildPlot extends Component {
     private _refreshCostDisplay(): void {
         this._applyPreviewIconSprite();
         if (this.costLabel) {
-            this.costLabel.string = String(this.getBuildCost());
+            this.costLabel.string = String(Math.ceil(this.getRemainingCost()));
         }
         this._updateFillBar();
     }
