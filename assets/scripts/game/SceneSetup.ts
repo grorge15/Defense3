@@ -67,6 +67,9 @@ export class SceneSetup extends Component {
     @property({ type: GuideIndicatorUI, tooltip: '预摆十步引导 UI（可选补绑）' })
     guideIndicatorUI: GuideIndicatorUI | null = null;
 
+    @property({ type: [Node], tooltip: '大招 BigMove 播放点位（可多选）' })
+    ultimateBigMovePoints: Node[] = [];
+
     onLoad(): void {
         if (!this.getComponent(Physics2DSetup)) {
             this.addComponent(Physics2DSetup);
@@ -233,9 +236,8 @@ export class SceneSetup extends Component {
         if (!scene) {
             return;
         }
-        if (!scene.getComponentInChildren(UltimateSystem)) {
-            this.addComponent(UltimateSystem);
-        }
+        const ultimate = scene.getComponentInChildren(UltimateSystem) ?? this.addComponent(UltimateSystem);
+        ultimate.setBigMovePoints(this.ultimateBigMovePoints);
     }
 
     private _onParkourFinished = (): void => {

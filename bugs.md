@@ -388,6 +388,22 @@
 | **原因** | 收尾依赖 `castUltimate` 回调；`pref_ui_game_over` 开局 inactive，`GameOverUI.onLoad` 未挂监听。 |
 | **解决** | `UltimateSystem` 解锁后直接 `_runFinale`；`GameOverUI.ensureReady` + `UIManager` 显示前唤醒。 |
 
+### v2（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 大招触发后敌人立即消失，无法看到场景内配置的大招特效。 |
+| **原因** | `_runFinale` 在镜头拉远后立即调用 `clearAllEnemies()`，没有等待 BigMove 动画完成；同时运行时创建的 `UltimateSystem` 无法直接接收场景点位列表。 |
+| **解决** | `SceneSetup` 暴露 `ultimateBigMovePoints` 并注入 `UltimateSystem`；所有有效点位同步播放 `Vfx_BigMove/BigMove`，动画完成后再清空敌人并进入胜利结算；空点位和资源失败走非阻塞兜底。 |
+
+### v3（2026-09-11）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `Vfx_BigMove` 播放速度调为 0.3 倍时，特效尚未播放完就被兜底回调销毁。 |
+| **原因** | 兜底调度只使用 `AnimationState.duration`，没有按 `AnimationState.speed` 换算有效播放时长。 |
+| **解决** | 兜底时间优先使用 clip/state 时长除以 `abs(speed)`；速度为非有限值或零时按 1 处理。保留 `Animation.EventType.FINISHED` 正常回调、重复回调保护和空资源兜底。 |
+
 ---
 
 ## fix-log-extend-collider — 滚木加长碰撞未变长
