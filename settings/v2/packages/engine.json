@@ -21,7 +21,7 @@
             "_value": true
           },
           "skeletal-animation": {
-            "_value": true
+            "_value": false
           },
           "3d": {
             "_value": true
@@ -36,7 +36,7 @@
             "_value": true
           },
           "rich-text": {
-            "_value": true
+            "_value": false
           },
           "mask": {
             "_value": true
@@ -54,10 +54,10 @@
             "_value": true
           },
           "particle": {
-            "_value": true
+            "_value": false
           },
           "physics": {
-            "_value": true,
+            "_value": false,
             "_option": "physics-ammo"
           },
           "physics-ammo": {
@@ -116,7 +116,7 @@
             "_value": false
           },
           "particle-2d": {
-            "_value": true
+            "_value": false
           },
           "audio": {
             "_value": true
@@ -137,19 +137,19 @@
             "_value": false
           },
           "terrain": {
-            "_value": true
+            "_value": false
           },
           "light-probe": {
-            "_value": true
+            "_value": false
           },
           "tiled-map": {
-            "_value": true
+            "_value": false
           },
           "vendor-google": {
             "_value": false
           },
           "spine": {
-            "_value": true,
+            "_value": false,
             "_option": "spine-3.8"
           },
           "spine-3.8": {
@@ -165,7 +165,7 @@
             }
           },
           "dragon-bones": {
-            "_value": true
+            "_value": false
           },
           "marionette": {
             "_value": true
@@ -190,10 +190,7 @@
             "_value": false
           }
         },
-        "flags": {
-          "LOAD_SPINE_MANUALLY": false,
-          "LOAD_BULLET_MANUALLY": false
-        },
+        "flags": {},
         "includeModules": [
           "2d",
           "3d",
@@ -202,25 +199,15 @@
           "audio",
           "base",
           "custom-pipeline",
-          "dragon-bones",
           "gfx-webgl",
           "graphics",
           "intersection-2d",
-          "light-probe",
           "marionette",
           "mask",
-          "particle",
-          "particle-2d",
           "physics-2d-box2d",
-          "physics-ammo",
           "primitive",
           "profiler",
-          "rich-text",
-          "skeletal-animation",
           "sorting-2d",
-          "spine-3.8",
-          "terrain",
-          "tiled-map",
           "tween",
           "ui",
           "ui-skew",
