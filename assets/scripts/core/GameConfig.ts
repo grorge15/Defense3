@@ -42,17 +42,17 @@ export class GameConfig {
     /** 箭矢最大穿透敌人数（含首命中） */
     static readonly arrowMaxPierce = 5;
     /** 玩家箭矢前 N 个命中目标造成满额 playerAttackDamage */
-    static readonly arrowFullDamageHits = 3;
+    static readonly arrowFullDamageHits = 1;
     /** 超过满伤命中数后，每多命中一个目标的伤害倍率 */
     static readonly arrowPierceDamageFalloff = 0.5;
     /** 箭矢最大飞行距离（世界单位） */
     static readonly arrowMaxDistance = 300;
 
     // --- 相机跟随（玩法在 XY 平面，主相机从 +Z 看向原点；UI 由 UICamera 单独渲染）---
-    static readonly cameraFollowOffsetX = 0;
-    static readonly cameraFollowOffsetY = 0;
-    /** 相对目标沿 +Z 拉开的观察距离（与 Main Camera 初始 z≈1000 一致） */
-    static readonly cameraFollowOffsetZ = 1000;
+    static readonly cameraFollowOffsetX = -15;
+    static readonly cameraFollowOffsetY = -225;
+    /** 相对目标沿 +Z 拉开的观察距离 */
+    static readonly cameraFollowOffsetZ = 860;
     /** 跟随平滑系数（越大越贴） */
     static readonly cameraFollowSmooth = 6;
 
@@ -81,7 +81,7 @@ export class GameConfig {
     static readonly minionMoveSpeed = 4;
     static readonly bossMoveSpeed = 4.5;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
-    static readonly soldierMoveSpeed = 6;
+    static readonly soldierMoveSpeed = 4;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
     static readonly soldierRetargetInterval = 0.35;
     /** 近战小兵停步/出手距离 */
@@ -222,7 +222,7 @@ export class GameConfig {
     /** 拉远缓动时长（秒） */
     static readonly ultimateZoomDuration = 1.5;
     /** 拉远结束后再切 GameOver 的额外延迟（秒） */
-    static readonly ultimateGameOverDelay = 1;
+    static readonly ultimateGameOverDelay = 0;
 
     /** Boss 血条白缓冲条逼近红条的速度（越大越快） */
     static readonly hpBarBufferLerpSpeed = 4;

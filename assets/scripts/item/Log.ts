@@ -66,6 +66,7 @@ export class Log extends Component {
     private _lastCutSide: LogCutSide | null = null;
     private _hp = GameConfig.logMaxHp;
     private _hpBarSpawned = false;
+    private _rollAnimPlaying = false;
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -109,7 +110,7 @@ export class Log extends Component {
         this._lastCutSide = null;
         this._resetRollingGeometry();
         this._refreshLengthVisual();
-        this._playRollAnim();
+        this._stopRollAnim();
         if (this._pushPlayer) {
             this._captureFollowOffset();
         }
@@ -365,6 +366,7 @@ export class Log extends Component {
             return;
         }
 
+        this._syncRollAnimToPlayerMovement();
         this._pushPlayer.node.getWorldPosition(this._playerPos);
         if (!this._hasFollowOffset) {
             this._captureFollowOffset();
@@ -485,7 +487,21 @@ export class Log extends Component {
         }
     }
 
+    private _syncRollAnimToPlayerMovement(): void {
+        const isPlayerMoving = this._pushPlayer!.getVelocity().lengthSqr() > 0.001;
+        if (isPlayerMoving === this._rollAnimPlaying) {
+            return;
+        }
+        this._rollAnimPlaying = isPlayerMoving;
+        if (isPlayerMoving) {
+            this._playRollAnim();
+        } else {
+            this._stopRollAnim();
+        }
+    }
+
     private _stopRollAnim(): void {
+        this._rollAnimPlaying = false;
         if (!this.visualNode) {
             return;
         }

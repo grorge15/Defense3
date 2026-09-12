@@ -126,7 +126,7 @@ export class BuildSystem extends Component {
     @property({ type: CoinSystem, tooltip: '金币系统；空则运行时查找' })
     coinSystem: CoinSystem | null = null;
 
-    @property({ type: BossSpawner, tooltip: 'Boss 生成器；空则运行时查找；首座初级塔或兵营建成时 spawn' })
+    @property({ type: BossSpawner, tooltip: 'Boss 生成器；空则运行时查找；两座指定初级塔建成时 spawn' })
     bossSpawner: BossSpawner | null = null;
 
     private _wallLeftDone = false;
@@ -205,14 +205,12 @@ export class BuildSystem extends Component {
 
         if (buildType === 'towerBasic') {
             this._spawnTower(worldPos, plotRoot);
-            this._trySpawnBossOnFirstDefenseBuilding();
             this._onBasicTowerBuilt(plotRoot);
             return;
         }
 
         if (buildType === 'barracks') {
             this._spawnBarracks(worldPos, plotRoot);
-            this._trySpawnBossOnFirstDefenseBuilding();
             this._revealPlots(this.heroShrinePlots, 'heroShrine');
             return;
         }
@@ -262,16 +260,20 @@ export class BuildSystem extends Component {
         if (this._barracksUnlocked || !plotRoot || this.towerPlots.indexOf(plotRoot) < 0) {
             return;
         }
+        if (plotRoot.name !== 'Plot_Tower_1' && plotRoot.name !== 'Plot_Tower_2') {
+            return;
+        }
         // 按地块身份记录建成历史；重复事件与后续塔被毁不改变解锁进度。
         this._completedBasicTowerPlots.add(plotRoot);
         if (this._completedBasicTowerPlots.size >= 2) {
             this._barracksUnlocked = true;
             this._revealPlots(this.barracksPlots, 'barracks');
+            this._trySpawnBossAfterBasicTowers();
         }
     }
 
-    /** 首座初级箭塔或兵营建成后生成 Boss（只一次） */
-    private _trySpawnBossOnFirstDefenseBuilding(): void {
+    /** 两座指定初级箭塔建成后生成 Boss（只一次） */
+    private _trySpawnBossAfterBasicTowers(): void {
         const spawner =
             this.bossSpawner ??
             this.node.scene?.getComponentInChildren(BossSpawner) ??

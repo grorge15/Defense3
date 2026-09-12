@@ -94,6 +94,15 @@
 | **原因** | 跟木为 sensor + 死贴 offset，且去掉了 airWall AABB；引擎固体不挡。 |
 | **解决** | 仍 `lateUpdate` 贴 `player+offset`（禁止误差/dt）；贴前对期望点 `AirWallAabb.resolveWorldPos` 并用推出后坐标 `setWorldPosition`，速度同步时钳制穿墙轴。 |
 
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 跑酷开局玩家尚未输入、保持静止时，滚木仍播放滚动动画。 |
+| **原因** | `Log.beginParkour()` 无条件播放 `roll`，没有使用玩家输入门禁后的实际移动状态。 |
+| **解决** | `Log` 开始跑酷时先停止滚动动画，在跑酷/蓄力阶段按玩家实际速度启动或停止动画，避免静止时播放。 |
+| **验证** | `npx --no-install tsc --noEmit`、`git diff --check` 通过；未修改场景或 prefab。 |
+
 ---
 
 ## fix-log-fixed-bow-saw — 固定后滚木转 / 拾弓不射 / 电锯不砍木
@@ -212,6 +221,15 @@
 | **现象** | Boss 过早生成；应在首座初始箭塔或兵营解锁时生成，朝玩家靠近；无索敌距离限制，仅按优先级索敌。 |
 | **原因** | Boss 挂在 `LOG_FIXED` 时机；索敌仍带距离或未统一优先级。 |
 | **解决** | 首座初级塔/兵营建成后再 spawn；全程按优先级追击玩家（无距离阈值）。 |
+
+### v3（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 第一座 `towerBasic` 或 `barracks` 建成时就首次生成 Boss，早于两座初级塔全部完成。 |
+| **原因** | `BuildSystem` 在 `towerBasic` 和 `barracks` 的建成分支直接调用 `BossSpawner.trySpawnFirst()`，未等待指定塔地块完成进度。 |
+| **解决** | 移除两个提前调用，仅在 `Plot_Tower_1` 与 `Plot_Tower_2` 都登记到 `_completedBasicTowerPlots`、其数量达到 2 的路径调用一次 Boss 首次生成；其他同名以外地块不计入。 |
+| **验证** | `npx --no-install tsc --noEmit`、`git diff --check` 通过；未修改场景或 prefab。 |
 
 ---
 
