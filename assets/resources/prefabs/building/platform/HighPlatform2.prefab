@@ -205,12 +205,12 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": 0.7,
-      "y": 1.4
+      "y": 6.5
     },
     "_size": {
       "__type__": "cc.Size",
       "width": 33,
-      "height": 251.8
+      "height": 260.4
     },
     "_id": ""
   },
@@ -366,13 +366,13 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0.7,
-      "y": 1.4
+      "x": 3.2,
+      "y": 10.3
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 33,
-      "height": 251.8
+      "width": 37.9,
+      "height": 262.5
     },
     "_id": ""
   },
