@@ -1078,6 +1078,22 @@ export class EnemyNavigation {
         return true;
     }
 
+    /** project.json collisionGroups index 6 = airwall; runtime `_group` is often bitmask `1<<index`. */
+    private static readonly AIRWALL_GROUP_INDEX = 6;
+    private static readonly AIRWALL_GROUP_MASK = 1 << EnemyNavigation.AIRWALL_GROUP_INDEX;
+
+    private _isAirwallPhysicsGroup(box: NavigationCollider): boolean {
+        const group = (box as { group?: number }).group;
+        if (typeof group !== 'number') {
+            return false;
+        }
+        return (
+            group === EnemyNavigation.AIRWALL_GROUP_INDEX
+            || group === EnemyNavigation.AIRWALL_GROUP_MASK
+            || (group & EnemyNavigation.AIRWALL_GROUP_MASK) !== 0
+        );
+    }
+
     private _isBlockingCollider(box: NavigationCollider): boolean {
         const node = box.node;
         if (!node?.activeInHierarchy || box.enabled === false) {
@@ -1090,6 +1106,10 @@ export class EnemyNavigation {
             // Unsupported "Destructible" markers are never made walkable. They stay
             // hard until an actual Log/Building/Barrier damage adapter is present.
             return !this._hasSupportedDamageAdapter(node) || this._isDamageableAlive(node);
+        }
+        // Airwall physics group is not a nav Hard obstacle (AirWallAabb soft push unchanged).
+        if (this._isAirwallPhysicsGroup(box)) {
+            return false;
         }
         if (node.name.startsWith('airWall')) {
             return true;
@@ -1254,7 +1274,11 @@ export class EnemyNavigation {
 
     private _trackCandidate(box: NavigationCollider): void {
         const n = box.node;
-        if (!n || !(n.getComponent(NavigationObstacle) || n.name.startsWith('airWall') || n.getComponent(Wall) || n.getComponent(Tower) ||
+        if (!n) return;
+        const marked = n.getComponent(NavigationObstacle);
+        // Unmarked airwall-group colliders are not navigation obstacles.
+        if (this._isAirwallPhysicsGroup(box) && !marked) return;
+        if (!(marked || n.name.startsWith('airWall') || n.getComponent(Wall) || n.getComponent(Tower) ||
             n.getComponent(Barracks) || n.getComponent(Barrier) || n.getComponent(Building) || n.getComponent(Log))) return;
         this._tracked.add(box); this._watchGeometry(n);
     }
