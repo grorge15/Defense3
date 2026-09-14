@@ -1582,3 +1582,29 @@
 | **验证** | `node .cursor/scripts/test-enemy-navigation.cjs`（含 AC-HITCH）、`npx tsc --noEmit` 通过；报告 `.cursor/plans/reports/nav-build-hitch-coalesce-report.md`。Creator 建墙手测不阻塞。 |
 
 ---
+
+## fix-player-target-nearest-enemy — 玩家索敌从 Boss 优先改为最近敌
+
+### v1（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 玩家自动射箭在攻击范围内会优先锁定 Boss，即使更近处有小怪。 |
+| **原因** | `CombatSystem._findAttackTarget` 先扫 `EnemyBoss` 并直接返回，仅无 Boss 时才在小怪中选最近。 |
+| **解决** | 同范围内对存活且 `activeInHierarchy` 的 `EnemyBoss`/`EnemyMinion` 统一按距离平方取最小者；等距保留先遇到的目标；不改英雄/士兵/Boss 索敌与伤害数值。 |
+| **验证** | `npx tsc --noEmit` 通过。 |
+
+---
+
+## fix-enemy-nav-ignore-airwall-group — 敌人索敌把 airwall 当硬障碍
+
+### v1（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 敌人物理本不与 `airwall` 组碰撞，但流场/索敌仍绕开 `airWall*`，追击路径被空气墙错误挡住。 |
+| **原因** | `EnemyNavigation._isBlockingCollider` / `_trackCandidate` 按节点名 `airWall*` 登记为 Hard 导航障碍，未按物理组 `airwall`（index 6 / mask 64）排除。 |
+| **解决** | 增加 airwall 组判断（index/mask 兼容）；该组碰撞体不再因名字进 `_tracked`、不再判 Hard；显式 `NavigationObstacle` 仍生效；`AirWallAabb` 软推出未改。 |
+| **验证** | `npx tsc --noEmit` 通过。 |
+
+---

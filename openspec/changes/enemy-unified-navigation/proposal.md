@@ -6,7 +6,7 @@ Enemy movement currently treats castle boundaries and configured entrances as ma
 
 - Navigation uses one continuous walkable space and real collider geometry rather than castle inside/outside or entrance state.
 - Pursuit routes are selected against Hard geometry. Eligible destructible obstructions on that selected route are handled through existing reachable-surface demolition while their real colliders remain blocking; indestructible obstacles remain blocking.
-- Obstacle classification is editor-facing on generic colliders/nodes with Ignore, Hard, and Destructible states. Existing attackable objects supply compatibility defaults only when an explicit marking is absent; non-HP Walls and nonsensor `airWall*` colliders remain Hard by default.
+- Obstacle classification is editor-facing on generic colliders/nodes with Ignore, Hard, and Destructible states. Existing attackable objects supply compatibility defaults only when an explicit marking is absent; non-HP Walls remain Hard by default. Colliders in the `airwall` physics group are ignored by enemy navigation unless explicitly marked with `NavigationObstacle`.
 - Destruction invalidates navigation and resumes the original objective after the selected removable obstruction is destroyed. Only one Log exists, but unrelated living damageable Building/Barrier objects may coexist without suppressing evaluation of the relevant blocking Log.
 - The accepted shared 30-cell incremental scheduler, 4096 work cap, atomic publication, cancellation, and bounded cache remain in force.
 

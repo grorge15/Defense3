@@ -495,6 +495,40 @@ should('AC-RUNTIME-CONTRACT: active polygon air walls enter the navigation obsta
     service.destroy();
 });
 
+should('AC-RUNTIME-CONTRACT: Default airWall stays Hard while airwall groups are ignored unless explicitly marked', () => {
+    const h = serviceFixture();
+    const from = h.scene.add(eventNode('airwall-group-from', 0, 0));
+    const to = h.scene.add(eventNode('airwall-group-to', 180, 0));
+    const defaultWall = h.addBox('airWall-default', { xMin: 40, xMax: 60, yMin: -100, yMax: 100 });
+    defaultWall.group = 1;
+    const maskAirwall = h.addBox('airWall-009', { xMin: 80, xMax: 100, yMin: -100, yMax: 100 });
+    maskAirwall.group = 64;
+    const indexAirwall = h.addBox('airWall-010', { xMin: 120, xMax: 140, yMin: -100, yMax: 100 });
+    indexAirwall.group = 6;
+
+    assert.strictEqual(h.service.hasLineOfSight(from, to, body(8)), false);
+    assert.ok(h.service._tracked.has(defaultWall), 'Default airWall must be collected');
+    assert.ok(!h.service._tracked.has(maskAirwall), 'airwall mask collider must be ignored');
+    assert.ok(!h.service._tracked.has(indexAirwall), 'airwall index collider must be ignored');
+
+    defaultWall.enabled = false;
+    h.service.invalidate();
+    assert.strictEqual(h.service.hasLineOfSight(from, to, body(8)), true);
+
+    const marker = new h.NavigationObstacle();
+    marker.kind = h.NavigationObstacleKind.Hard;
+    marker.node = maskAirwall.node;
+    maskAirwall.node.components.set(h.NavigationObstacle, marker);
+    maskAirwall.node.emit('component-added', marker);
+    assert.strictEqual(h.service.hasLineOfSight(from, to, body(8)), false);
+    assert.ok(h.service._tracked.has(maskAirwall), 'explicit Hard marker must override airwall-group filtering');
+
+    marker.kind = h.NavigationObstacleKind.Ignore;
+    h.service.invalidate();
+    assert.strictEqual(h.service.hasLineOfSight(from, to, body(8)), true);
+    h.service.destroy();
+});
+
 should('AC-RUNTIME-CONTRACT: target-self overlap permits attack but another wall still blocks it', () => {
     const { EnemyNavigation, cc, Building } = loadEnemyNavigationForServiceTests();
     const scene = eventNode('target-overlap-scene'); scene.scene = scene;
@@ -695,7 +729,9 @@ function loadEnemyNavigationForServiceTests() {
     };
     const exports = loadTs('assets/scripts/core/EnemyNavigation.ts', mocks);
     return { EnemyNavigation: exports.EnemyNavigation, cc, eventManager, Log: LogStub,
-        Building: mocks[path.join(root, 'assets/scripts/building/Building.ts')].Building };
+        Building: mocks[path.join(root, 'assets/scripts/building/Building.ts')].Building,
+        NavigationObstacle: mocks[path.join(root, 'assets/scripts/core/NavigationObstacle.ts')].NavigationObstacle,
+        NavigationObstacleKind: mocks[path.join(root, 'assets/scripts/core/NavigationObstacle.ts')].NavigationObstacleKind };
 }
 
 function outVec() {
@@ -1489,7 +1525,7 @@ function eventNode(name, x = 0, y = 0) {
 }
 
 function serviceFixture() {
-    const { EnemyNavigation, cc, Log } = loadEnemyNavigationForServiceTests();
+    const { EnemyNavigation, cc, Log, NavigationObstacle, NavigationObstacleKind } = loadEnemyNavigationForServiceTests();
     const scene = eventNode('scene'); scene.scene = scene;
     const service = EnemyNavigation.get(scene);
     const ground = groundNodes(), min = eventNode('min', -100, -100), max = eventNode('max', 220, 220);
@@ -1502,7 +1538,7 @@ function serviceFixture() {
         box.node = node; box.enabled = true; box.isValid = true; box.worldAABB = rect;
         node.components.set(cc.BoxCollider2D, box); scene.add(node); return box;
     };
-    return { scene, service, cc, Log, addBox, min, max, ground, outside, inside };
+    return { scene, service, cc, Log, NavigationObstacle, NavigationObstacleKind, addBox, min, max, ground, outside, inside };
 }
 
 should('AC-SELECTED-ROUTE: direct selected Log is available without a physical-detour graph', () => {

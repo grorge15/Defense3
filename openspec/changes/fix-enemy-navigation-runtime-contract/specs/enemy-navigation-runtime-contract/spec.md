@@ -9,9 +9,14 @@ Enemy navigation SHALL represent supported Box and Polygon 2D obstacle colliders
 - **AND WHEN** a later snapshot observes a changed obstacle geometry, active state, classification, or navigation topology
 - **THEN** navigation SHALL commit one new obstacle revision and discard route work from the old revision
 
-#### Scenario: Polygon wall blocks a direct pursuit line
-- **WHEN** an active nonsensor polygon `airWall` lies between an enemy and its target
-- **THEN** navigation SHALL not return direct velocity through that wall and SHALL use a legal route when one exists
+#### Scenario: Airwall physics group is ignored by navigation
+- **WHEN** a collider whose physics group is `airwall` (index or bitmask) lies between an enemy and its target
+- **THEN** navigation SHALL NOT treat that collider as a Hard obstacle solely due to that group or an `airWall*` name
+- **AND** explicit `NavigationObstacle` markings on the same node SHALL still apply
+
+#### Scenario: Non-airwall hard geometry still blocks pursuit
+- **WHEN** an active Hard wall or other non-airwall blocking collider lies between an enemy and its target
+- **THEN** navigation SHALL not return direct velocity through that collider and SHALL use a legal route when one exists
 
 ### Requirement: Navigation and physics velocity agree
 Enemy route prediction SHALL use world-coordinate velocity, while Box2D receives velocity in its physics coordinate scale.
