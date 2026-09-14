@@ -1,3 +1,5 @@
+import { GameConfig } from './GameConfig';
+
 export type FlowPoint = {
     x: number;
     y: number;
@@ -174,6 +176,9 @@ export class FlowField {
     private readonly _jobOrder: string[] = [];
     private _jobCursor = 0;
     private _graphBuildCount = 0;
+    private _newFieldJobsThisFrame = 0;
+    private _fieldAdmissionFrame = -1;
+    private _fieldAdmissionArmed = false;
     readonly debugStats = { visitedCells: 0, candidates: 0, hits: 0, misses: 0, peakBytes: 0, peakEntries: 0,
         lineChecks: 0, pointChecks: 0, approachHits: 0 };
     readonly debugJobStats: FlowJobStats = { queued: 0, completed: 0, cancelled: 0, coalesced: 0, refused: 0,
@@ -352,8 +357,18 @@ export class FlowField {
             cached.stamp = ++this._stamp;
             return { fieldId: cached.id, readiness: 'settled' };
         }
+        const key = `field:${resolved.id}`;
+        if (this._jobs.has(key)) {
+            this.debugJobStats.coalesced++;
+            return { fieldId: resolved.id, readiness: 'pending' };
+        }
         this._enqueueField(resolved.id, resolved.target, resolved.targetCell, body, area, resolved.width, resolved.height);
-        return { fieldId: resolved.id, readiness: this._jobs.has(`field:${resolved.id}`) ? 'pending' : 'unreachable' };
+        // Budget/throttle refusal still reports pending so callers keep retained motion and retry.
+        return { fieldId: resolved.id, readiness: 'pending' };
+    }
+
+    hasFieldOrJob(fieldId: string): boolean {
+        return !!fieldId && (this._cache.has(fieldId) || this._jobs.has(`field:${fieldId}`));
     }
 
     settledDirection(
@@ -991,6 +1006,13 @@ export class FlowField {
             this.debugJobStats.coalesced++;
             return;
         }
+        if (this._fieldAdmissionArmed) {
+            const maxNew = GameConfig.enemyNavMaxNewFieldJobsPerFrame ?? 2;
+            if (this._newFieldJobsThisFrame >= maxNew) {
+                this.debugJobStats.refused++;
+                return;
+            }
+        }
         const count = width * height;
         // Occupancy, edges and BFS are private to this field until the complete distance array publishes.
         const bytes = count * 10 + id.length * 2 + 128;
@@ -1005,7 +1027,17 @@ export class FlowField {
             queue: new Int32Array(count), phase: 'occupancy', cursor: 0,
             read: 0, end: 0, stamp: ++this._stamp, fastWalkableRegion: this._hasConvexWalkableRegion(snapshot) });
         this._jobOrder.push(key);
+        if (this._fieldAdmissionArmed) this._newFieldJobsThisFrame++;
         this.debugJobStats.queued++;
+    }
+
+    /** Call once per navigation prepareFrame so field job admission resets with the game frame. */
+    beginFrameAdmission(frame: number): void {
+        this._fieldAdmissionArmed = true;
+        if (frame !== this._fieldAdmissionFrame) {
+            this._fieldAdmissionFrame = frame;
+            this._newFieldJobsThisFrame = 0;
+        }
     }
 
     private _advanceGraph(job: GraphJob): boolean {

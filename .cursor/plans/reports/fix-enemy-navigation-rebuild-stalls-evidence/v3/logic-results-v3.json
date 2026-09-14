@@ -1,5 +1,5 @@
 {
-  "node": "v22.17.0",
+  "node": "v22.22.0",
   "typescript": "5.4.5",
   "testResults": [
     {
@@ -157,6 +157,10 @@
       "passed": true
     },
     {
+      "name": "AC-BOSS-RETAINED-NAVIGATION: retarget, obstacle candidates, and pending velocity keep only safe state",
+      "passed": true
+    },
+    {
       "name": "AC-ACTUAL: EnemySpawner stale pool callback does not respawn reused minion",
       "passed": true
     },
@@ -228,10 +232,10 @@
       "details": {
         "frames": 300,
         "units": 200,
-        "blockerChecks": 3000,
+        "blockerChecks": 0,
         "stats": {
           "fullSceneScan": 1,
-          "trackedColliderChecks": 3010,
+          "trackedColliderChecks": 10,
           "signatureBuild": 0,
           "invalidateRequests": 0,
           "geometryCheckRequests": 0,
@@ -243,7 +247,10 @@
           "selectedCacheMisses": 0,
           "schedulerFrames": 301,
           "schedulerWork": 0,
-          "schedulerLastWork": 0
+          "schedulerLastWork": 0,
+          "coalescedGeometryChecks": 0,
+          "incrementalCommits": 0,
+          "throttledFieldInvalidations": 0
         }
       }
     },
@@ -265,18 +272,18 @@
           "actual Boss"
         ],
         "log": "actual readonly Log isAttackable/getPhase",
-        "graphs": 1,
-        "fields": 3,
+        "graphs": 2,
+        "fields": 6,
         "stats": {
-          "visitedCells": 928,
-          "candidates": 999,
-          "hits": 1193,
-          "misses": 1,
+          "visitedCells": 1856,
+          "candidates": 1998,
+          "hits": 1186,
+          "misses": 2,
           "peakBytes": 23168,
           "peakEntries": 8,
-          "lineChecks": 29792,
-          "pointChecks": 121146,
-          "approachHits": 592
+          "lineChecks": 30566,
+          "pointChecks": 126086,
+          "approachHits": 584
         }
       }
     },
@@ -302,6 +309,22 @@
     },
     {
       "name": "AC-V2-LIFECYCLE: target invalidation and a new collider at the unit clear retained direction ownership",
+      "passed": true
+    },
+    {
+      "name": "AC-HITCH: same-frame invalidate coalesces geometry check requests",
+      "passed": true
+    },
+    {
+      "name": "AC-HITCH: notifyObstacleNode / child-added commits incrementally without full tracked scan",
+      "passed": true
+    },
+    {
+      "name": "AC-HITCH: new field jobs are capped per frame via beginFrameAdmission",
+      "passed": true
+    },
+    {
+      "name": "AC-HITCH: geometry epoch pending keeps lastSafeDirection motion under job throttle",
       "passed": true
     }
   ]

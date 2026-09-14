@@ -1569,3 +1569,16 @@
 | **验证** | `npx tsc --noEmit --pretty false`、`git diff --check` 通过；未进行 Creator 实玩。 |
 
 ---
+
+## fix-nav-build-hitch — 建墙瞬间导航尖峰掉帧
+
+### v1（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 防守段建造 `pref_wall` 时 FPS 从约 60 骤降到 20–30 数帧；大量敌人随后同时重算路线。 |
+| **原因** | `ENEMY_NAVIGATION_INVALIDATED` 触发全量 `_tracked` AABB 扫描 + `FlowField.clear` + 全体 `activeFieldId` 清空，下一帧多单位同时 enqueue 新距离场，与 4096 分帧叠加仍形成尖峰。 |
+| **解决** | `requestGeometryCheck` 同帧幂等；`notifyObstacleNode` 增量提交障碍（全量仅 discover/transform/destroy）；geometry epoch 分帧释放单位场（默认 8/帧）；`enemyNavMaxNewFieldJobsPerFrame=2` 限流入队；pending/限流期间沿 `lastSafeDirection×原速` 并当前帧 constrain，禁止默认速度 0。 |
+| **验证** | `node .cursor/scripts/test-enemy-navigation.cjs`（含 AC-HITCH）、`npx tsc --noEmit` 通过；报告 `.cursor/plans/reports/nav-build-hitch-coalesce-report.md`。Creator 建墙手测不阻塞。 |
+
+---

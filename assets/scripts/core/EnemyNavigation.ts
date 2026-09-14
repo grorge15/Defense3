@@ -57,6 +57,7 @@ type UnitRouteState = {
     lastSafeTarget: FlowPoint | null;
     replacementReadiness: 'idle' | 'pending' | 'unreachable';
     target: Node | null;
+    geometryEpoch: number;
 };
 
 type ObstacleSnapshot = {
@@ -194,10 +195,16 @@ export class EnemyNavigation {
     private _diagnosticQueries = 0;
     private _diagnosticChange = '';
     private _dirty = true;
+    private _fullGeometryCheck = true;
+    private readonly _pendingObstacleOps: Node[] = [];
+    private _geometryEpoch = 0;
+    private _fieldInvalidationsThisFrame = 0;
+    private _fieldInvalidationFrame = -1;
     private _topology: number[] = [];
     readonly debugStats = { fullSceneScan: 0, trackedColliderChecks: 0, signatureBuild: 0,
         invalidateRequests: 0, geometryCheckRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0,
-        selectedCacheHits: 0, selectedCacheMisses: 0, schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0 };
+        selectedCacheHits: 0, selectedCacheMisses: 0, schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0,
+        coalescedGeometryChecks: 0, incrementalCommits: 0, throttledFieldInvalidations: 0 };
     private readonly _area: FlowArea = {
         bounds: {
             minX: GameConfig.enemyNavDefaultMinX,
@@ -230,6 +237,30 @@ export class EnemyNavigation {
         this._scene = scene;
         scene.on?.('node-destroyed', this.destroy, this);
         EventManager.instance.onEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED, this.invalidate, this);
+    }
+
+    /**
+     * Register a newly spawned / changed obstacle node for an incremental geometry commit.
+     * Prefer this over a full invalidate when only one building was added.
+     */
+    notifyObstacleNode(node: Node | null): void {
+        if (!node?.isValid) return;
+        this._pendingObstacleOps.push(node);
+        this.requestGeometryCheck(false);
+    }
+
+    /**
+     * Mark navigation geometry dirty. Idempotent while already dirty (same-frame coalesce).
+     * @param fullScan when true, next commit rescans all tracked colliders (transform/destroy paths).
+     */
+    requestGeometryCheck(fullScan = false): void {
+        this.debugStats.geometryCheckRequests++;
+        if (fullScan) this._fullGeometryCheck = true;
+        if (this._dirty) {
+            this.debugStats.coalescedGeometryChecks++;
+            return;
+        }
+        this._dirty = true;
     }
 
     get debugObstacleRefreshCount(): number {
@@ -283,12 +314,13 @@ export class EnemyNavigation {
             this._walkablePolygonNodes = options.walkablePolygon.filter((n) => !!n?.isValid);
         }
         this._dirty = true;
+        this._fullGeometryCheck = true;
         for (const node of [this._boundsMin, this._boundsMax, ...this._walkablePolygonNodes]) this._watchGeometry(node);
     }
 
     invalidate(): void {
         this.debugStats.invalidateRequests++;
-        this._markGeometryForCheck();
+        this.requestGeometryCheck(true);
     }
 
     /**
@@ -296,8 +328,7 @@ export class EnemyNavigation {
      * event every frame. A snapshot comparison below decides whether that event changed navigation.
      */
     private _markGeometryForCheck(): void {
-        this.debugStats.geometryCheckRequests++;
-        this._dirty = true;
+        this.requestGeometryCheck(true);
     }
 
     releaseUnit(unit: Node | null): void {
@@ -389,6 +420,10 @@ export class EnemyNavigation {
             this._diagnosticQueries = 0; this._diagnosticQueryMs = 0;
         }
         const state = this._routeState(unit, request.target);
+        if (!this._syncUnitGeometryEpoch(state)) {
+            state.replacementReadiness = 'pending';
+            return this._retainedVelocity(state, self, finalTarget, request, out);
+        }
         if (!routeTarget) return this._retainedVelocity(state, self, finalTarget, request, out);
 
         const stop = request.stopDistance ?? 0;
@@ -439,6 +474,18 @@ export class EnemyNavigation {
                             state.replacementReadiness = replacement.readiness;
                         }
                     }
+                }
+            } else if (!this._field.hasFieldOrJob(state.pendingFieldId)) {
+                // Throttled/refused earlier — retry admission this frame.
+                const replacement = this._field.fieldStateFor(routeTarget.point, request.body, this._planningArea);
+                if (trace) trace.fieldRequest = { ...replacement };
+                if (replacement.readiness === 'settled') {
+                    result = this._field.settledDirection(self, replacement.fieldId, request.body, this._planningArea);
+                    resultTarget = { ...routeTarget.point };
+                } else {
+                    state.pendingFieldId = replacement.fieldId || state.pendingFieldId;
+                    state.pendingTarget = { ...routeTarget.point };
+                    state.replacementReadiness = replacement.readiness === 'unreachable' ? 'unreachable' : 'pending';
                 }
             }
         }
@@ -901,46 +948,26 @@ export class EnemyNavigation {
             for (const polygon of this._scene.getComponentsInChildren(PolygonCollider2D)) this._trackCandidate(polygon);
             this._watchTree(this._scene);
         }
+        const useIncremental = !this._fullGeometryCheck && this._pendingObstacleOps.length > 0;
         let changed = false;
         this._contactLog = null;
-        for (const box of this._fixedByCollider.keys()) {
-            if (!this._tracked.has(box)) { this._fixedByCollider.delete(box); changed = true; }
-        }
-        for (const box of this._rectByCollider.keys()) {
-            if (!this._tracked.has(box)) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
-        }
-        for (const box of this._kindByCollider.keys()) {
-            if (!this._tracked.has(box)) { this._kindByCollider.delete(box); changed = true; }
-        }
-        for (const box of this._tracked) {
-            this.debugStats.trackedColliderChecks++;
-            const log = box.node?.getComponent(Log) ?? null;
-            if (!this._contactLog && log && log.isValid !== false && log.node.isValid && log.node.activeInHierarchy &&
-                log.node.active && log.getPhase() !== 'failed') this._contactLog = log;
-            const fixed = box.enabled !== false && this._fixedLog(log);
-            if ((this._fixedByCollider.get(box) ?? null) !== (fixed ? log : null)) {
-                if (fixed) this._fixedByCollider.set(box, log!); else this._fixedByCollider.delete(box);
-                changed = true;
+        if (useIncremental) {
+            changed = this._applyPendingObstacleOps();
+            this.debugStats.incrementalCommits++;
+        } else {
+            for (const node of this._pendingObstacleOps) {
+                if (!node?.isValid) continue;
+                for (const box of node.getComponentsInChildren?.(BoxCollider2D) ?? node.getComponents?.(BoxCollider2D) ?? []) {
+                    this._trackCandidate(box);
+                }
+                for (const polygon of node.getComponentsInChildren?.(PolygonCollider2D) ?? node.getComponents?.(PolygonCollider2D) ?? []) {
+                    this._trackCandidate(polygon);
+                }
             }
-            const old = this._rectByCollider.get(box);
-            const kind = this._obstacleKind(box.node) ?? 'legacy';
-            if (this._kindByCollider.get(box) !== kind) {
-                this._kindByCollider.set(box, kind);
-                changed = true;
-            }
-            if (box.isValid === false || box.node?.isValid === false || !this._isBlockingCollider(box)) {
-                if (old) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
-                if (box.isValid === false || box.node?.isValid === false) this._tracked.delete(box);
-                continue;
-            }
-            const r = box.worldAABB;
-            if (!old || old.xMin !== r.xMin || old.xMax !== r.xMax || old.yMin !== r.yMin || old.yMax !== r.yMax) {
-                if (GameConfig.enemyNavDiagnostics) this._diagnosticChange = JSON.stringify({ name: box.node.name, before: old,
-                    after: { xMin: r.xMin, xMax: r.xMax, yMin: r.yMin, yMax: r.yMax } });
-                this._rectByCollider.set(box, { xMin: r.xMin, xMax: r.xMax, yMin: r.yMin, yMax: r.yMax });
-                changed = true; this.debugStats.geometryChanges++;
-            }
+            changed = this._refreshObstaclesFull();
         }
+        this._pendingObstacleOps.length = 0;
+        this._fullGeometryCheck = false;
         const topology = this._topologyValues();
         const topologyChanged = topology.length !== this._topology.length || topology.some((v, i) => v !== this._topology[i]);
         if (changed || topologyChanged) {
@@ -952,13 +979,103 @@ export class EnemyNavigation {
             this._area.obstacles = this._obstacles.rects; this._area.obstacleVersion = this._obstacles.version;
             this._refreshPlanningArea();
             this._field.invalidate();
-            for (const state of this._unitState.values()) {
-                state.activeFieldId = ''; state.activeTarget = null; state.pendingFieldId = '';
-                state.pendingTarget = null;
-                state.replacementReadiness = 'idle';
-            }
+            this._geometryEpoch++;
+            // Units drop stale fields lazily under a per-frame quota; keep lastSafeDirection.
         }
         this._dirty = false;
+    }
+
+    private _refreshObstaclesFull(): boolean {
+        let changed = false;
+        for (const box of this._fixedByCollider.keys()) {
+            if (!this._tracked.has(box)) { this._fixedByCollider.delete(box); changed = true; }
+        }
+        for (const box of this._rectByCollider.keys()) {
+            if (!this._tracked.has(box)) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
+        }
+        for (const box of this._kindByCollider.keys()) {
+            if (!this._tracked.has(box)) { this._kindByCollider.delete(box); changed = true; }
+        }
+        for (const box of this._tracked) {
+            if (this._syncColliderSnapshot(box)) changed = true;
+        }
+        return changed;
+    }
+
+    private _applyPendingObstacleOps(): boolean {
+        let changed = false;
+        const seen = new Set<NavigationCollider>();
+        for (const node of this._pendingObstacleOps) {
+            if (!node?.isValid) continue;
+            for (const box of node.getComponentsInChildren?.(BoxCollider2D) ?? node.getComponents?.(BoxCollider2D) ?? []) {
+                this._trackCandidate(box);
+                if (seen.has(box)) continue;
+                seen.add(box);
+                if (this._syncColliderSnapshot(box)) changed = true;
+            }
+            for (const polygon of node.getComponentsInChildren?.(PolygonCollider2D) ?? node.getComponents?.(PolygonCollider2D) ?? []) {
+                this._trackCandidate(polygon);
+                if (seen.has(polygon)) continue;
+                seen.add(polygon);
+                if (this._syncColliderSnapshot(polygon)) changed = true;
+            }
+        }
+        return changed;
+    }
+
+    private _syncColliderSnapshot(box: NavigationCollider): boolean {
+        this.debugStats.trackedColliderChecks++;
+        let changed = false;
+        const log = box.node?.getComponent(Log) ?? null;
+        if (!this._contactLog && log && log.isValid !== false && log.node.isValid && log.node.activeInHierarchy &&
+            log.node.active && log.getPhase() !== 'failed') this._contactLog = log;
+        const fixed = box.enabled !== false && this._fixedLog(log);
+        if ((this._fixedByCollider.get(box) ?? null) !== (fixed ? log : null)) {
+            if (fixed) this._fixedByCollider.set(box, log!); else this._fixedByCollider.delete(box);
+            changed = true;
+        }
+        const old = this._rectByCollider.get(box);
+        const kind = this._obstacleKind(box.node) ?? 'legacy';
+        if (this._kindByCollider.get(box) !== kind) {
+            this._kindByCollider.set(box, kind);
+            changed = true;
+        }
+        if (box.isValid === false || box.node?.isValid === false || !this._isBlockingCollider(box)) {
+            if (old) { this._rectByCollider.delete(box); changed = true; this.debugStats.geometryChanges++; }
+            if (box.isValid === false || box.node?.isValid === false) this._tracked.delete(box);
+            return changed;
+        }
+        const r = box.worldAABB;
+        if (!old || old.xMin !== r.xMin || old.xMax !== r.xMax || old.yMin !== r.yMin || old.yMax !== r.yMax) {
+            if (GameConfig.enemyNavDiagnostics) this._diagnosticChange = JSON.stringify({ name: box.node.name, before: old,
+                after: { xMin: r.xMin, xMax: r.xMax, yMin: r.yMin, yMax: r.yMax } });
+            this._rectByCollider.set(box, { xMin: r.xMin, xMax: r.xMax, yMin: r.yMin, yMax: r.yMax });
+            changed = true; this.debugStats.geometryChanges++;
+        }
+        return changed;
+    }
+
+    private _syncUnitGeometryEpoch(state: UnitRouteState): boolean {
+        if (state.geometryEpoch === this._geometryEpoch) return true;
+        const frame = readFrame();
+        if (frame !== this._fieldInvalidationFrame) {
+            this._fieldInvalidationFrame = frame;
+            this._fieldInvalidationsThisFrame = 0;
+        }
+        const max = GameConfig.enemyNavMaxFieldInvalidationsPerFrame ?? 8;
+        if (this._fieldInvalidationsThisFrame >= max) {
+            this.debugStats.throttledFieldInvalidations++;
+            return false;
+        }
+        this._fieldInvalidationsThisFrame++;
+        if (state.activeFieldId) this._field.release(state.activeFieldId);
+        state.activeFieldId = '';
+        state.activeTarget = null;
+        state.pendingFieldId = '';
+        state.pendingTarget = null;
+        state.replacementReadiness = 'idle';
+        state.geometryEpoch = this._geometryEpoch;
+        return true;
     }
 
     private _isBlockingCollider(box: NavigationCollider): boolean {
@@ -1056,9 +1173,13 @@ export class EnemyNavigation {
 
     private _prepareFrame(): void {
         const frame = readFrame();
-        if (this._dirty || frame !== this._lastGeometryFrame) {
+        this._field.beginFrameAdmission(frame);
+        if (this._dirty || this._pendingObstacleOps.length > 0) {
             this._refreshArea();
             this._refreshObstacles();
+            this._lastGeometryFrame = frame;
+        } else if (frame !== this._lastGeometryFrame) {
+            this._refreshArea();
             this._lastGeometryFrame = frame;
         }
         if (frame === this._lastPreparedFrame) {
@@ -1091,7 +1212,11 @@ export class EnemyNavigation {
         node.on?.('component-removed', this._componentRemoved, this);
         this._trackNodeCandidates(node);
         for (const child of node.children ?? []) this._watchTree(child);
-        this._dirty = true;
+        if (this._discovered && !this._fullGeometryCheck) {
+            this.notifyObstacleNode(node);
+        } else {
+            this._dirty = true;
+        }
     };
 
     private _unwatch(node: Node): void {
@@ -1115,7 +1240,11 @@ export class EnemyNavigation {
     private _componentAdded = (component: unknown): void => {
         const node = (component as { node?: Node })?.node;
         if (node) this._trackNodeCandidates(node);
-        this._dirty = true;
+        if (this._discovered && !this._fullGeometryCheck && node) {
+            this.notifyObstacleNode(node);
+        } else {
+            this._dirty = true;
+        }
     };
 
     private _trackNodeCandidates(node: Node): void {
@@ -1144,7 +1273,7 @@ export class EnemyNavigation {
             // Keep the old snapshot until the next consumer can commit the removal atomically.
             this._tracked.delete(component);
         }
-        this._dirty = true;
+        this.requestGeometryCheck(true);
     };
 
     private _releaseField(unit: Node): void {
@@ -1160,7 +1289,8 @@ export class EnemyNavigation {
         let state = this._unitState.get(unit);
         if (!state) {
             state = { activeFieldId: '', activeTarget: null, pendingFieldId: '', pendingTarget: null,
-                lastSafeDirection: null, lastSafeTarget: null, replacementReadiness: 'idle', target };
+                lastSafeDirection: null, lastSafeTarget: null, replacementReadiness: 'idle', target,
+                geometryEpoch: this._geometryEpoch };
             this._unitState.set(unit, state);
         } else if (state.target !== target) {
             this._releaseField(unit);

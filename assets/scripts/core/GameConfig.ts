@@ -115,6 +115,10 @@ export class GameConfig {
     static readonly enemyFlowCacheBytes = 8 * 1024 * 1024;
     static readonly enemyFlowMaxCells = 262144;
     static readonly enemyNavWorkUnitsPerFrame = 4096;
+    /** Cap how many units drop stale fields after a geometry epoch bump (per frame). */
+    static readonly enemyNavMaxFieldInvalidationsPerFrame = 8;
+    /** Cap distinct new distance-field jobs admitted per frame (coalesced keys do not count). */
+    static readonly enemyNavMaxNewFieldJobsPerFrame = 2;
     static readonly enemyNavDiagnostics = false;
     static readonly enemyNavDefaultMinX = -1200;
     static readonly enemyNavDefaultMinY = -1200;

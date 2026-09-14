@@ -190,13 +190,13 @@ export class BuildSystem extends Component {
         this._playBuildUpgradeVfx(buildType, worldPos);
 
         if (buildType === 'wall') {
-            this._spawnWall(spawnSide, worldPos, plotRoot);
+            const node = this._spawnWall(spawnSide, worldPos, plotRoot);
             if (spawnSide === 'left') {
                 this._wallLeftDone = true;
             } else if (spawnSide === 'right') {
                 this._wallRightDone = true;
             }
-            this._invalidateEnemyNavigation();
+            this._invalidateEnemyNavigation(node);
             if (this._wallLeftDone && this._wallRightDone) {
                 this._onBothWallsComplete();
             }
@@ -386,9 +386,9 @@ export class BuildSystem extends Component {
         }
     }
 
-    private _spawnWall(spawnSide: string, worldPos?: Vec3, plotRoot?: Node): void {
+    private _spawnWall(spawnSide: string, worldPos?: Vec3, plotRoot?: Node): Node | null {
         if (!this.wallPrefab) {
-            return;
+            return null;
         }
         // 优先挂在 Plot_Wall_L/R；无 plotRoot 时退回 Stairs 锚点仅定坐标
         const fallbackAnchor =
@@ -404,7 +404,7 @@ export class BuildSystem extends Component {
             plotRoot ? null : fallbackAnchor,
         );
         if (!node) {
-            return;
+            return null;
         }
         const wall = node.getComponent(Wall);
         if (wall) {
@@ -414,6 +414,7 @@ export class BuildSystem extends Component {
             wall.activate();
         }
         // 矮墙无血量，不进 Boss 索敌表
+        return node;
     }
 
     private _spawnTower(worldPos?: Vec3, plotRoot?: Node): void {
@@ -427,7 +428,7 @@ export class BuildSystem extends Component {
         const tower = node.getComponent(Tower);
         tower?.activate();
         this._registerBossTarget(node, 'building');
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(node);
     }
 
     private _spawnBarracks(worldPos?: Vec3, plotRoot?: Node): void {
@@ -441,7 +442,7 @@ export class BuildSystem extends Component {
         const barracks = node.getComponent(Barracks);
         barracks?.activate();
         this._registerBossTarget(node, 'building');
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(node);
     }
 
     private _spawnHeroShrine(worldPos?: Vec3, plotRoot?: Node): void {
@@ -479,7 +480,7 @@ export class BuildSystem extends Component {
         shrine.activate();
         // 导航当 Building 障碍；须注册索敌，否则 Boss 只绕不开、不主动打
         this._registerBossTarget(node, 'building');
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(node);
     }
 
     private _ensureHeroSelectReady(): void {
@@ -522,7 +523,7 @@ export class BuildSystem extends Component {
                 node.active = false;
             }
         }
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(null, true);
     }
 
     private _onExpandComplete(): void {
@@ -532,7 +533,7 @@ export class BuildSystem extends Component {
         this._activateBarrierRoot(this.expandSideWalls);
         this._revealPlots(this.towerAdvancedPlots, 'towerAdvanced');
         this._hideExpandUnlockNodes();
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(null, true);
         if (!this._expandEnemyClearAttempted) {
             this._expandEnemyClearAttempted = true;
             // Let newly enabled static colliders finish their Box2D sync before teleporting Dynamic enemies.
@@ -720,7 +721,7 @@ export class BuildSystem extends Component {
             }
             if (node) {
                 this._registerBossTarget(node, 'building');
-                this._invalidateEnemyNavigation();
+                this._invalidateEnemyNavigation(node);
             }
         }
 
@@ -812,7 +813,7 @@ export class BuildSystem extends Component {
                 this._registerBossTarget(barrier.node, 'barrier');
             }
         }
-        this._invalidateEnemyNavigation();
+        this._invalidateEnemyNavigation(root);
     }
 
     /** 建成/生成后插入 Boss 索敌表（Structure 按建造顺序） */
@@ -931,7 +932,16 @@ export class BuildSystem extends Component {
         return found;
     }
 
-    private _invalidateEnemyNavigation(): void {
+    private _invalidateEnemyNavigation(node?: Node | null, fullScan = false): void {
+        const scene = this.node.scene;
+        const nav = scene ? EnemyNavigation.get(scene) : null;
+        if (nav) {
+            if (node) {
+                nav.notifyObstacleNode(node);
+            }
+            nav.requestGeometryCheck(fullScan);
+            return;
+        }
         EventManager.instance.emitEvent(GameEvents.ENEMY_NAVIGATION_INVALIDATED);
     }
 }
