@@ -1515,6 +1515,15 @@
 
 ## fix-script-circular-dependency — 建筑脚本编译失败导致 prefab MissingScript
 
+### v2（2026-09-14）模块导入失败
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Creator 无法从 EventManager 的 fce3da chunk 解析 `__unresolved_0`，场景脚本连带 Missing。 |
+| **原因** | chunk 含类型导入产生的 reporter 依赖，import-map 对应 scope 却只有 cc；Creator 与独立 cocos-cli 共用缓存，编译产物与映射不一致。 |
+| **解决** | EventManager 的 GameEventName 改为 import type 并重新导入；实际 chunk 依赖缩减为 cc，消除该 unresolved 引用。 |
+| **验证** | tsc 通过，实际 EventManager chunk 已无 unresolved 依赖；Creator 场景重载尚未确认。缓存扫描另发现 6 个 cocos-cli 内置引擎 chunk 缺失，不能以 CLI 导入成功作为 Creator 完全恢复的证据。 |
+
 ### v1（2026-09-10）
 
 | 项 | 说明 |

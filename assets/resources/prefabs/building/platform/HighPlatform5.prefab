@@ -207,12 +207,12 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0.7,
+      "x": -0.2,
       "y": 21.6
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 33,
+      "width": -35.9,
       "height": 365.1
     },
     "_id": ""
@@ -369,12 +369,12 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0.7,
-      "y": -39.7
+      "x": 10.3,
+      "y": -41.8
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 33,
+      "width": -43.7,
       "height": 436.1
     },
     "_id": ""
@@ -531,12 +531,12 @@
     "_restitution": 0,
     "_offset": {
       "__type__": "cc.Vec2",
-      "x": 0.7,
-      "y": -39.7
+      "x": 7.1,
+      "y": -41.8
     },
     "_size": {
       "__type__": "cc.Size",
-      "width": 33,
+      "width": -44.8,
       "height": 436.1
     },
     "_id": ""

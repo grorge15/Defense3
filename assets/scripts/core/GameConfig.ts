@@ -5,16 +5,16 @@
 export class GameConfig {
     // --- 生命值 ---
     static readonly playerMaxHp = 400;
-    static readonly heroMaxHp = 10000;
+    static readonly heroMaxHp = 100;
     static readonly bossMaxHp = 1500;
     static readonly minionMaxHp = 15;
     static readonly soldierMaxHp = 20;
-    static readonly barrierMaxHp = 2000;
+    static readonly barrierMaxHp = 3000;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
     static readonly towerMaxHp = 200;
     static readonly barracksMaxHp = 200;
     /** 滚木固定后作为可攻击障碍的最大生命 */
-    static readonly logMaxHp = 300;
+    static readonly logMaxHp = 450;
     static readonly logFixedColliderOffsetX = -2;
     static readonly logFixedColliderOffsetY = 10;
     static readonly logFixedColliderWidth = 235;
@@ -42,9 +42,9 @@ export class GameConfig {
     /** 箭矢最大穿透敌人数（含首命中） */
     static readonly arrowMaxPierce = 5;
     /** 玩家箭矢前 N 个命中目标造成满额 playerAttackDamage */
-    static readonly arrowFullDamageHits = 1;
+    static readonly arrowFullDamageHits = 2;
     /** 超过满伤命中数后，每多命中一个目标的伤害倍率 */
-    static readonly arrowPierceDamageFalloff = 0.5;
+    static readonly arrowPierceDamageFalloff = 0.7;
     /** 箭矢最大飞行距离（世界单位） */
     static readonly arrowMaxDistance = 300;
 
@@ -60,18 +60,18 @@ export class GameConfig {
     static readonly playerMoveSpeed = 6;
     static readonly playerParkourForwardSpeed = 7;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 4;
+    static readonly playerParkourChargeSpeed = 6;
     static readonly heroFollowSpeed = 4;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
      */
-    static readonly heroFollowDistance = 100;
+    static readonly heroFollowDistance = 200;
     /**
      * 英雄相对玩家的软拴绳半径（世界单位）。
      * ≤0 时用 max(heroFollowDistance * 8, 12)，防止脱节。
      */
-    static readonly heroFollowLeash = 0;
+    static readonly heroFollowLeash = 30;
     /** Boss 重新索敌间隔（秒） */
     static readonly bossRetargetInterval = 2;
     /** Boss 扫描场景中新防守目标的间隔（秒） */

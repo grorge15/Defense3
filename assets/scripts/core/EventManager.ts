@@ -1,5 +1,5 @@
 import { EventTarget } from 'cc';
-import { GameEventName } from './GameEvents';
+import type { GameEventName } from './GameEvents';
 
 /** 全局事件总线，跨组件通信统一入口 */
 export class EventManager extends EventTarget {
