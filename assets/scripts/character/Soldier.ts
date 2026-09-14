@@ -72,7 +72,7 @@ export class Soldier extends Component {
     private _attackSequence = 0;
     private _currentLocomotionClip = '';
     private _lockedAttackTarget: SoldierAttackTarget | null = null;
-    private _attackReservation: AttackReservationToken | null = null;
+    private _attackReservations: AttackReservationToken[] = [];
     private _retargetTimer = 0;
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
@@ -165,9 +165,8 @@ export class Soldier extends Component {
             return;
         }
 
-        const enemy = this._deployment === 'tower'
-            ? this._selectTowerTarget()
-            : this._resolveAttackTarget();
+        const towerTargets = this._deployment === 'tower' ? this._selectTowerTargets() : [];
+        const enemy = this._deployment === 'tower' ? towerTargets[0] : this._resolveAttackTarget();
         if (!enemy) {
             return;
         }
@@ -177,7 +176,8 @@ export class Soldier extends Component {
         this._attackTimer = this.attackCooldown;
         const sequence = ++this._attackSequence;
         if (this._deployment === 'tower') {
-            this._attackReservation = AttackReservation.reserve(this, enemy, this.attackDamage);
+            this._attackReservations = towerTargets.map((target) =>
+                AttackReservation.reserve(this, target, this.attackDamage));
         }
         const isCurrent = (): boolean =>
             sequence === this._attackSequence && this._canAct && !this._isDead;
@@ -190,31 +190,28 @@ export class Soldier extends Component {
             }
             this._isAttacking = false;
             this._currentLocomotionClip = '';
+            this._releaseAttackReservation();
         };
 
         if (this._deployment === 'tower') {
+            let fired = false;
+            const fireVolley = (): void => {
+                if (!isCurrent() || !this._isAttacking || fired) {
+                    return;
+                }
+                fired = true;
+                this._fireTowerVolley(towerTargets);
+            };
             if (this.visualNode && state) {
                 playAttackWithFrameHit(
                     this.visualNode,
                     'remoteAttack',
-                    () => {
-                        if (!isCurrent()) {
-                            return;
-                        }
-                        const hitTarget = this._resolveTowerHitTarget(enemy);
-                        if (hitTarget) {
-                            this._spawnProjectile(hitTarget.node);
-                            hitTarget.takeDamage(this.attackDamage, 'soldier-ranged');
-                        }
-                        this._releaseAttackReservation();
-                    },
+                    fireVolley,
                     0.9,
                     unlock,
                 );
             } else {
-                this._spawnProjectile(enemy.node);
-                enemy.takeDamage(this.attackDamage, 'soldier-ranged');
-                this._releaseAttackReservation();
+                fireVolley();
                 unlock();
             }
         } else if (this.visualNode && state) {
@@ -372,28 +369,63 @@ export class Soldier extends Component {
         return this._findPreferredTarget(range);
     }
 
-    private _selectTowerTarget(): SoldierAttackTarget | null {
+    private _selectTowerTargets(): SoldierAttackTarget[] {
         const normalTarget = this._resolveAttackTarget();
         if (!normalTarget) {
-            return null;
+            return [];
         }
-        if (!(normalTarget instanceof EnemyMinion)) {
-            return normalTarget;
+        const targets: SoldierAttackTarget[] = [];
+        if (!(normalTarget instanceof EnemyMinion) && this._isTowerTargetLegal(normalTarget)) {
+            targets.push(normalTarget);
         }
-        return this._findReservedMinion(this.attackRange);
+        const candidates = this._towerMinionCandidates(this.attackRange);
+        while (targets.length < GameConfig.soldierRangedTargetCount) {
+            const next = this._selectUnreservedVolleyTarget(candidates, new Set(targets));
+            if (!next) break;
+            targets.push(next);
+        }
+        return targets;
     }
 
-    private _resolveTowerHitTarget(captured: SoldierAttackTarget): SoldierAttackTarget | null {
-        if (this._isTowerTargetLegal(captured)) {
-            return captured;
+    private _fireTowerVolley(captured: readonly SoldierAttackTarget[]): void {
+        const targets = captured.map((target) => this._isTowerTargetLegal(target) ? target : null);
+        // Preserve all valid captures before filling gaps, so replacements cannot steal another arrow's target.
+        const used = new Set<SoldierAttackTarget>(targets.filter((target): target is SoldierAttackTarget => !!target));
+        for (let i = 0; i < targets.length; i += 1) {
+            if (!targets[i]) AttackReservation.release(this._attackReservations[i]);
         }
-        this._releaseAttackReservation();
-        const replacement = this._findReservedMinion(this.attackRange);
-        if (!replacement || !this._isTowerTargetLegal(replacement)) {
-            return null;
+        const candidates = targets.some((target) => !target) ? this._towerMinionCandidates(this.attackRange) : [];
+        for (let i = 0; i < targets.length; i += 1) {
+            if (targets[i]) continue;
+            const replacement = this._selectUnreservedVolleyTarget(candidates, used);
+            if (replacement) {
+                targets[i] = replacement;
+                used.add(replacement);
+                this._attackReservations[i] = AttackReservation.reserve(this, replacement, this.attackDamage);
+            }
         }
-        this._attackReservation = AttackReservation.reserve(this, replacement, this.attackDamage);
-        return replacement;
+        try {
+            for (let i = 0; i < targets.length; i += 1) {
+                const target = targets[i];
+                if (target && this._isTowerTargetLegal(target)) {
+                    this._spawnProjectile(target.node);
+                    target.takeDamage(this.attackDamage, 'soldier-ranged');
+                }
+                AttackReservation.release(this._attackReservations[i]);
+            }
+        } finally {
+            this._releaseAttackReservation();
+        }
+    }
+
+    private _selectUnreservedVolleyTarget(
+        candidates: readonly EnemyMinion[], excluded: ReadonlySet<SoldierAttackTarget>,
+    ): EnemyMinion | null {
+        return AttackReservation.selectMinion(
+            candidates.filter((candidate) => !excluded.has(candidate)),
+            this.attackDamage,
+            (minion) => minion.currentHp,
+        );
     }
 
     private _resolveMeleeChaseTarget(dt: number): SoldierAttackTarget | null {
@@ -477,17 +509,17 @@ export class Soldier extends Component {
         return nearest;
     }
 
-    private _findReservedMinion(maxRange: number): EnemyMinion | null {
+    private _towerMinionCandidates(maxRange: number): EnemyMinion[] {
         const scene = this.node.scene;
         if (!scene) {
-            return null;
+            return [];
         }
         this.node.getWorldPosition(this._selfPos);
         const candidates: Array<{ minion: EnemyMinion; distanceSq: number; index: number }> = [];
         let index = 0;
         const maxRangeSq = maxRange * maxRange;
         for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
-            if (!minion.node.activeInHierarchy || minion.isDead) {
+            if (!this._isAttackTargetAlive(minion)) {
                 continue;
             }
             minion.node.getWorldPosition(this._targetPos);
@@ -499,11 +531,7 @@ export class Soldier extends Component {
             }
         }
         candidates.sort((a, b) => a.distanceSq - b.distanceSq || b.index - a.index);
-        return AttackReservation.selectMinion(
-            candidates.map((candidate) => candidate.minion),
-            this.attackDamage,
-            (minion) => minion.currentHp,
-        );
+        return candidates.map((candidate) => candidate.minion);
     }
 
     private _isTowerTargetLegal(target: SoldierAttackTarget): boolean {
@@ -614,6 +642,7 @@ export class Soldier extends Component {
     onDisable(): void {
         this._attackSequence += 1;
         this._releaseAttackReservation();
+        this._isAttacking = false;
     }
 
     onDestroy(): void {
@@ -621,8 +650,10 @@ export class Soldier extends Component {
     }
 
     private _releaseAttackReservation(): void {
-        AttackReservation.release(this._attackReservation);
+        for (const reservation of this._attackReservations) {
+            AttackReservation.release(reservation);
+        }
         AttackReservation.releaseForAttacker(this);
-        this._attackReservation = null;
+        this._attackReservations = [];
     }
 }

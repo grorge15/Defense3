@@ -14,7 +14,7 @@ export class GameConfig {
     static readonly towerMaxHp = 200;
     static readonly barracksMaxHp = 200;
     /** 滚木固定后作为可攻击障碍的最大生命 */
-    static readonly logMaxHp = 450;
+    static readonly logMaxHp = 1000;
     static readonly logFixedColliderOffsetX = -2;
     static readonly logFixedColliderOffsetY = 10;
     static readonly logFixedColliderWidth = 235;
@@ -84,6 +84,7 @@ export class GameConfig {
     static readonly soldierMoveSpeed = 4;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
     static readonly soldierRetargetInterval = 1;
+    static readonly soldierRangedTargetCount = 3;
     /** 近战小兵停步/出手距离 */
     static readonly soldierMeleeAttackRange = 40;
 
@@ -139,7 +140,7 @@ export class GameConfig {
     static readonly logMaxLength = 10;
     static readonly logInitialLength = 3;
     static readonly logVisualBaseScale = 0.4;
-    static readonly logVisualScalePerLength = 0.2;
+    static readonly logVisualScalePerLength = 0.15;
     /** 蓝线固定所需最小滚木长度 */
     static readonly blueLineMinLogLength = 6;
 
