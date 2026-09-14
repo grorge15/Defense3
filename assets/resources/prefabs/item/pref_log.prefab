@@ -103,7 +103,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": -63.125,
-      "z": 0
+      "z": -30
     },
     "_lrot": {
       "__type__": "cc.Quat",
@@ -143,7 +143,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 150,
-      "height": 150
+      "height": 160
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
