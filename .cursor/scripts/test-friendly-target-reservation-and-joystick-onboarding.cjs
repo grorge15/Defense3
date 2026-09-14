@@ -51,7 +51,7 @@ class Node {
     addChild(child) { child.parent = this; child._setScene(this.scene); this.children.push(child); return child; }
     getChildByName(name) { return this.children.find((child) => child.name === name) ?? null; }
     addComponent(Type) { const component = new Type(); component.node = this; this.components.push(component); return component; }
-    getComponent(Type) { return typeof Type === 'string' ? null : this.components.find((component) => component instanceof Type) ?? null; }
+    getComponent(Type) { return typeof Type === 'string' ? this.components.find((component) => component.__type === Type || component.constructor.name === Type) ?? null : this.components.find((component) => component instanceof Type) ?? null; }
     getComponentInChildren(Type) { return this.getComponentsInChildren(Type)[0] ?? null; }
     getComponentsInChildren(Type) { return [...this.components.filter((component) => component instanceof Type), ...this.children.flatMap((child) => child.getComponentsInChildren(Type))]; }
     getWorldPosition(out) { const parent = this.parent ? this.parent.getWorldPosition(new Vec3()) : new Vec3(); return out.set(parent.x + this.position.x, parent.y + this.position.y, parent.z + this.position.z); }
@@ -90,6 +90,7 @@ const mocks = {
     '../core/HitFlash': { HitFlash: class { flash() {} } },
     '../core/VisualFacing': { VisualFacing: class { bind() {} reset() {} faceByTarget() {} faceByVelocity() {} } }, '../core/AirWallAabb': { AirWallAabb: { bodySize() { return { w: 1, h: 1 }; }, collectAirWalls() { return []; } } }, '../core/PathAgent': { PathAgent: class { reset() {} nextDirection(_dt, _a, _b, _c, _d, _e, out) { out.set(0, 0); } } },
     '../core/EnemyHitVfx': { playEnemyHitVfx() {} }, '../core/EnemyNavigation': { EnemyNavigation: { get() { return null; } } }, '../core/FlowField': { stableFlowBody(value) { return value; } },
+    './Building': { Building: class extends Component { onLoad() {} } },
     '../enemy/EnemyMinion': { EnemyMinion }, '../enemy/EnemyBoss': { EnemyBoss }, '../projectile/Arrow': null,
     '../character/Player': null, '../character/Soldier': { Soldier: class {} }, '../game/CombatSystem': { CombatSystem: class {} }, '../game/HealthSystem': { HealthSystem }, '../item/Log': { Log: class {} }, '../ui/HpBarUI': { HpBarUI: class {} },
     '../game/GameManager': { GameManager: { instance: null } }, '../game/GamePhase': { GamePhase: { RunParkour: 'parkour', CombatGuide: 'guide', BuildPhase1: 'build1', BuildPhase2: 'build2', DefensePhase: 'defense', Ultimate: 'ultimate', GameOver: 'gameover' } },
@@ -118,6 +119,7 @@ const { Arrow } = load('assets/scripts/projectile/Arrow.ts');
 mocks['../projectile/Arrow'] = { Arrow };
 const { CombatSystem } = load('assets/scripts/game/CombatSystem.ts');
 const { Soldier } = load('assets/scripts/character/Soldier.ts');
+const { Barracks } = load('assets/scripts/building/Barracks.ts');
 const { Player } = load('assets/scripts/character/Player.ts');
 mocks['../character/Player'] = { Player };
 const { Joystick } = load('assets/scripts/ui/Joystick.ts');
@@ -319,4 +321,44 @@ test('real target modules transpile and retain lifecycle hook coverage', () => {
     for (const file of ['assets/scripts/enemy/EnemyMinion.ts', 'assets/scripts/enemy/EnemyBoss.ts']) { const source = fs.readFileSync(path.join(root, file), 'utf8'); const output = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2020, experimentalDecorators: true } }).outputText; ok(output.length > 0, `${file} transpiles`); ok(source.includes('AttackReservation.releaseForTarget(this)'), `${file} releases target reservations on lifecycle paths`); }
 });
 
+class BarracksSoldier extends Component {
+    constructor() { super(); this.__type = 'Soldier'; this.deployment = null; this.activations = 0; this.deactivations = 0; }
+    setDeployment(value) { this.deployment = value; }
+    activate() { this.activations += 1; }
+    deactivate() { this.deactivations += 1; }
+}
+function barracksFixture() {
+    const rootNode = scene(); const barracks = attach(rootNode.addChild(new Node('Barracks')), Barracks);
+    const mounts = Array.from({ length: 8 }, (_, index) => barracks.node.addChild(new Node(`SoldierMount_${index}`)));
+    barracks.soldierMounts = mounts;
+    barracks.soldierPrefab = new Prefab(() => { const node = new Node('Soldier'); attach(node, BarracksSoldier); return node; });
+    return { barracks, mounts };
+}
+function spawnedCount(mounts) { return mounts.reduce((count, mount) => count + mount.children.filter((child) => child.getComponent('Soldier')).length, 0); }
+function runNextSpawnFrame(barracks) {
+    const index = barracks.scheduled.findIndex((item) => !item.repeat && item.callback === barracks._flushSpawnQueue);
+    ok(index >= 0, 'pending queue schedules another frame');
+    const [scheduled] = barracks.scheduled.splice(index, 1); scheduled.callback.call(barracks);
+}
+
+test('Barracks spreads an eight-soldier first wave across frames in stable mount order', () => {
+    const { barracks, mounts } = barracksFixture(); barracks.activate();
+    equal(spawnedCount(mounts), 2, 'activation instantiates at most two soldiers in its first frame');
+    equal(barracks._pendingSpawnMounts.length, 6, 'the remaining six mounts wait in the spawn queue');
+    runNextSpawnFrame(barracks); equal(spawnedCount(mounts), 4, 'second frame adds two more soldiers');
+    runNextSpawnFrame(barracks); equal(spawnedCount(mounts), 6, 'third frame adds two more soldiers');
+    runNextSpawnFrame(barracks); equal(spawnedCount(mounts), 8, 'fourth frame completes the first wave');
+    mounts.forEach((mount, index) => { const soldier = mount.children[0]?.getComponent('Soldier'); ok(soldier instanceof BarracksSoldier, `mount ${index} receives one soldier`); equal(soldier.deployment, 'barracks', `mount ${index} preserves deployment setup`); });
+});
+
+test('Barracks deactivation and reset cancel pending generations without duplicate soldiers', () => {
+    const { barracks, mounts } = barracksFixture(); barracks.activate(); barracks.spawnWave();
+    equal(spawnedCount(mounts), 4, 'a repeated wave call only flushes queued empty mounts');
+    equal(barracks._pendingSpawnMounts.length, 4, 'repeated wave calls do not duplicate queued mounts');
+    barracks.deactivate(); equal(barracks._pendingSpawnMounts.length, 0, 'deactivation clears pending mounts');
+    equal(barracks._queuedSpawnMounts.size, 0, 'deactivation clears queued mount membership');
+    barracks._flushSpawnQueue(); equal(spawnedCount(mounts), 4, 'an inactive barracks cannot fill cancelled mounts');
+    barracks.reset(); equal(barracks._spawnedSoldiers.length, 0, 'reset clears spawned soldier ownership');
+    barracks._flushSpawnQueue(); equal(spawnedCount(mounts), 4, 'reset cannot create delayed soldiers');
+});
 if (!process.exitCode) console.log(`friendly reservation / joystick onboarding harness passed: ${assertions} assertions across ${scenarios} scenarios`);

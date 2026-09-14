@@ -1,7 +1,6 @@
 import {
     _decorator,
     Animation,
-    BoxCollider2D,
     Collider2D,
     Component,
     ERigidBody2DType,
@@ -14,14 +13,12 @@ import {
     Vec3,
 } from 'cc';
 import { EnemyMinion } from '../enemy/EnemyMinion';
-import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { AttackReservation, type AttackReservationToken } from '../core/AttackReservation';
 import { EventManager } from '../core/EventManager';
 import type { EnemyHitSource } from '../core/EnemyHitVfx';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
-import { PathAgent } from '../core/PathAgent';
 import { VisualFacing } from '../core/VisualFacing';
 import { Arrow } from '../projectile/Arrow';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -77,9 +74,7 @@ export class Soldier extends Component {
     private readonly _velocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
-    private readonly _pathAgent = new PathAgent();
     private readonly _visualFacing = new VisualFacing();
-    private _airWalls: BoxCollider2D[] = [];
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -119,7 +114,6 @@ export class Soldier extends Component {
         }
         this._lockedAttackTarget = null;
         this._retargetTimer = 0;
-        this._pathAgent.reset();
     }
 
     getDeployment(): SoldierDeployment {
@@ -130,7 +124,6 @@ export class Soldier extends Component {
         this._target = target;
         this._lockedAttackTarget = null;
         this._retargetTimer = 0;
-        this._pathAgent.reset();
     }
 
     activate(): void {
@@ -154,7 +147,6 @@ export class Soldier extends Component {
         this._isAttacking = false;
         this._canAct = false;
         this._velocity.set(0, 0);
-        this._pathAgent.reset();
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
@@ -265,7 +257,6 @@ export class Soldier extends Component {
         this._canAct = true;
         this._isAttacking = false;
         this._currentLocomotionClip = '';
-        this._pathAgent.reset();
         this.node.active = true;
         if (this._collider) {
             this._collider.enabled = true;
@@ -334,19 +325,8 @@ export class Soldier extends Component {
         }
 
         const speed = GameConfig.soldierMoveSpeed;
-        const size = AirWallAabb.bodySize(this.node);
-        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
-        this._pathAgent.nextDirection(
-            dt,
-            this._selfPos,
-            this._targetPos,
-            size.w,
-            size.h,
-            walls,
-            this._velocity,
-        );
-        this._velocity.x *= speed;
-        this._velocity.y *= speed;
+        const inverseDistance = 1 / dist;
+        this._velocity.set(dx * inverseDistance * speed, dy * inverseDistance * speed);
         if (this._rb) {
             this._rb.linearVelocity = this._velocity;
         }
@@ -439,9 +419,6 @@ export class Soldier extends Component {
         }
 
         const next = this._findPreferredTarget(Number.POSITIVE_INFINITY);
-        if (next !== this._lockedAttackTarget) {
-            this._pathAgent.reset();
-        }
         this._lockedAttackTarget = next;
         this._retargetTimer = GameConfig.soldierRetargetInterval;
         return next;
