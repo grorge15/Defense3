@@ -338,7 +338,7 @@ export class Log extends Component {
             this._rb.fixedRotation = true;
         }
         if (this.visualNode) {
-            this.visualNode.setRotationFromEuler(0, 0, 0);
+            this.visualNode.setRotationFromEuler(25, 0, 0);
         }
     }
 
@@ -477,7 +477,7 @@ export class Log extends Component {
 
     private _keepVisualRotationFlat(): void {
         if (this.visualNode) {
-            this.visualNode.setRotationFromEuler(0, 0, 0);
+            this.visualNode.setRotationFromEuler(25, 0, 0);
         }
     }
 

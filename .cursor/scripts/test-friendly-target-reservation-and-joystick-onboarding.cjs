@@ -55,7 +55,7 @@ class Node {
     getComponentInChildren(Type) { return this.getComponentsInChildren(Type)[0] ?? null; }
     getComponentsInChildren(Type) { return [...this.components.filter((component) => component instanceof Type), ...this.children.flatMap((child) => child.getComponentsInChildren(Type))]; }
     getWorldPosition(out) { const parent = this.parent ? this.parent.getWorldPosition(new Vec3()) : new Vec3(); return out.set(parent.x + this.position.x, parent.y + this.position.y, parent.z + this.position.z); }
-    setWorldPosition(value) { const parent = this.parent ? this.parent.getWorldPosition(new Vec3()) : new Vec3(); this.position.set(value.x - parent.x, value.y - parent.y, value.z - parent.z); }
+    setWorldPosition(value, y, z = 0) { if (typeof value === 'number') value = new Vec3(value, y, z); const parent = this.parent ? this.parent.getWorldPosition(new Vec3()) : new Vec3(); this.position.set(value.x - parent.x, value.y - parent.y, value.z - parent.z); }
     setParent(parent) { parent.addChild(this); }
     setPosition(value) { this.position.set(value); }
     setRotationFromEuler() {}
@@ -72,10 +72,11 @@ class HealthSystem extends Component { resetHp() {} takeDamage() {} heal() {} }
 
 const config = {
     playerAttackDamage: 10, playerAttackRange: 100, playerAttackInterval: 1, arrowSpeed: 10, arrowMaxDistance: 20, arrowHitRadius: 2, arrowMaxPierce: 5, arrowFullDamageHits: 3, arrowPierceDamageFalloff: 0.5,
-    soldierMaxHp: 20, soldierMoveSpeed: 6, soldierMeleeAttackRange: 40, soldierRetargetInterval: 0.35, playerMoveSpeed: 6, playerParkourForwardSpeed: 7, playerParkourChargeSpeed: 4,
+    soldierMaxHp: 20, soldierMoveSpeed: 6, soldierMeleeAttackRange: 40, soldierRetargetInterval: 0.35, soldierRangedTargetCount: 3, playerMoveSpeed: 6, playerParkourForwardSpeed: 7, playerParkourChargeSpeed: 4,
     joystickHintDelay: 3, joystickHintFigure8Amp: 28, joystickHintFigure8Period: 2.2,
 };
 const eventManager = { onEvent() {}, offEvent() {}, emitEvent() {} };
+const deferredAnimations = new WeakMap();
 const cc = {
     _decorator: { ccclass: () => (cls) => cls, property: () => () => undefined }, Component, Node, Vec2, Vec3, Collider2D, RigidBody2D, Animation, UITransform, Prefab,
     BoxCollider2D: Collider2D, CircleCollider2D: Collider2D, Sprite: class extends Component {}, Rect: class {},
@@ -85,7 +86,7 @@ const cc = {
 const mocks = {
     cc,
     '../core/GameConfig': { GameConfig: config }, '../core/EventManager': { EventManager: { instance: eventManager } }, '../core/GameEvents': { GameEvents: { PHASE_CHANGED: 'phase', PARKOUR_FINISHED: 'finished' } },
-    '../core/AnimUtil': { playAnim() {}, playAttackWithFrameHit(_node, _clip, hit, _fallback, complete) { hit(); complete?.(); } },
+    '../core/AnimUtil': { playAnim() {}, playAttackWithFrameHit(node, clip, hit, _fallback, complete) { const queue = deferredAnimations.get(node); if (queue) queue.push({ clip, hit, complete }); else { hit(); complete?.(); } } },
     '../core/HitFlash': { HitFlash: class { flash() {} } },
     '../core/VisualFacing': { VisualFacing: class { bind() {} reset() {} faceByTarget() {} faceByVelocity() {} } }, '../core/AirWallAabb': { AirWallAabb: { bodySize() { return { w: 1, h: 1 }; }, collectAirWalls() { return []; } } }, '../core/PathAgent': { PathAgent: class { reset() {} nextDirection(_dt, _a, _b, _c, _d, _e, out) { out.set(0, 0); } } },
     '../core/EnemyHitVfx': { playEnemyHitVfx() {} }, '../core/EnemyNavigation': { EnemyNavigation: { get() { return null; } } }, '../core/FlowField': { stableFlowBody(value) { return value; } },
@@ -127,6 +128,39 @@ function scene() { const node = new Node('Main'); node.scene = node; return node
 function attach(node, Type, ...args) { const component = new Type(...args); component.node = node; node.components.push(component); return component; }
 function minion(rootNode, hp, x = 0) { const node = rootNode.addChild(new Node('Minion')); node.position.x = x; return { node, component: attach(node, EnemyMinion, hp) }; }
 
+function tower(rootNode) {
+    const soldier = attach(rootNode.addChild(new Node('Ranged')), Soldier);
+    soldier.setDeployment('tower'); soldier.attackRange = 100; soldier.attackDamage = 10;
+    soldier.visualNode = soldier.node.addChild(new Node('Visual')); attach(soldier.visualNode, Animation);
+    const animations = []; const projectiles = [];
+    deferredAnimations.set(soldier.visualNode, animations);
+    soldier.projectilePrefab = new Prefab(() => {
+        const node = new Node('Projectile'); attach(node, cc.Sprite); projectiles.push(node); return node;
+    });
+    return { soldier, animations, projectiles };
+}
+function startVolley(fixture, count) {
+    const { soldier, animations, projectiles } = fixture;
+    const before = animations.length;
+    soldier.tryAttack();
+    equal(animations.length, before + 1, 'one deferred animation starts per volley');
+    equal(animations[before].clip, 'remoteAttack', 'tower uses ranged animation');
+    equal(soldier._attackReservations.length, count, 'all targets are reserved before the hit frame');
+    equal(new Set(soldier._attackReservations.map((token) => token.target)).size, count, 'upfront reservations are distinct');
+    for (const token of soldier._attackReservations) {
+        equal(token.attacker, soldier, 'reservation belongs to the attacking tower');
+        equal(token.damage, soldier.attackDamage, 'reservation records shot damage');
+        equal(token.released, false, 'reservation remains live during windup');
+        ok(AttackReservation.pendingDamage(token.target) >= soldier.attackDamage, 'shared ledger includes each captured target');
+    }
+    equal(projectiles.length, 0, 'windup has not spawned a projectile');
+    return animations[before];
+}
+function assertReleased(soldier, tokens) {
+    equal(soldier._attackReservations.length, 0, 'tower retains no resolved reservation tokens');
+    for (const token of tokens) equal(token.released, true, 'every captured token is released');
+}
+
 test('ledger aggregates, releases once, and flushes target or attacker ownership', () => {
     const attacker = {}; const target = {}; const one = AttackReservation.reserve(attacker, target, 4); const two = AttackReservation.reserve(attacker, target, 6);
     equal(AttackReservation.pendingDamage(target), 10, 'pending damage aggregates tokens'); AttackReservation.release(one); AttackReservation.release(one); equal(AttackReservation.pendingDamage(target), 6, 'duplicate release is harmless'); AttackReservation.releaseForAttacker(attacker); equal(AttackReservation.pendingDamage(target), 0, 'attacker cleanup flushes unresolved tokens');
@@ -152,23 +186,119 @@ test('Arrow releases on range expiry, destroy, and reserved target hit without c
     const second = AttackReservation.reserve({}, target.component, 10); arrow.init(target.node, 10, 10, second); arrow.onDestroy(); equal(AttackReservation.pendingDamage(target.component), 0, 'destroy releases current token exactly once');
 });
 
-test('tower Soldier allocation and hit-frame retarget use real methods', () => {
-    const rootNode = scene(); const soldier = attach(rootNode.addChild(new Node('Ranged')), Soldier); soldier._deployment = 'tower'; soldier.attackRange = 100; soldier.attackDamage = 10;
-    const stale = minion(rootNode, 15, 20); const replacement = minion(rootNode, 30, 30); AttackReservation.reserve({}, stale.component, 10);
-    equal(soldier._selectTowerTarget(), replacement.component, 'tower chooses the safe in-range minion'); AttackReservation.releaseForTarget(stale.component); soldier._attackReservation = AttackReservation.reserve(soldier, stale.component, 10); stale.node.active = false;
-    equal(soldier._resolveTowerHitTarget(stale.component), replacement.component, 'dead or hidden captured target is replaced at hit frame'); equal(AttackReservation.pendingDamage(stale.component), 0, 'obsolete tower target token is released'); equal(AttackReservation.pendingDamage(replacement.component), 10, 'replacement receives this attack reservation');
-    replacement.node.active = false; equal(soldier._resolveTowerHitTarget(stale.component), null, 'no legal replacement cancels only the hit'); soldier.onDisable(); equal(AttackReservation.pendingDamage(replacement.component), 0, 'Soldier disable flushes attacker token');
+for (const count of [0, 1, 2, 3, 5]) test(`tower tryAttack fires distinct max-three volley with ${count} available minions`, () => {
+    const rootNode = scene(); const fixture = tower(rootNode); const { soldier, animations, projectiles } = fixture;
+    const targets = Array.from({ length: count }, (_, i) => minion(rootNode, 5, 10 + i * 10));
+    if (!count) { soldier.tryAttack(); equal(animations.length, 0, 'no target starts no animation'); equal(soldier._attackReservations.length, 0, 'no target reserves nothing'); equal(projectiles.length, 0, 'no target spawns nothing'); return; }
+    const shots = Math.min(count, 3); const animation = startVolley(fixture, shots);
+    const tokens = [...soldier._attackReservations];
+    targets.forEach(({ component }) => equal(component.hits, 0, 'damage waits for the hit frame even when fallback overkills'));
+    soldier.tryAttack(); equal(animations.length, 1, 'windup rejects a second attack');
+    animation.hit();
+    equal(projectiles.length, shots, 'one projectile per distinct target, without padding scarce targets');
+    equal(targets.reduce((sum, { component }) => sum + component.hits, 0), shots, 'all damage happens at the single hit frame');
+    targets.forEach(({ component }) => { equal(component.hits, tokens.some((token) => token.target === component) ? 1 : 0, 'only captured targets take one hit'); equal(AttackReservation.pendingDamage(component), 0, 'hit frame clears pending damage'); });
+    assertReleased(soldier, tokens);
+    animation.hit(); animation.complete?.(); animation.hit();
+    equal(projectiles.length, shots, 'repeated hit callbacks cannot duplicate projectiles');
+    for (const scheduled of [...soldier.scheduled]) if (scheduled.repeat) scheduled.callback(0.2);
+    equal(targets.reduce((sum, { component }) => sum + component.hits, 0), shots, 'duplicate callbacks and projectile arrival deal no extra damage');
+    ok(projectiles.every((node) => !node.isValid), 'actual projectile movement reaches arrival and removes visuals');
+    equal(soldier._isAttacking, false, 'animation completion unlocks the attack');
+});
+
+test('tower selection reads configured count and prefers non-overkill candidates before fallback', () => {
+    const rootNode = scene(); const fixture = tower(rootNode); const low = minion(rootNode, 15, 10);
+    const safe = [20, 30, 40].map((x) => minion(rootNode, 30, x));
+    const external = AttackReservation.reserve({}, low.component, 10);
+    try {
+        config.soldierRangedTargetCount = 2;
+        const selected = fixture.soldier._selectTowerTargets();
+        equal(selected.length, 2, 'selection honors configured count');
+        equal(selected[0], safe[0].component, 'reserved nearer minion yields to first safe candidate');
+        equal(selected[1], safe[1].component, 'second distinct safe candidate follows distance order');
+        const animation = startVolley(fixture, 2); animation.hit();
+        equal(low.component.hits, 0, 'actual tryAttack also skips preventable overkill');
+        equal(safe[0].component.hits + safe[1].component.hits, 2, 'configured volley hits selected safe targets');
+        equal(safe[2].component.hits, 0, 'configured limit excludes additional safe target');
+        equal(AttackReservation.pendingDamage(low.component), 10, 'tower leaves another attacker reservation intact');
+    } finally { config.soldierRangedTargetCount = 3; fixture.soldier.onDisable(); AttackReservation.release(external); }
+});
+
+for (const invalidation of ['death', 'destroy', 'inactive', 'range']) test(`tower replaces ${invalidation} capture without stealing later valid captures`, () => {
+    const rootNode = scene(); const fixture = tower(rootNode);
+    const targets = [10, 20, 30, 40, 50].map((x) => minion(rootNode, 30, x));
+    const animation = startVolley(fixture, 3); const tokens = [...fixture.soldier._attackReservations];
+    const stale = targets[0];
+    if (invalidation === 'death') stale.component.isDead = true;
+    if (invalidation === 'destroy') stale.node.destroy();
+    if (invalidation === 'inactive') stale.node.active = false;
+    if (invalidation === 'range') stale.node.position.x = 101;
+    // A newly preferable target must not displace captures that remain legal.
+    targets[4].node.position.x = 1;
+    animation.hit();
+    equal(stale.component.hits, 0, 'illegal capture takes no damage');
+    equal(targets[1].component.hits, 1, 'second captured target keeps its shot');
+    equal(targets[2].component.hits, 1, 'third captured target keeps its shot');
+    equal(targets[3].component.hits, 0, 'unused farther candidate remains untouched');
+    equal(targets[4].component.hits, 1, 'invalid slot uses nearest unused legal replacement');
+    equal(fixture.projectiles.length, 3, 'replacement maintains three distinct shots');
+    assertReleased(fixture.soldier, tokens);
+    targets.forEach(({ component }) => equal(AttackReservation.pendingDamage(component), 0, 'captured and replacement reservations are released'));
+});
+
+for (const replacements of [0, 1]) test(`tower cancels unfilled invalid slots with ${replacements} unused replacements`, () => {
+    const rootNode = scene(); const fixture = tower(rootNode);
+    const targets = [10, 20, 30].map((x) => minion(rootNode, 30, x));
+    const spare = replacements ? minion(rootNode, 30, 40) : null;
+    const animation = startVolley(fixture, 3); const tokens = [...fixture.soldier._attackReservations];
+    targets[0].node.active = false; targets[1].component.isDead = true;
+    animation.hit(); animation.complete?.();
+    equal(targets[0].component.hits + targets[1].component.hits, 0, 'both invalid captures are revalidated');
+    equal(targets[2].component.hits, 1, 'valid capture is never reused as a replacement');
+    if (spare) equal(spare.component.hits, 1, 'one spare fills only one invalid slot');
+    equal(fixture.projectiles.length, 1 + replacements, 'unfilled slots produce no projectiles');
+    assertReleased(fixture.soldier, tokens);
+    equal(fixture.soldier._isAttacking, false, 'partly cancelled volley still completes');
+    ok(fixture.soldier._attackTimer > 0, 'partly cancelled volley retains cooldown');
+});
+
+test('two towers allocate through the shared ledger before either hit frame', () => {
+    const rootNode = scene(); const first = tower(rootNode); const second = tower(rootNode);
+    const targets = [10, 20, 30, 40, 50, 60].map((x) => minion(rootNode, 15, x));
+    const one = startVolley(first, 3); const two = startVolley(second, 3);
+    const tokens = [...first.soldier._attackReservations, ...second.soldier._attackReservations];
+    equal(new Set(tokens.map((token) => token.target)).size, 6, 'second tower avoids first tower pending overkill');
+    targets.forEach(({ component }) => { equal(component.hits, 0, 'both volleys remain deferred'); equal(AttackReservation.pendingDamage(component), 10, 'each minion has exactly one pending shot'); });
+    one.hit();
+    for (const token of second.soldier._attackReservations) equal(AttackReservation.pendingDamage(token.target), 10, 'first hit preserves second tower pending shots');
+    two.hit();
+    targets.forEach(({ component }) => { equal(component.hits, 1, 'each minion receives one shot across both towers'); equal(AttackReservation.pendingDamage(component), 0, 'both volleys leave ledger clear'); });
+});
+
+for (const action of ['onDisable', 'reset', 'deactivate', 'death']) test(`tower ${action} releases every windup reservation and rejects late callbacks`, () => {
+    const rootNode = scene(); const fixture = tower(rootNode); const targets = [10, 20, 30].map((x) => minion(rootNode, 30, x));
+    const animation = startVolley(fixture, 3); const tokens = [...fixture.soldier._attackReservations];
+    if (action === 'death') fixture.soldier.takeDamage(config.soldierMaxHp); else fixture.soldier[action]();
+    assertReleased(fixture.soldier, tokens);
+    targets.forEach(({ component }) => equal(AttackReservation.pendingDamage(component), 0, 'interruption clears all pending damage'));
+    animation.hit(); animation.complete?.(); animation.hit();
+    equal(fixture.projectiles.length, 0, 'interrupted animation cannot spawn projectiles');
+    targets.forEach(({ component }) => equal(component.hits, 0, 'interrupted animation cannot deal damage'));
+    if (action === 'reset') {
+        const next = startVolley(fixture, 3); animation.hit(); animation.complete?.();
+        equal(fixture.soldier._isAttacking, true, 'old completion cannot unlock new volley');
+        targets.forEach(({ component }) => equal(AttackReservation.pendingDamage(component), 10, 'old callback cannot clear new reservations'));
+        next.hit(); targets.forEach(({ component }) => equal(component.hits, 1, 'new volley still resolves once'));
+    }
 });
 
 test('enemy lifecycle cleanup semantics are represented by target flushing', () => {
     const target = {}; for (const event of ['death', 'disable', 'destroy', 'reset']) { const token = AttackReservation.reserve({}, target, 10); AttackReservation.releaseForTarget(target); equal(token.released, true, `${event} leaves no stale target token`); }
 });
 
-test('attacker reset, deactivate, death, and CombatSystem cancellation flush reservations', () => {
-    const soldier = attach(new Node('Ranged'), Soldier); const target = {};
-    soldier._attackReservation = AttackReservation.reserve(soldier, target, 10); soldier.deactivate(); equal(AttackReservation.pendingDamage(target), 0, 'deactivate releases tower token');
-    soldier._attackReservation = AttackReservation.reserve(soldier, target, 10); soldier.reset(); equal(AttackReservation.pendingDamage(target), 0, 'reset releases tower token');
-    soldier._attackReservation = AttackReservation.reserve(soldier, target, 10); soldier.takeDamage(20); equal(AttackReservation.pendingDamage(target), 0, 'death releases tower token');
+test('CombatSystem cancellation flushes reservations', () => {
+    const target = {};
     const combat = attach(new Node('Combat'), CombatSystem); combat._pendingReservation = AttackReservation.reserve(combat, target, 10); combat.cancelPendingAttack(); equal(AttackReservation.pendingDamage(target), 0, 'Player cancellation releases pre-hit token');
 });
 

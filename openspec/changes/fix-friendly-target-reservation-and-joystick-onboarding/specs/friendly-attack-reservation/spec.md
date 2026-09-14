@@ -7,7 +7,26 @@ A tower Soldier SHALL validate its target at the attack hit frame. A target is l
 #### Scenario: Captured tower target becomes illegal before the hit frame
 
 - **WHEN** a tower Soldier has started an attack and its captured target dies, is destroyed, becomes inactive, or leaves attack range before the hit frame
-- **THEN** the Soldier selects a legal replacement using normal friendly target allocation and applies the existing one attack's damage and projectile presentation to that replacement
+- **THEN** the Soldier selects a legal replacement not already assigned to another arrow in the volley using normal friendly target allocation and applies one arrow's damage and projectile presentation to that replacement
+
+### Requirement: Tower volleys use distinct targets
+
+A tower Soldier SHALL assign at most three distinct legal targets per attack, reserving each arrow's damage before the delayed hit frame. Existing attack timing, per-arrow damage, projectile presentation, and minion allocation preferences SHALL remain in effect. Melee Soldiers SHALL retain their existing attack behavior.
+
+#### Scenario: Fewer than three eligible targets
+
+- **WHEN** only one or two targets are eligible at attack start
+- **THEN** the Soldier fires one or two arrows respectively without assigning multiple arrows to the same target in that attack
+
+#### Scenario: A captured target becomes invalid
+
+- **WHEN** a captured target becomes invalid before the volley fires
+- **THEN** all still-legal captured targets retain their slots, the invalid reservation is released, and only unused legal replacements may fill the vacant slot
+
+#### Scenario: Volley is cancelled or its hit callback repeats
+
+- **WHEN** the attacker dies, resets, deactivates, or is disabled before firing, or the hit callback is invoked more than once
+- **THEN** cancelled volleys release all pending reservations without late damage, and a volley never fires twice
 
 #### Scenario: No legal tower replacement exists at the hit frame
 
