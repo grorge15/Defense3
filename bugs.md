@@ -979,6 +979,15 @@
 | **原因** | 刷怪器仍监听跑酷结束事件才激活；远端刷怪点到玩家距离可能超过 `minionAggroRange`，生成小怪会被仇恨范围逻辑停在原地；对象池目标也可能在后续解析到玩家后未同步给已生成小怪。 |
 | **解决** | `EnemySpawner.start` 直接激活刷怪并移除 `PARKOUR_FINISHED` 监听；刷怪器生成/复用的小怪标记为强制追踪目标，忽略仇恨距离上限；刷怪器每帧把已解析到的玩家目标同步给活跃池对象。 |
 
+### v4（2026-09-12）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 跑酷开局玩家尚未移动时，`EnemySpawner` 已经刷新并生成怪物。 |
+| **原因** | `EnemySpawner.start()` 无条件调用 `_activateFarSpawning()`，没有遵守 Player 的首次有效输入门禁。 |
+| **解决** | 刷怪器等待 `Player.isParkourMovementUnlocked` 为 true；玩家首次有效移动后才首刷并启动左右定时器，已进入非跑酷阶段时仍保持原有立即刷怪行为。 |
+| **验证** | `npx --no-install tsc --noEmit`、`git diff --check` 通过；未修改场景或 prefab。 |
+
 ---
 
 ## fix-embedded-character-hp-bars — 角色 prefab 内置血条未生效

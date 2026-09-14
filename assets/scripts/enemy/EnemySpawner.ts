@@ -60,7 +60,7 @@ export class EnemySpawner extends Component {
 
     private _timer = 0;
     private _alive = 0;
-    /** 远端刷怪开局直接启用 */
+    /** 远端刷怪在玩家首次有效移动后启用 */
     private _farActive = false;
     private _leftStopped = false;
     private _rightStopped = false;
@@ -98,7 +98,9 @@ export class EnemySpawner extends Component {
     start(): void {
         this._resolveTarget();
         this._configureNavigation();
-        this._activateFarSpawning();
+        if (this._canStartSpawning()) {
+            this._activateFarSpawning();
+        }
     }
 
     onDestroy(): void {
@@ -115,6 +117,9 @@ export class EnemySpawner extends Component {
     update(dt: number): void {
         this._resolveTarget();
         this._syncTargetToSpawned();
+        if (!this._farActive && this._canStartSpawning()) {
+            this._activateFarSpawning();
+        }
         if (!this._farActive || !this.enemyPrefab || !this.spawnPoint) {
             return;
         }
@@ -292,6 +297,11 @@ export class EnemySpawner extends Component {
             return;
         }
         this.target = this.node.scene?.getComponentInChildren(Player)?.node ?? null;
+    }
+
+    private _canStartSpawning(): boolean {
+        const player = this.target?.getComponent(Player) ?? this.node.scene?.getComponentInChildren(Player);
+        return !!player?.isParkourMovementUnlocked;
     }
 
     private _syncTargetToSpawned(): void {

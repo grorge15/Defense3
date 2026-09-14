@@ -5,7 +5,7 @@
 export class GameConfig {
     // --- 生命值 ---
     static readonly playerMaxHp = 400;
-    static readonly heroMaxHp = 100;
+    static readonly heroMaxHp = 10000;
     static readonly bossMaxHp = 1500;
     static readonly minionMaxHp = 15;
     static readonly soldierMaxHp = 20;
@@ -50,9 +50,9 @@ export class GameConfig {
 
     // --- 相机跟随（玩法在 XY 平面，主相机从 +Z 看向原点；UI 由 UICamera 单独渲染）---
     static readonly cameraFollowOffsetX = -15;
-    static readonly cameraFollowOffsetY = -225;
+    static readonly cameraFollowOffsetY = -390;
     /** 相对目标沿 +Z 拉开的观察距离 */
-    static readonly cameraFollowOffsetZ = 860;
+    static readonly cameraFollowOffsetZ = 1270;
     /** 跟随平滑系数（越大越贴） */
     static readonly cameraFollowSmooth = 6;
 
@@ -83,7 +83,7 @@ export class GameConfig {
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
     static readonly soldierMoveSpeed = 4;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
-    static readonly soldierRetargetInterval = 0.35;
+    static readonly soldierRetargetInterval = 1;
     /** 近战小兵停步/出手距离 */
     static readonly soldierMeleeAttackRange = 40;
 
