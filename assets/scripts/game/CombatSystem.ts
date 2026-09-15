@@ -2,6 +2,7 @@ import { _decorator, Animation, Component, instantiate, Node, Prefab, resources,
 import { Player } from '../character/Player';
 import { playAttackWithFrameHit } from '../core/AnimUtil';
 import { AttackReservation, type AttackReservationToken } from '../core/AttackReservation';
+import { AudioManager } from '../core/AudioManager';
 import { GameConfig } from '../core/GameConfig';
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
@@ -280,6 +281,7 @@ export class CombatSystem extends Component {
         const arrow = arrowNode.getComponent(Arrow);
         if (arrow) {
             arrow.init(target, GameConfig.playerAttackDamage, GameConfig.arrowSpeed, reservation);
+            AudioManager.playSfx('playerAttack');
         } else {
             arrowNode.destroy();
             AttackReservation.release(reservation);

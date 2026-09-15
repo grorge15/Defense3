@@ -7,6 +7,7 @@ import {
     Node,
     RigidBody2D,
     Vec2,
+    Vec3,
 } from 'cc';
 import { playAnim } from '../core/AnimUtil';
 import { GameConfig } from '../core/GameConfig';
@@ -24,6 +25,23 @@ import { HpBarUI } from '../ui/HpBarUI';
 const { ccclass, property } = _decorator;
 
 export type PlayerMode = 'parkour' | 'defense';
+
+type ParkourPhysicsSnapshot = {
+    rigidBody: RigidBody2D | null;
+    rigidBodyEnabled: boolean;
+    rigidBodyType: ERigidBody2DType;
+    gravityScale: number;
+    fixedRotation: boolean;
+    allowSleep: boolean;
+    enabledContactListener: boolean;
+    linearVelocity: Vec2;
+    angularVelocity: number;
+    awake: boolean | null;
+    collider: Collider2D | null;
+    colliderEnabled: boolean;
+    colliderSensor: boolean;
+};
+
 
 /**
  * 玩家移动：Dynamic + linearVelocity（零重力）；非 sensor，与 Static airWall / 固定滚木物理碰撞。
@@ -48,6 +66,11 @@ export class Player extends Component {
     private _isAttacking = false;
     private _currentLocomotionClip = '';
     private _boundLog: Log | null = null;
+    private _parkourPhysicsSnapshot: ParkourPhysicsSnapshot | null = null;
+    private _parkourFollowLog: Node | null = null;
+    private readonly _parkourFollowOffset = new Vec3();
+    private readonly _parkourFollowWorldPosition = new Vec3();
+
     private _parkourCharging = false;
     private _parkourInputUnlocked = false;
     private readonly _visualFacing = new VisualFacing();
@@ -144,9 +167,8 @@ export class Player extends Component {
         this._parkourInputUnlocked = false;
         this._moveDir.set(0, 0);
         this._velocity.set(0, 0);
-        if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
-        }
+        this._writeOwnVelocity();
+
     }
 
     unlockParkourMovement(): void {
@@ -166,6 +188,97 @@ export class Player extends Component {
     getVelocity(): Readonly<Vec2> {
         return this._velocity;
     }
+
+    /** Parkour Log consumes this intent and is the sole physics velocity writer while attached. */
+    getParkourVelocityIntent(): Readonly<Vec2> {
+        return this._velocity;
+    }
+
+    isFollowingParkourLog(): boolean {
+        return this._parkourPhysicsSnapshot !== null;
+    }
+
+    /** Start root-level Log following without reparenting Player or its visual/UI subtree. */
+    beginParkourLogFollow(logRoot: Node): void {
+        if (this._parkourPhysicsSnapshot) {
+            if (this._parkourFollowLog === logRoot) {
+                return;
+            }
+            this.endParkourLogFollow();
+        }
+
+        const rigidBody = this._rb ?? this.getComponent(RigidBody2D);
+        this._rb = rigidBody;
+        const collider = this.getComponent(Collider2D);
+        const awakeBody = rigidBody as (RigidBody2D & { awake?: boolean }) | null;
+        this._parkourPhysicsSnapshot = {
+            rigidBody,
+            rigidBodyEnabled: rigidBody?.enabled ?? false,
+            rigidBodyType: rigidBody?.type ?? ERigidBody2DType.Dynamic,
+            gravityScale: rigidBody?.gravityScale ?? 0,
+            fixedRotation: rigidBody?.fixedRotation ?? true,
+            allowSleep: rigidBody?.allowSleep ?? false,
+            enabledContactListener: rigidBody?.enabledContactListener ?? false,
+            linearVelocity: rigidBody ? new Vec2(rigidBody.linearVelocity) : new Vec2(0, 0),
+            angularVelocity: rigidBody?.angularVelocity ?? 0,
+            awake: typeof awakeBody?.awake === 'boolean' ? awakeBody.awake : null,
+            collider,
+            colliderEnabled: collider?.enabled ?? false,
+            colliderSensor: collider?.sensor ?? false,
+        };
+
+        logRoot.getWorldPosition(this._parkourFollowWorldPosition);
+        this.node.getWorldPosition(this._parkourFollowOffset);
+        Vec3.subtract(
+            this._parkourFollowOffset,
+            this._parkourFollowOffset,
+            this._parkourFollowWorldPosition,
+        );
+        this._parkourFollowLog = logRoot;
+        if (rigidBody) {
+            rigidBody.linearVelocity = new Vec2(0, 0);
+            rigidBody.angularVelocity = 0;
+            rigidBody.enabled = false;
+        }
+        if (collider) {
+            collider.enabled = false;
+        }
+    }
+
+    /** Synchronize once, then restore the captured Player physics state. */
+    endParkourLogFollow(): void {
+        const snapshot = this._parkourPhysicsSnapshot;
+        if (!snapshot) {
+            return;
+        }
+        this._syncParkourLogWorldPosition();
+        this._parkourFollowLog = null;
+        this._parkourPhysicsSnapshot = null;
+
+        const rigidBody = snapshot.rigidBody;
+        if (rigidBody) {
+            rigidBody.type = snapshot.rigidBodyType;
+            rigidBody.gravityScale = snapshot.gravityScale;
+            rigidBody.fixedRotation = snapshot.fixedRotation;
+            rigidBody.allowSleep = snapshot.allowSleep;
+            rigidBody.enabledContactListener = snapshot.enabledContactListener;
+            rigidBody.linearVelocity = new Vec2(snapshot.linearVelocity);
+            rigidBody.angularVelocity = snapshot.angularVelocity;
+            rigidBody.enabled = snapshot.rigidBodyEnabled;
+            if (snapshot.awake !== null) {
+                (rigidBody as RigidBody2D & { awake?: boolean }).awake = snapshot.awake;
+            }
+        }
+        if (snapshot.collider) {
+            snapshot.collider.sensor = snapshot.colliderSensor;
+            snapshot.collider.enabled = snapshot.colliderEnabled;
+        }
+    }
+
+    lateUpdate(): void {
+        this._syncParkourLogWorldPosition();
+    }
+
 
     faceTarget(target: Node | null): void {
         this._visualFacing.faceByTarget(this.visualNode, this.node, target, true);
@@ -219,9 +332,8 @@ export class Player extends Component {
         if (!enabled) {
             this._moveDir.set(0, 0);
             this._velocity.set(0, 0);
-            if (this._rb) {
-                this._rb.linearVelocity = new Vec2(0, 0);
-            }
+            this._writeOwnVelocity();
+
         }
     }
 
@@ -248,9 +360,8 @@ export class Player extends Component {
         if (this._mode === 'parkour') {
             if (!this._parkourInputUnlocked) {
                 this._velocity.set(0, 0);
-                if (this._rb) {
-                    this._rb.linearVelocity = this._velocity;
-                }
+                this._writeOwnVelocity();
+
                 return;
             }
             this._velocity.x = this._moveDir.x * GameConfig.playerMoveSpeed;
@@ -270,9 +381,8 @@ export class Player extends Component {
             }
         }
 
-        if (this._rb) {
-            this._rb.linearVelocity = this._velocity;
-        }
+        this._writeOwnVelocity();
+
         this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x, true);
         this._updateLocomotionAnim();
     }
@@ -311,13 +421,18 @@ export class Player extends Component {
         if (this._isDead) {
             return;
         }
+        if (this._boundLog) {
+            this._boundLog.unbindPlayer();
+        } else {
+            this.endParkourLogFollow();
+        }
+
         this._isDead = true;
         this._combat?.cancelPendingAttack();
         this._canMove = false;
         this._velocity.set(0, 0);
-        if (this._rb) {
-            this._rb.linearVelocity = new Vec2(0, 0);
-        }
+        this._writeOwnVelocity();
+
         if (this.visualNode) {
             playAnim(this.visualNode, 'die');
         }
@@ -343,6 +458,27 @@ export class Player extends Component {
         this._currentLocomotionClip = clip;
         playAnim(this.visualNode, clip);
     }
+
+    private _writeOwnVelocity(): void {
+        if (!this._rb || this.isFollowingParkourLog()) {
+            return;
+        }
+        this._rb.linearVelocity = new Vec2(this._velocity);
+    }
+
+    private _syncParkourLogWorldPosition(): void {
+        if (!this._parkourPhysicsSnapshot || !this._parkourFollowLog) {
+            return;
+        }
+        this._parkourFollowLog.getWorldPosition(this._parkourFollowWorldPosition);
+        Vec3.add(
+            this._parkourFollowWorldPosition,
+            this._parkourFollowWorldPosition,
+            this._parkourFollowOffset,
+        );
+        this.node.setWorldPosition(this._parkourFollowWorldPosition);
+    }
+
 
     private _bindEmbeddedHpBar(): void {
         const bar = this.node.getComponentInChildren(HpBarUI);

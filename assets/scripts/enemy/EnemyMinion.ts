@@ -9,13 +9,12 @@ import {
     ERigidBody2DType,
     Node,
     Prefab,
-    Rect,
     RigidBody2D,
-    UITransform,
     Vec2,
     Vec3,
 } from 'cc';
 import { AirWallAabb } from '../core/AirWallAabb';
+import { AudioManager } from '../core/AudioManager';
 import { AttackReservation } from '../core/AttackReservation';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
@@ -25,7 +24,6 @@ import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { VisualFacing } from '../core/VisualFacing';
 import { CoinSystem } from '../game/CoinSystem';
-import { Log } from '../item/Log';
 import { Player } from '../character/Player';
 import { playEnemyHitVfx, type EnemyHitSource } from '../core/EnemyHitVfx';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -69,16 +67,12 @@ export class EnemyMinion extends Component {
     private _rb: RigidBody2D | null = null;
     private _collider: Collider2D | null = null;
     private _ai: EnemyAI | null = null;
-    private _log: Log | null = null;
     private _hp = GameConfig.minionMaxHp;
     private _target: Node | null = null;
     private readonly _velocity = new Vec2();
     private readonly _physicsVelocity = new Vec2();
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
-    private readonly _tmpPos = new Vec3();
-    private readonly _selfRect = new Rect();
-    private readonly _logRect = new Rect();
     private _airWalls: BoxCollider2D[] = [];
     private _isDead = false;
     private _canMove = true;
@@ -307,7 +301,6 @@ export class EnemyMinion extends Component {
         this._canMove = true;
         this._isAttacking = false;
         this._currentLocomotionClip = '';
-        this._log = null;
         this._ai?.reset();
         this._ai?.setTarget(null);
         EnemyNavigation.get(this.node.scene)?.resetUnit(this.node);
@@ -451,7 +444,6 @@ export class EnemyMinion extends Component {
             }
             nav.nextObstacleVelocity(request, diversion, this._velocity);
             if (trace) trace.requestedWorldVelocity = { x: this._velocity.x, y: this._velocity.y };
-            this._adjustVelocityAgainstLog(true);
             nav.constrainFinalVelocity(this.node, size, _dt, navigationSpeed, this._velocity);
             this._applyNavigationVelocity();
             this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
@@ -504,8 +496,6 @@ export class EnemyMinion extends Component {
             trace.requestedWorldVelocity = { x: this._velocity.x * scale, y: this._velocity.y * scale };
         }
         this._biasVelocityAwayFromPlayer();
-        this._adjustVelocityAgainstLog(!!nav);
-        // Preserve legal rolling-log carry speed, but never let post-processing bypass the map sweep.
         const finalSpeed = Math.max(navigationSpeed, Math.hypot(this._velocity.x, this._velocity.y));
         nav?.constrainFinalVelocity(this.node, size, _dt, finalSpeed, this._velocity);
 
@@ -518,47 +508,6 @@ export class EnemyMinion extends Component {
         this._updateLocomotionAnim(true);
     }
 
-    /** 跑酷中滚木仍为 sensor：重叠时只改速度挡穿，不写位置 */
-    private _adjustVelocityAgainstLog(navigationVelocity: boolean): void {
-        const log = this._resolveLog();
-        if (!log || log.getPhase() === 'failed') {
-            return;
-        }
-        // Fixed logs are constrained by the physical body sweep, not the larger visual rectangle.
-        if (log.getPhase() === 'fixed' && EnemyNavigation.get(this.node.scene)) {
-            return;
-        }
-
-        this._fillLogAabb(log, this._logRect);
-        this._fillVisualAabb(this.node, this._selfRect, this._selfPos);
-        if (!this._aabbOverlap(this._selfRect, this._logRect)) {
-            return;
-        }
-
-        const penL = this._selfRect.xMax - this._logRect.xMin;
-        const penR = this._logRect.xMax - this._selfRect.xMin;
-        const penB = this._selfRect.yMax - this._logRect.yMin;
-        const penT = this._logRect.yMax - this._selfRect.yMin;
-        if (penL <= 0 || penR <= 0 || penB <= 0 || penT <= 0) {
-            return;
-        }
-
-        const minPen = Math.min(penL, penR, penB, penT);
-        const phase = log.getPhase();
-        if (minPen === penL) {
-            this._velocity.x = Math.min(this._velocity.x, 0);
-        } else if (minPen === penR) {
-            this._velocity.x = Math.max(this._velocity.x, 0);
-        } else if (minPen === penB) {
-            this._velocity.y = Math.min(this._velocity.y, 0);
-        } else if (phase === 'rolling' || phase === 'charging') {
-            const rideSpeed = this._readRideSpeedY();
-            const rideY = navigationVelocity ? EnemyNavigation.worldSpeedForPhysicsVelocity(rideSpeed) : rideSpeed;
-            this._velocity.y = rideY > 0 ? rideY : Math.max(this._velocity.y, 0);
-        } else {
-            this._velocity.y = Math.max(this._velocity.y, 0);
-        }
-    }
 
     /** 近距离取消朝向玩家的速度分量（不写 setWorldPosition） */
     private _biasVelocityAwayFromPlayer(): void {
@@ -586,18 +535,6 @@ export class EnemyMinion extends Component {
         }
     }
 
-    private _aabbOverlap(a: Rect, b: Rect): boolean {
-        return a.xMax > b.xMin && a.xMin < b.xMax && a.yMax > b.yMin && a.yMin < b.yMax;
-    }
-
-    private _readRideSpeedY(): number {
-        if (!this._target) {
-            return 0;
-        }
-        const player = this._target.getComponent(Player);
-        const vy = player?.getVelocity().y ?? 0;
-        return vy > 0 ? vy : 0;
-    }
 
     private _halt(doAttack: boolean): void {
         this._velocity.set(0, 0);
@@ -616,45 +553,6 @@ export class EnemyMinion extends Component {
         this._rb.linearVelocity = EnemyNavigation.writePhysicsVelocity(this._velocity, this._physicsVelocity);
     }
 
-    private _resolveLog(): Log | null {
-        this._log = EnemyNavigation.get(this.node.scene)?.contactLog() ?? null;
-        return this._log;
-    }
-
-    private _fillLogAabb(log: Log, out: Rect): void {
-        const box = log.getBoxCollider();
-        if (box) {
-            const aabb = box.worldAABB;
-            const w = Math.abs(aabb.width);
-            const h = Math.abs(aabb.height);
-            if (w >= 8 && h >= 8) {
-                out.set(aabb.x, aabb.y, w, h);
-                return;
-            }
-        }
-        log.node.getWorldPosition(this._tmpPos);
-        this._fillVisualAabb(log.node, out, this._tmpPos);
-    }
-
-    private _fillVisualAabb(node: Node, out: Rect, worldCenter: Vec3): void {
-        const visual = node.getChildByName('Visual') ?? node;
-        const ui = visual.getComponent(UITransform);
-        if (ui) {
-            const ws = visual.worldScale;
-            const w = Math.max(Math.abs(ui.contentSize.width * ws.x), 24);
-            const h = Math.max(Math.abs(ui.contentSize.height * ws.y), 24);
-            const anchor = ui.anchorPoint;
-            out.set(worldCenter.x - w * anchor.x, worldCenter.y - h * anchor.y, w, h);
-            return;
-        }
-        const box = node.getComponent(BoxCollider2D);
-        if (box) {
-            const aabb = box.worldAABB;
-            out.set(aabb.x, aabb.y, Math.abs(aabb.width), Math.abs(aabb.height));
-            return;
-        }
-        out.set(worldCenter.x - 24, worldCenter.y - 24, 48, 48);
-    }
 
     private _die(): void {
         if (minionDebug.enabled) {
@@ -668,6 +566,7 @@ export class EnemyMinion extends Component {
         EnemyNavigation.get(this.node.scene)?.releaseUnit(this.node);
         this._isDead = true;
         this._canMove = false;
+        AudioManager.playSfx('enemyDeath');
         this._velocity.set(0, 0);
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);

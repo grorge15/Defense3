@@ -3,8 +3,29 @@
  * hp/attack 等仅为初始参考值，后续可在编辑器或配置表覆盖。
  */
 export class GameConfig {
+    // --- 音频 ---
+    /** BGM 总音量（由场景 AudioManager 读取） */
+    static readonly audioBgmVolume = 0.35;
+    /** 短音效总音量（由场景 AudioManager 读取） */
+    static readonly audioSfxVolume = 0.8;
+    /** Inspector cue 的默认音量倍率 */
+    static readonly audioCueVolumeMultiplier = 1;
+    /** 同时播放的短音效最大数量 */
+    static readonly audioSfxConcurrencyLimit = 8;
+    /** BGM 默认最小重播间隔 */
+    static readonly audioBgmMinInterval = 0;
+    /** 攻击类 cue 的默认最小重播间隔 */
+    static readonly audioAttackMinInterval = 0.1;
+    /** 普通敌人死亡 cue 的默认最小重播间隔 */
+    static readonly audioDeathMinInterval = 0.1;
+    /** 金币收集 cue 的默认最小重播间隔 */
+    static readonly audioCoinMinInterval = 0.1;
+    /** 建造完成 cue 的默认最小重播间隔 */
+    static readonly audioBuildMinInterval = 0;
+    /** 英雄生成 cue 的默认最小重播间隔 */
+    static readonly audioHeroSpawnMinInterval = 0;
     // --- 生命值 ---
-    static readonly playerMaxHp = 400;
+    static readonly playerMaxHp = 700;
     static readonly heroMaxHp = 100;
     static readonly bossMaxHp = 1500;
     static readonly minionMaxHp = 15;
@@ -12,7 +33,7 @@ export class GameConfig {
     static readonly barrierMaxHp = 3000;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
     static readonly towerMaxHp = 200;
-    static readonly barracksMaxHp = 200;
+    static readonly barracksMaxHp = 400;
     /** 滚木固定后作为可攻击障碍的最大生命 */
     static readonly logMaxHp = 1000;
     static readonly logFixedColliderOffsetX = -2;
@@ -25,7 +46,7 @@ export class GameConfig {
     /** Boss 对建筑/屏障/小兵一击拆毁伤害（≥ 各建筑 maxHp） */
     static readonly bossBuildingDamage = 200;
     static readonly playerAttackDamage = 15;
-    static readonly minionAttackDamage = 10;
+    static readonly minionAttackDamage = 3;
     /**
      * 玩家射箭冷却（秒）。须 ≥ melee_attack 时长（0.7），
      * 否则会出现「动画未结束又开下一轮」。

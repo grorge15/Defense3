@@ -1,5 +1,6 @@
 import { _decorator, instantiate, Node, Prefab, resources, RigidBody2D, Vec2, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
+import { AudioManager } from '../core/AudioManager';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
@@ -108,6 +109,7 @@ export class HeroShrine extends Building {
         if (rigidBody) {
             rigidBody.linearVelocity = new Vec2(0, 0);
         }
+        AudioManager.playSfx('heroSpawn');
 
         console.info(
             `[HeroShrine] spawned hero${heroIndex + 1} at (${this._spawnPos.x.toFixed(1)}, ${this._spawnPos.y.toFixed(1)})`,

@@ -21,6 +21,7 @@ import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
 import { Soldier } from '../character/Soldier';
 import { AirWallAabb } from '../core/AirWallAabb';
+import { AudioManager } from '../core/AudioManager';
 import { AttackReservation } from '../core/AttackReservation';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
@@ -898,6 +899,7 @@ export class EnemyBoss extends Component {
         this._isDead = true;
         this._isAttacking = false;
         this._canMove = false;
+        AudioManager.playSfx('enemyDeath');
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
         }

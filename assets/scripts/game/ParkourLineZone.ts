@@ -5,8 +5,6 @@ import {
     Contact2DType,
     IPhysics2DContact,
 } from 'cc';
-import { EventManager } from '../core/EventManager';
-import { GameEvents } from '../core/GameEvents';
 import { Log } from '../item/Log';
 
 const { ccclass, property } = _decorator;
@@ -67,7 +65,6 @@ export class ParkourLineZone extends Component {
             return;
         }
 
-        EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
         this.log.tryLockAtFinish(this.log.meetsFixedWidthRequirement());
     };
 }

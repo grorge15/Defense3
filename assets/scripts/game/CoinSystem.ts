@@ -1,5 +1,6 @@
 import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { EventManager } from '../core/EventManager';
+import { AudioManager } from '../core/AudioManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { Coin } from '../item/Coin';
@@ -80,6 +81,7 @@ export class CoinSystem extends Component {
         coin.setup(this.playerNode, GameConfig.coinDropAmount, (amount) => {
             this._aliveCoins = Math.max(0, this._aliveCoins - 1);
             this.addCoins(amount);
+            AudioManager.playSfx('coinCollect');
         });
     }
 

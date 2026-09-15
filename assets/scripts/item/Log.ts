@@ -12,7 +12,6 @@ import {
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
-import { AirWallAabb } from '../core/AirWallAabb';
 import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
@@ -54,16 +53,9 @@ export class Log extends Component {
     private _isLocked = false;
     private _isFading = false;
     private _pushPlayer: Player | null = null;
-    private readonly _selfPos = new Vec3();
-    private readonly _playerPos = new Vec3();
     private readonly _desiredPos = new Vec3();
-    private readonly _followOffset = new Vec3();
-    private readonly _tmpLinePos = new Vec3();
-    private readonly _followVel = new Vec2();
-    private _airWalls: BoxCollider2D[] = [];
-    private _hasFollowOffset = false;
-    private _yellowTriggered = false;
-    private _blueTriggered = false;
+    private readonly _rollVelocity = new Vec2();
+
     private readonly _baseVisualScale = new Vec3(1, 1, 1);
     private _baseVisualContentWidth = 200;
     private _shadowNode: Node | null = null;
@@ -89,8 +81,9 @@ export class Log extends Component {
             if (h > 0.01) {
                 this._baseColliderHeight = h;
             }
-            // 传感器：不与 Dynamic 玩家产生固体顶撞（挡路/电锯接触靠逻辑与 Trigger）
-            this._collider.sensor = true;
+
+            this._collider.sensor = false;
+
         }
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
@@ -108,23 +101,17 @@ export class Log extends Component {
         this._refreshLengthVisual();
     }
 
-    start(): void {
-        this._resolveParkourLines();
-    }
 
     beginParkour(): void {
         this._phase = 'rolling';
         this._isLocked = false;
         this._isFading = false;
-        this._yellowTriggered = false;
-        this._blueTriggered = false;
         this._currentLength = GameConfig.logInitialLength;
         this._resetRollingGeometry();
         this._refreshLengthVisual();
         this._stopRollAnim();
-        if (this._pushPlayer) {
-            this._captureFollowOffset();
-        }
+        this._configureRollingPhysics();
+        this._pushPlayer?.beginParkourLogFollow(this.node);
     }
 
     finishParkour(): void {
@@ -132,20 +119,25 @@ export class Log extends Component {
     }
 
     bindPlayer(player: Node | null): void {
-        this._pushPlayer = player ? player.getComponent(Player) : null;
-        this._pushPlayer?.bindLog(this);
-        if (this._pushPlayer) {
-            this._captureFollowOffset();
-        } else {
-            this._hasFollowOffset = false;
+        const nextPlayer = player ? player.getComponent(Player) : null;
+        if (this._pushPlayer === nextPlayer) {
+            return;
         }
+        this.unbindPlayer();
+        this._pushPlayer = nextPlayer;
+        this._pushPlayer?.bindLog(this);
     }
 
     unbindPlayer(): void {
-        this._pushPlayer?.bindLog(null);
+        const player = this._pushPlayer;
+        player?.endParkourLogFollow();
         this._pushPlayer = null;
-        this._hasFollowOffset = false;
+        this._stopParkourMotion();
+        player?.setParkourCharging(false);
+        player?.bindLog(null);
     }
+
+
 
     /**
      * 固定后作为可攻击障碍。
@@ -289,13 +281,15 @@ export class Log extends Component {
         this._pushPlayer?.setParkourCharging(false);
         const width = this._rollingWidth();
         const need = this._fixedMinRollingWidth();
+        this._stopRollAnim();
+
         if (canLock) {
             this._phase = 'fixed';
             this._isLocked = true;
-            this._resolveFixedPoint();
-            this._stopRollAnim();
-            this._enableAsSolidBarrier();
             this.unbindPlayer();
+            this._resolveFixedPoint();
+            this._enableAsSolidBarrier();
+            EnemyNavigation.get(this.node.scene)?.invalidate();
             this._spawnHpBar();
             console.info(
                 `[Log] blue line LOCK OK width=${width.toFixed(1)} need>=${need.toFixed(1)}`,
@@ -304,13 +298,18 @@ export class Log extends Component {
                 node: this.node,
                 kind: 'log',
             });
+            EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
             return;
         }
+
         this._phase = 'failed';
         this._isFading = true;
         this.unbindPlayer();
-        this._stopRollAnim();
         this._freezeVisualRotation();
+        if (this._collider) {
+            this._collider.enabled = false;
+        }
+        EnemyNavigation.get(this.node.scene)?.invalidate();
         console.warn(
             `[Log] blue line LOCK FAIL width=${width.toFixed(1)} need>=${need.toFixed(1)} -> fade out`,
         );
@@ -320,7 +319,10 @@ export class Log extends Component {
             need,
         });
         this._fadeOut();
+        EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
     }
+
+
 
     private _enableAsSolidBarrier(): void {
         this._freezeVisualRotation();
@@ -379,85 +381,49 @@ export class Log extends Component {
         }
     }
 
-    update(dt: number): void {
-        if (this._isLocked || this._isFading || dt <= 0 || !this._pushPlayer) {
-            return;
-        }
-        if (this._phase !== 'rolling' && this._phase !== 'charging') {
-            return;
-        }
-        this._keepVisualRotationFlat();
-        this._pollParkourLines();
-    }
-
-    lateUpdate(): void {
+    update(_dt: number): void {
         if (this._isLocked || this._isFading || !this._pushPlayer) {
             return;
         }
         if (this._phase !== 'rolling' && this._phase !== 'charging') {
             return;
         }
-
-        this._syncRollAnimToPlayerMovement();
-        this._pushPlayer.node.getWorldPosition(this._playerPos);
-        if (!this._hasFollowOffset) {
-            this._captureFollowOffset();
-        }
-        this._desiredPos.set(
-            this._playerPos.x + this._followOffset.x,
-            this._playerPos.y + this._followOffset.y,
-            this._playerPos.z + this._followOffset.z,
-        );
-
-        const pv = this._pushPlayer.getVelocity();
-        this._followVel.set(pv.x, pv.y);
-        const size = AirWallAabb.bodySize(this.node, this._baseColliderWidth, this._baseColliderHeight);
-        const walls = AirWallAabb.collectAirWalls(this.node.scene, this._airWalls);
-        AirWallAabb.resolveWorldPos(
-            this._desiredPos,
-            size.w,
-            size.h,
-            walls,
-            this._followVel,
-        );
-        this.node.setWorldPosition(this._desiredPos);
-
+        this._configureRollingPhysics();
+        const intent = this._pushPlayer.getParkourVelocityIntent();
+        this._rollVelocity.set(intent.x, intent.y);
         if (this._rb) {
-            this._rb.type = ERigidBody2DType.Kinematic;
+            this._rb.linearVelocity = new Vec2(this._rollVelocity);
+        }
+        this._keepVisualRotationFlat();
+        this._syncRollAnimToPlayerMovement();
+    }
+
+    private _configureRollingPhysics(): void {
+        if (this._rb) {
+            this._rb.enabled = true;
+            this._rb.type = ERigidBody2DType.Dynamic;
             this._rb.gravityScale = 0;
             this._rb.fixedRotation = true;
             this._rb.allowSleep = false;
+            this._rb.enabledContactListener = true;
             this._rb.angularVelocity = 0;
-            this._rb.linearVelocity = this._followVel;
         }
         if (this._collider) {
-            this._collider.sensor = true;
+            this._collider.enabled = true;
+            this._collider.sensor = false;
+            this._collider.apply();
         }
     }
 
-    private _captureFollowOffset(): void {
-        if (!this._pushPlayer) {
-            this._hasFollowOffset = false;
-            return;
+    private _stopParkourMotion(): void {
+        this._rollVelocity.set(0, 0);
+        if (this._rb) {
+            this._rb.linearVelocity = new Vec2(0, 0);
+            this._rb.angularVelocity = 0;
         }
-        this.node.getWorldPosition(this._selfPos);
-        this._pushPlayer.node.getWorldPosition(this._playerPos);
-        Vec3.subtract(this._followOffset, this._selfPos, this._playerPos);
-        this._hasFollowOffset = true;
     }
 
-    private _resolveParkourLines(): void {
-        const scene = this.node.scene;
-        if (!scene) {
-            return;
-        }
-        if (!this.yellowLine) {
-            this.yellowLine = this._findNodeByName(scene, 'YellowLine');
-        }
-        if (!this.blueLine) {
-            this.blueLine = this._findNodeByName(scene, 'BlueLine');
-        }
-    }
+
 
     private _resolveShadowNode(): void {
         this._shadowNode = this.node.getChildByName(LOG_SHADOW_NODE_NAME);
@@ -494,26 +460,6 @@ export class Log extends Component {
         return null;
     }
 
-    private _pollParkourLines(): void {
-        this._resolveParkourLines();
-        this.node.getWorldPosition(this._selfPos);
-
-        if (!this._yellowTriggered && this.yellowLine) {
-            this.yellowLine.getWorldPosition(this._tmpLinePos);
-            if (this._selfPos.y >= this._tmpLinePos.y) {
-                this._yellowTriggered = true;
-                this.enterChargeZone();
-            }
-        }
-        if (!this._blueTriggered && this.blueLine) {
-            this.blueLine.getWorldPosition(this._tmpLinePos);
-            if (this._selfPos.y >= this._tmpLinePos.y) {
-                this._blueTriggered = true;
-                EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
-                this.tryLockAtFinish(this.meetsFixedWidthRequirement());
-            }
-        }
-    }
 
     private _keepVisualRotationFlat(): void {
         if (this.visualNode) {
@@ -528,7 +474,8 @@ export class Log extends Component {
     }
 
     private _syncRollAnimToPlayerMovement(): void {
-        const isPlayerMoving = this._pushPlayer!.getVelocity().lengthSqr() > 0.001;
+        const isPlayerMoving = this._rollVelocity.lengthSqr() > 0.001;
+
         if (isPlayerMoving === this._rollAnimPlaying) {
             return;
         }

@@ -81,6 +81,11 @@ export class SortingOrder2D extends Component {
     }
 
     private _collectRendererSortings(node: Node): void {
+        if (node !== this.node && node.getComponent(SortingOrder2D)) {
+            return;
+        }
+
+
         const hasRenderer = node.getComponent(Sprite) !== null || node.getComponent(Label) !== null;
         if (hasRenderer) {
             if (this._sortingType) {

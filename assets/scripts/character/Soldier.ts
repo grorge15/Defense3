@@ -21,6 +21,7 @@ import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { VisualFacing } from '../core/VisualFacing';
 import { Arrow } from '../projectile/Arrow';
+import { AudioManager } from '../core/AudioManager';
 import { HpBarUI } from '../ui/HpBarUI';
 
 const { ccclass, property } = _decorator;
@@ -384,14 +385,18 @@ export class Soldier extends Component {
                 this._attackReservations[i] = AttackReservation.reserve(this, replacement, this.attackDamage);
             }
         }
+        let launchedProjectile = false;
         try {
             for (let i = 0; i < targets.length; i += 1) {
                 const target = targets[i];
                 if (target && this._isTowerTargetLegal(target)) {
-                    this._spawnProjectile(target.node);
+                    launchedProjectile = this._spawnProjectile(target.node) || launchedProjectile;
                     target.takeDamage(this.attackDamage, 'soldier-ranged');
                 }
                 AttackReservation.release(this._attackReservations[i]);
+            }
+            if (launchedProjectile) {
+                AudioManager.playSfx('towerVolley');
             }
         } finally {
             this._releaseAttackReservation();
@@ -526,9 +531,9 @@ export class Soldier extends Component {
         return !!target?.node?.isValid && target.node.activeInHierarchy && !target.isDead;
     }
 
-    private _spawnProjectile(target: Node): void {
+    private _spawnProjectile(target: Node): boolean {
         if (!this.projectilePrefab) {
-            return;
+            return false;
         }
 
         const projectile = instantiate(this.projectilePrefab);
@@ -570,6 +575,7 @@ export class Soldier extends Component {
             }
         };
         this.schedule(moveTick, 0);
+        return true;
     }
 
     private _die(): void {

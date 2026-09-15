@@ -1,6 +1,7 @@
 import { _decorator, Component, Node } from 'cc';
 import { Player } from '../character/Player';
 import { EventManager } from '../core/EventManager';
+import { AudioManager } from '../core/AudioManager';
 import { GameEvents } from '../core/GameEvents';
 import { Physics2DSetup } from '../core/Physics2DSetup';
 import { BossSpawner } from '../enemy/BossSpawner';
@@ -67,6 +68,9 @@ export class SceneSetup extends Component {
     @property({ type: GuideIndicatorUI, tooltip: '预摆十步引导 UI（可选补绑）' })
     guideIndicatorUI: GuideIndicatorUI | null = null;
 
+    @property({ type: AudioManager, tooltip: '场景音频管理器；由 Inspector 挂到本节点并绑定资源' })
+    audioManager: AudioManager | null = null;
+
     @property({ type: [Node], tooltip: '大招 BigMove 播放点位（可多选）' })
     ultimateBigMovePoints: Node[] = [];
 
@@ -76,6 +80,7 @@ export class SceneSetup extends Component {
         }
 
         EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
+        EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         this._wireGameplay();
         this._ensureCombatGuide();
         this._ensureUltimateSystem();
@@ -93,6 +98,7 @@ export class SceneSetup extends Component {
 
     onDestroy(): void {
         EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
+        EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
     }
 
     /** 解析引用并绑定摇杆/滚木/刷怪/预置怪；可重复调用 */
@@ -158,6 +164,9 @@ export class SceneSetup extends Component {
         }
         if (!this.joystickHint) {
             this.joystickHint = scene.getComponentInChildren(JoystickHintUI);
+        }
+        if (!this.audioManager) {
+            this.audioManager = this.getComponent(AudioManager) ?? scene.getComponentInChildren(AudioManager);
         }
     }
 
@@ -250,6 +259,10 @@ export class SceneSetup extends Component {
             gm.setPhase(GamePhase.CombatGuide);
         }
         // Boss 改在首座初级塔/兵营建成后由 BuildSystem 生成
+    };
+
+    private _onBuildComplete = (): void => {
+        AudioManager.playSfx('buildComplete');
     };
 
 }

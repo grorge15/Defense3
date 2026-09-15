@@ -15,6 +15,7 @@ import {
 import { EnemyBoss } from '../enemy/EnemyBoss';
 import { EnemyMinion } from '../enemy/EnemyMinion';
 import { AirWallAabb } from '../core/AirWallAabb';
+import { AudioManager } from '../core/AudioManager';
 import { playAnim, playAttackWithFrameHit } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
@@ -427,6 +428,7 @@ export class Hero extends Component {
             bolt = projectile.addComponent(HeroProjectile);
         }
         bolt.init(target, this.attackDamage, GameConfig.arrowSpeed);
+        AudioManager.playSfx(this.heroVariant === 1 ? 'hero1Attack' : 'hero2Attack');
     }
 
     private _die(): void {
