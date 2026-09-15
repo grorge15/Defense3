@@ -2,9 +2,13 @@ import {
     _decorator,
     Animation,
     BoxCollider2D,
+    Collider2D,
     Component,
+    Contact2DType,
     ERigidBody2DType,
+    IPhysics2DContact,
     Node,
+    Rect,
     RigidBody2D,
     Size,
     UITransform,
@@ -66,6 +70,10 @@ export class Log extends Component {
     private _hp = GameConfig.logMaxHp;
     private _hpBarSpawned = false;
     private _rollAnimPlaying = false;
+    private _yellowLineEntered = false;
+    private _blueLineEntered = false;
+    private readonly _lineFallbackLogPosition = new Vec3();
+    private readonly _lineFallbackLinePosition = new Vec3();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -83,7 +91,7 @@ export class Log extends Component {
             }
 
             this._collider.sensor = false;
-
+            this._collider.on(Contact2DType.PRE_SOLVE, this._onPreSolve, this);
         }
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
@@ -101,11 +109,17 @@ export class Log extends Component {
         this._refreshLengthVisual();
     }
 
+    onDestroy(): void {
+        this._collider?.off(Contact2DType.PRE_SOLVE, this._onPreSolve, this);
+    }
+
 
     beginParkour(): void {
         this._phase = 'rolling';
         this._isLocked = false;
         this._isFading = false;
+        this._yellowLineEntered = false;
+        this._blueLineEntered = false;
         this._currentLength = GameConfig.logInitialLength;
         this._resetRollingGeometry();
         this._refreshLengthVisual();
@@ -396,6 +410,85 @@ export class Log extends Component {
         }
         this._keepVisualRotationFlat();
         this._syncRollAnimToPlayerMovement();
+        this._pollParkourLineFallback();
+    }
+
+    /**
+     * Physics Trigger zones remain authoritative. This world-Y check only covers
+     * missed contacts while the Dynamic Log is moving through a line.
+     */
+    private _pollParkourLineFallback(): void {
+        if (this._phase !== 'rolling' && this._phase !== 'charging') {
+            return;
+        }
+
+        this.node.getWorldPosition(this._lineFallbackLogPosition);
+        if (!this._yellowLineEntered) {
+            const yellowLine = this._resolveParkourLine(this.yellowLine, 'YellowLine');
+            if (yellowLine) {
+                yellowLine.getWorldPosition(this._lineFallbackLinePosition);
+                if (this._lineFallbackLogPosition.y >= this._lineFallbackLinePosition.y) {
+                    this._yellowLineEntered = true;
+                    this.enterChargeZone();
+                }
+            }
+        }
+
+        if (!this._blueLineEntered) {
+            const blueLine = this._resolveParkourLine(this.blueLine, 'BlueLine');
+            if (blueLine && this._blueLineOverlapsLog(blueLine)) {
+                this._blueLineEntered = true;
+                this.tryLockAtFinish(this.meetsFixedWidthRequirement());
+            }
+        }
+    }
+
+    private _resolveParkourLine(line: Node | null, fallbackName: string): Node | null {
+        if (line) {
+            return line;
+        }
+        const scene = this.node.scene;
+        return scene ? this._findNodeByName(scene, fallbackName) : null;
+    }
+
+    private _blueLineOverlapsLog(blueLine: Node): boolean {
+        const blueCollider = blueLine.getComponent(Collider2D);
+        if (this._collider?.enabled && blueCollider?.enabled &&
+            this._aabbsTouch(this._collider.worldAABB, blueCollider.worldAABB)) {
+            return true;
+        }
+
+        blueLine.getWorldPosition(this._lineFallbackLinePosition);
+        return this._lineFallbackLogPosition.y >= this._lineFallbackLinePosition.y;
+    }
+
+    private _aabbsTouch(left: Rect, right: Rect): boolean {
+        return left.xMin <= right.xMax && left.xMax >= right.xMin &&
+            left.yMin <= right.yMax && left.yMax >= right.yMin;
+    }
+
+    /**
+     * Keep the rolling Log solid for walls while preventing Minion rigidbodies
+     * from applying an opposing solver impulse that can stop the Log.
+     */
+    private _onPreSolve = (
+        selfCollider: Collider2D,
+        otherCollider: Collider2D,
+        contact: IPhysics2DContact | null,
+    ): void => {
+        if (selfCollider !== this._collider ||
+            (this._phase !== 'rolling' && this._phase !== 'charging') ||
+            !this._isMinionCollider(otherCollider) || !contact) {
+            return;
+        }
+        contact.disabledOnce = true;
+    };
+
+    private _isMinionCollider(collider: Collider2D): boolean {
+        return !!(
+            collider.node.getComponent('EnemyMinion') ||
+            collider.node.parent?.getComponent('EnemyMinion')
+        );
     }
 
     private _configureRollingPhysics(): void {

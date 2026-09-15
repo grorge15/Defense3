@@ -39,32 +39,37 @@ export class ParkourLineZone extends Component {
         }
     }
 
+    private _resolveLog(): Log | null {
+        return this.log ?? (this.log = this.node.scene?.getComponentInChildren(Log) ?? null);
+    }
+
     private _onBeginContact = (
         selfCollider: Collider2D,
         otherCollider: Collider2D,
         _contact: IPhysics2DContact | null,
     ): void => {
         void selfCollider;
-        if (this._triggered || !this.log) {
+        const log = this._resolveLog();
+        if (this._triggered || !log) {
             return;
         }
 
         const otherNode = otherCollider.node;
         const otherLog = otherNode.getComponent(Log) ?? otherNode.parent?.getComponent(Log) ?? null;
-        if (!otherLog || otherLog !== this.log) {
+        if (!otherLog || otherLog !== log) {
             return;
         }
-        const phase = this.log.getPhase();
+        const phase = log.getPhase();
         if (phase === 'fixed' || phase === 'failed') {
             return;
         }
 
         this._triggered = true;
         if (this.lineKind === 'yellow') {
-            this.log.enterChargeZone();
+            log.enterChargeZone();
             return;
         }
 
-        this.log.tryLockAtFinish(this.log.meetsFixedWidthRequirement());
+        log.tryLockAtFinish(log.meetsFixedWidthRequirement());
     };
 }
