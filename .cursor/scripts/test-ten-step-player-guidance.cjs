@@ -139,15 +139,27 @@ test('fixed log, bow, walls, affordability and early right tower completion pres
     assert.equal(tick(world).targetName, 'Plot_Barracks', 'precompleted right tower is skipped at step five');
 });
 
-test('no valid enemy, log failure, and game over suppress stale presentation', () => {
+test('PARKOUR_FINISHED advances a failed log directly to bow pickup', () => {
+    const world = makeWorld();
+    world.log.phase = 'failed';
+    events.emitEvent(GameEvents.PARKOUR_FINISHED);
+    events.emitEvent(GameEvents.LOG_FAILED);
+    const snapshot = tick(world);
+    assert.equal(snapshot.step, 3);
+    assert.equal(snapshot.targetName, 'pref_item_bow');
+    assert.equal(snapshot.stopped, false);
+});
+
+test('no valid enemy and game over suppress stale presentation', () => {
     const world = makeWorld();
     world.log.phase = 'fixed'; world.player.hasBow = true;
     world.enemyNear.active = false;
     world.enemyFar.active = false;
     assert.equal(tick(world).targetName, null);
-    events.emitEvent(GameEvents.LOG_FAILED);
+    gameManager.getPhase = () => 'game_over';
     assert.equal(tick(world).stopped, true);
     assert.equal(world.indicator.last.visible, false);
+    gameManager.getPhase = () => 'run_parkour';
 });
 
 test('world guide wires use BuildPlot coordinates, atan2 rotation, pooling, and big-arrow bobbing', () => {

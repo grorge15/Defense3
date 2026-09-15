@@ -18,6 +18,15 @@
 | **解决** | 以预摆 `DirectionArrow` 为模板按配置间距复用克隆，沿裁剪后的玩家到目标直线统一朝向目标；TargetArrow 按配置上下浮动 15 UI 像素。投影建筑目标时仅在显示层解析其 `BuildPlot` 节点作为视觉锚点，购买、完成和资金判断仍使用原 `Plot_*` 根。 |
 | **验证** | `npx --no-install tsc --noEmit`、`node .cursor/scripts/test-ten-step-player-guidance.cjs` 与 `git diff --check` 均通过；未改 Prefab 或 Main.scene。 |
 
+### v2（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木到达蓝线但未固定时，引导直接停止，无法继续指向 `pref_item_bow`。 |
+| **原因** | `CombatGuideController` 把 `LOG_FAILED` 和滚木 `failed` 阶段当作引导终止条件；步骤 2 只认可 `fixed`，没有消费跑酷结束事件。 |
+| **解决** | 引导改为监听 `PARKOUR_FINISHED`，幂等跳过滚木固定步骤并进入弓箭步骤；滚木固定失败不再终止引导，玩家死亡与 Game Over 仍会终止。 |
+| **验证** | `node .cursor/scripts/test-ten-step-player-guidance.cjs`、`npx --no-install tsc --noEmit` 与 `git diff --check` 通过；未改 Prefab 或 Main.scene。 |
+
 ---
 
 ## fix-enemy-hit-vfx-interface — 敌人受击 VFX 来源与生命周期

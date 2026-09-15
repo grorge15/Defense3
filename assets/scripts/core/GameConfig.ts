@@ -133,7 +133,7 @@ export class GameConfig {
     static readonly enemySweepMaxStep = 5;
 
     // --- 滚木 ---
-    static readonly logRollSpeed = 4;
+    static readonly logRollSpeed = 7;
     /** @deprecated Prefer world-width extend via logVisualScalePerLength × collider base. */
     static readonly logExtendAmount = 1;
     /** @deprecated Saw cuts use contact local X; retained for debug/compat only. */
@@ -154,7 +154,7 @@ export class GameConfig {
      */
     static readonly logFixedMinWidthFactor = 0.4 + 6 * 0.15;
     /** Ground shadow UITransform width = log Visual content width − slack. */
-    static readonly logShadowWidthSlack = 30;
+    static readonly logShadowWidthSlack = 0;
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 15;

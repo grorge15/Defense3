@@ -65,7 +65,7 @@ export class CombatGuideController extends Component {
         EventManager.instance.onEvent(GameEvents.LOG_EXTEND_ITEM_CONSUMED, this._onGrowthConsumed, this);
         EventManager.instance.onEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         EventManager.instance.onEvent(GameEvents.COIN_CHANGED, this._onCoinChanged, this);
-        EventManager.instance.onEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.onEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
     }
 
     start(): void {
@@ -83,7 +83,7 @@ export class CombatGuideController extends Component {
         EventManager.instance.offEvent(GameEvents.LOG_EXTEND_ITEM_CONSUMED, this._onGrowthConsumed, this);
         EventManager.instance.offEvent(GameEvents.BUILD_COMPLETE, this._onBuildComplete, this);
         EventManager.instance.offEvent(GameEvents.COIN_CHANGED, this._onCoinChanged, this);
-        EventManager.instance.offEvent(GameEvents.LOG_FAILED, this._onLogFailed, this);
+        EventManager.instance.offEvent(GameEvents.PARKOUR_FINISHED, this._onParkourFinished, this);
         this._clearPresentation();
     }
 
@@ -135,7 +135,11 @@ export class CombatGuideController extends Component {
     };
 
     private _onCoinChanged = (): void => { this._dirty = true; };
-    private _onLogFailed = (): void => { this._stopped = true; this._clearPresentation(); };
+    private _onParkourFinished = (): void => {
+        this._growthCollected = true;
+        this._step = Math.max(this._step, 3) as GuideStep;
+        this._dirty = true;
+    };
 
     private _resolveRefs(): void {
         const scene = this.node.scene;
@@ -275,7 +279,7 @@ export class CombatGuideController extends Component {
     }
 
     private _isTerminal(): boolean {
-        return this._stopped || this.player?.isDead === true || this.log?.getPhase() === 'failed' || GameManager.instance?.getPhase() === GamePhase.GameOver;
+        return this._stopped || this.player?.isDead === true || GameManager.instance?.getPhase() === GamePhase.GameOver;
     }
 
     private _clearPresentation(): void {
