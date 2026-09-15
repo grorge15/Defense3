@@ -638,8 +638,8 @@
     ],
     "value": {
       "__type__": "cc.Size",
-      "width": 81.92120361328125,
-      "height": 50.4
+      "width": 131.83050842285155,
+      "height": 60.599999999999994
     }
   },
   {
@@ -739,7 +739,7 @@
     },
     "attackLength": 4,
     "attackWidth": 2,
-    "attackTriggerRange": 80,
+    "attackTriggerRange": 120,
     "attackCooldown": 2,
     "_id": ""
   },
