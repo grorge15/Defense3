@@ -36,9 +36,21 @@ export class HeroSelectUI extends Component {
     private static readonly CARD_BOB_HALF = 0.9;
     private static readonly MASK_ALPHA = 102;
     private static readonly FADE_OUT_SEC = 0.25;
-    private static readonly FINGER_DWELL_SEC = 1;
-    private static readonly FINGER_Z_MIN = 5;
-    private static readonly FINGER_Z_MAX = 50;
+    private static readonly FINGER_OFFSET_X = 50;
+    private static readonly FINGER_OFFSET_Y = -50;
+    private static readonly FINGER_FADE_IN_SEC = 0.35;
+    private static readonly FINGER_READY_SEC = 0.25;
+    private static readonly FINGER_PRESS_SEC = 0.25;
+    private static readonly FINGER_RELEASE_SEC = 0.3;
+    private static readonly FINGER_BETWEEN_TAPS_SEC = 0.15;
+    private static readonly FINGER_AFTER_TAPS_SEC = 0.28;
+    private static readonly FINGER_FADE_OUT_SEC = 0.32;
+    private static readonly FINGER_SWITCH_DELAY_SEC = 0.35;
+    private static readonly FINGER_FADE_SCALE = 0.7;
+    private static readonly FINGER_PRESS_SCALE = 0.86;
+    private static readonly CARD_PULSE_SCALE = 1.06;
+    private static readonly CARD_PULSE_UP_SEC = 0.08;
+    private static readonly CARD_PULSE_DOWN_SEC = 0.12;
 
     @property({ type: SpriteFrame, tooltip: '英雄0卡牌底图（编辑器拖入）' })
     cardStyle0: SpriteFrame | null = null;
@@ -78,6 +90,10 @@ export class HeroSelectUI extends Component {
     private _pickedSlot = -1;
     private _fingerSlot = 0;
     private _fingerElapsed = 0;
+    private _fingerPhase = 'hidden';
+    private readonly _fingerBaseScale = new Vec3(1, 1, 1);
+    private _cardPulseSlot = -1;
+    private _cardPulseElapsed = 0;
     private readonly _cardHandlers: ((e: EventTouch) => void)[] = [];
     private readonly _tmpColor = new Color();
 
@@ -152,6 +168,9 @@ export class HeroSelectUI extends Component {
         if (!this.fingerNode) {
             this.fingerNode = children[3] ?? null;
         }
+        if (this.fingerNode && isValid(this.fingerNode)) {
+            this._fingerBaseScale.set(this.fingerNode.scale);
+        }
     }
 
     private _ensureBlockInput(): void {
@@ -208,6 +227,9 @@ export class HeroSelectUI extends Component {
         this._elapsed = 0;
         this._fingerSlot = 0;
         this._fingerElapsed = 0;
+        this._fingerPhase = 'hidden';
+        this._cardPulseSlot = -1;
+        this._cardPulseElapsed = 0;
         this._pickedSlot = -1;
         this._lastUiTime = performance.now();
         this._getOpacity().opacity = 0;
@@ -323,9 +345,13 @@ export class HeroSelectUI extends Component {
     }
 
     private _getOpacity(): UIOpacity {
-        let opacity = this.getComponent(UIOpacity);
+        return this._getNodeOpacity(this.node);
+    }
+
+    private _getNodeOpacity(node: Node): UIOpacity {
+        let opacity = node.getComponent(UIOpacity);
         if (!opacity) {
-            opacity = this.addComponent(UIOpacity);
+            opacity = node.addComponent(UIOpacity);
         }
         return opacity;
     }
@@ -349,7 +375,7 @@ export class HeroSelectUI extends Component {
                 this._fingerSlot = 0;
                 this._fingerElapsed = 0;
                 this._canClick = true;
-                this._placeFinger(this._fingerSlot, HeroSelectUI.FINGER_Z_MIN);
+                this._startFingerGuide();
             }
         } else if (this._transition === 'idle') {
             const cycle = (this._elapsed / HeroSelectUI.CARD_BOB_HALF) % 2;
@@ -386,6 +412,9 @@ export class HeroSelectUI extends Component {
         this._elapsed = 0;
         this._fingerSlot = 0;
         this._fingerElapsed = 0;
+        this._fingerPhase = 'hidden';
+        this._cardPulseSlot = -1;
+        this._cardPulseElapsed = 0;
         this._pickedSlot = -1;
         this._shrine = null;
         this._offer = [];
@@ -411,31 +440,184 @@ export class HeroSelectUI extends Component {
         }
     }
 
+    private _startFingerGuide(): void {
+        if (!this.fingerNode || this._cards.length === 0) {
+            return;
+        }
+        this._fingerSlot = 0;
+        this._fingerElapsed = 0;
+        this._fingerPhase = 'fadeIn';
+        this.fingerNode.active = true;
+        this._getNodeOpacity(this.fingerNode).opacity = 0;
+        this._setFingerAtRest(this._fingerSlot, HeroSelectUI.FINGER_FADE_SCALE);
+    }
+
     private _updateFinger(deltaSeconds: number): void {
         if (!this.fingerNode || this._cards.length === 0) {
             return;
         }
 
-        this._fingerElapsed += deltaSeconds;
-        while (this._fingerElapsed >= HeroSelectUI.FINGER_DWELL_SEC) {
-            this._fingerElapsed -= HeroSelectUI.FINGER_DWELL_SEC;
-            this._fingerSlot = (this._fingerSlot + 1) % Math.min(this._cards.length, 2);
+        this._updateCardPulse(deltaSeconds);
+        if (this._fingerPhase === 'hidden') {
+            return;
         }
 
-        const phase = this._fingerElapsed / HeroSelectUI.FINGER_DWELL_SEC;
-        const smoothPingPong = 0.5 - 0.5 * Math.cos(phase * Math.PI * 2);
-        const fingerZ =
-            HeroSelectUI.FINGER_Z_MIN +
-            (HeroSelectUI.FINGER_Z_MAX - HeroSelectUI.FINGER_Z_MIN) * smoothPingPong;
-        this._placeFinger(this._fingerSlot, fingerZ);
+        this._fingerElapsed += deltaSeconds;
+        const phaseDuration = this._getFingerPhaseDuration();
+        if (this._fingerElapsed >= phaseDuration) {
+            this._fingerElapsed = 0;
+            this._advanceFingerPhase();
+        }
+        this._applyFingerPhase(this._fingerElapsed / this._getFingerPhaseDuration());
     }
 
-    private _placeFinger(slot: number, localZ: number): void {
+    private _getFingerPhaseDuration(): number {
+        switch (this._fingerPhase) {
+        case 'fadeIn': return HeroSelectUI.FINGER_FADE_IN_SEC;
+        case 'ready': return HeroSelectUI.FINGER_READY_SEC;
+        case 'press1':
+        case 'press2': return HeroSelectUI.FINGER_PRESS_SEC;
+        case 'release1':
+        case 'release2': return HeroSelectUI.FINGER_RELEASE_SEC;
+        case 'betweenTaps': return HeroSelectUI.FINGER_BETWEEN_TAPS_SEC;
+        case 'afterTaps': return HeroSelectUI.FINGER_AFTER_TAPS_SEC;
+        case 'fadeOut': return HeroSelectUI.FINGER_FADE_OUT_SEC;
+        case 'switchDelay': return HeroSelectUI.FINGER_SWITCH_DELAY_SEC;
+        default: return 1;
+        }
+    }
+
+    private _advanceFingerPhase(): void {
+        switch (this._fingerPhase) {
+        case 'fadeIn': this._fingerPhase = 'ready'; break;
+        case 'ready': this._fingerPhase = 'press1'; break;
+        case 'press1':
+            this._startCardPulse(this._fingerSlot);
+            this._fingerPhase = 'release1';
+            break;
+        case 'release1': this._fingerPhase = 'betweenTaps'; break;
+        case 'betweenTaps': this._fingerPhase = 'press2'; break;
+        case 'press2':
+            this._startCardPulse(this._fingerSlot);
+            this._fingerPhase = 'release2';
+            break;
+        case 'release2': this._fingerPhase = 'afterTaps'; break;
+        case 'afterTaps': this._fingerPhase = 'fadeOut'; break;
+        case 'fadeOut':
+            if (this.fingerNode) this.fingerNode.active = false;
+            this._fingerPhase = 'switchDelay';
+            break;
+        case 'switchDelay':
+            this._fingerSlot = (this._fingerSlot + 1) % Math.min(this._cards.length, 2);
+            this._fingerPhase = 'fadeIn';
+            if (this.fingerNode) {
+                this.fingerNode.active = true;
+                this._getNodeOpacity(this.fingerNode).opacity = 0;
+                this._setFingerAtRest(this._fingerSlot, HeroSelectUI.FINGER_FADE_SCALE);
+            }
+            break;
+        }
+    }
+
+    private _applyFingerPhase(progress: number): void {
+        const finger = this.fingerNode;
+        if (!finger) {
+            return;
+        }
+        const opacity = this._getNodeOpacity(finger);
+        if (this._fingerPhase === 'fadeIn') {
+            const eased = 1 - Math.cos(progress * Math.PI * 0.5);
+            opacity.opacity = 255 * eased;
+            this._setFingerAtRest(
+                this._fingerSlot,
+                HeroSelectUI.FINGER_FADE_SCALE + (1 - HeroSelectUI.FINGER_FADE_SCALE) * eased,
+            );
+            return;
+        }
+        if (this._fingerPhase === 'fadeOut') {
+            const eased = Math.sin(progress * Math.PI * 0.5);
+            opacity.opacity = 255 * (1 - eased);
+            this._setFingerAtRest(
+                this._fingerSlot,
+                1 - (1 - HeroSelectUI.FINGER_FADE_SCALE) * eased,
+            );
+            return;
+        }
+
+        opacity.opacity = 255;
+        if (this._fingerPhase === 'press1' || this._fingerPhase === 'press2') {
+            const eased = 1 - Math.cos(progress * Math.PI * 0.5);
+            this._setFingerAtRest(
+                this._fingerSlot,
+                1 - (1 - HeroSelectUI.FINGER_PRESS_SCALE) * eased,
+                2 * eased,
+                -16 * eased,
+            );
+            return;
+        }
+        if (this._fingerPhase === 'release1' || this._fingerPhase === 'release2') {
+            const eased = 1 - Math.pow(1 - progress, 3);
+            this._setFingerAtRest(
+                this._fingerSlot,
+                HeroSelectUI.FINGER_PRESS_SCALE + (1 - HeroSelectUI.FINGER_PRESS_SCALE) * eased,
+                2 * (1 - eased),
+                -16 * (1 - eased),
+            );
+            return;
+        }
+        this._setFingerAtRest(this._fingerSlot);
+    }
+
+    private _startCardPulse(slot: number): void {
+        this._cardPulseSlot = slot;
+        this._cardPulseElapsed = 0;
+    }
+
+    private _updateCardPulse(deltaSeconds: number): void {
+        if (this._cardPulseSlot < 0) {
+            return;
+        }
+        const card = this._cards[this._cardPulseSlot];
+        const base = this._cardBaseScale[this._cardPulseSlot];
+        if (!card || !base || !isValid(card)) {
+            this._cardPulseSlot = -1;
+            return;
+        }
+        this._cardPulseElapsed += deltaSeconds;
+        const total = HeroSelectUI.CARD_PULSE_UP_SEC + HeroSelectUI.CARD_PULSE_DOWN_SEC;
+        if (this._cardPulseElapsed >= total) {
+            card.setScale(base);
+            this._cardPulseSlot = -1;
+            return;
+        }
+        const rising = this._cardPulseElapsed <= HeroSelectUI.CARD_PULSE_UP_SEC;
+        const duration = rising ? HeroSelectUI.CARD_PULSE_UP_SEC : HeroSelectUI.CARD_PULSE_DOWN_SEC;
+        const phase = rising
+            ? this._cardPulseElapsed / duration
+            : (this._cardPulseElapsed - HeroSelectUI.CARD_PULSE_UP_SEC) / duration;
+        const eased = rising
+            ? Math.sin(phase * Math.PI * 0.5)
+            : 0.5 - 0.5 * Math.cos(phase * Math.PI);
+        const scale = rising
+            ? 1 + (HeroSelectUI.CARD_PULSE_SCALE - 1) * eased
+            : HeroSelectUI.CARD_PULSE_SCALE - (HeroSelectUI.CARD_PULSE_SCALE - 1) * eased;
+        card.setScale(base.x * scale, base.y * scale, base.z);
+    }
+
+    private _setFingerAtRest(slot: number, scale = 1, offsetX = 0, offsetY = 0): void {
         if (!this.fingerNode || !this._cards[slot]) {
             return;
         }
-        this.fingerNode.active = true;
         const cardPos = this._cards[slot].position;
-        this.fingerNode.setPosition(cardPos.x + 50, cardPos.y - 50, localZ);
+        this.fingerNode.setPosition(
+            cardPos.x + HeroSelectUI.FINGER_OFFSET_X + offsetX,
+            cardPos.y + HeroSelectUI.FINGER_OFFSET_Y + offsetY,
+            cardPos.z,
+        );
+        this.fingerNode.setScale(
+            this._fingerBaseScale.x * scale,
+            this._fingerBaseScale.y * scale,
+            this._fingerBaseScale.z,
+        );
     }
 }
