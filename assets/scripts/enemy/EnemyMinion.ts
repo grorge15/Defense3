@@ -32,6 +32,13 @@ import { EnemyAI } from './EnemyAI';
 const { ccclass, property } = _decorator;
 
 const PLAYER_SOFT_SEPARATION = 24;
+const ROLLING_LOG_LATERAL_ESCAPE_SPEED = 0.35;
+
+type RollingLogContact = {
+    getPhase(): 'rolling' | 'charging' | 'fixed' | 'failed';
+    getBoxCollider(): BoxCollider2D | null;
+    node: Node;
+};
 
 export function resolveMinionAttackHysteresis(inAttackHysteresis: boolean, distance: number): boolean {
     if (distance <= GameConfig.enemyMinionAttackEnterRange) {
@@ -400,6 +407,13 @@ export class EnemyMinion extends Component {
             return;
         }
 
+        const nav = EnemyNavigation.get(this.node.scene);
+        const contactLog = nav?.contactLog();
+        if (contactLog && this._rideRollingLogIfOverlapping(contactLog)) {
+            if (trace) trace.branch = 'rolling-log-push';
+            return;
+        }
+
         if (!this._target?.isValid || !this._target.activeInHierarchy || this._target.getComponent(Player)?.isDead) {
             if (trace) trace.branch = 'invalid-target';
             this._blockingObstacle = null;
@@ -421,7 +435,6 @@ export class EnemyMinion extends Component {
             return;
         }
         const size = this._bodySize();
-        const nav = EnemyNavigation.get(this.node.scene);
         const navigationSpeed = EnemyNavigation.worldSpeedForPhysicsVelocity(GameConfig.minionMoveSpeed);
         const request = { unit: this.node, target: this._target, role: 'minion' as const,
             speed: navigationSpeed, dt: _dt, body: size, stopDistance: GameConfig.enemyMinionAttackEnterRange };
@@ -506,6 +519,47 @@ export class EnemyMinion extends Component {
         }
         this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
         this._updateLocomotionAnim(true);
+    }
+
+
+    /** A rolling Log carries overlapping Minions aside without entering normal navigation. */
+    private _rideRollingLogIfOverlapping(log: RollingLogContact): boolean {
+        if (log.getPhase() !== 'rolling' && log.getPhase() !== 'charging') {
+            return false;
+        }
+        const logCollider = log.getBoxCollider();
+        const minionAabb = this._collider?.worldAABB;
+        const logAabb = logCollider?.worldAABB;
+        const logBody = log.node.getComponent(RigidBody2D);
+        if (!minionAabb || !logAabb || !logBody ||
+            minionAabb.xMax < logAabb.xMin || minionAabb.xMin > logAabb.xMax ||
+            minionAabb.yMax < logAabb.yMin || minionAabb.yMin > logAabb.yMax) {
+            return false;
+        }
+
+        this.node.getWorldPosition(this._selfPos);
+        log.node.getWorldPosition(this._targetPos);
+        const velocity = logBody.linearVelocity;
+        const speed = Math.hypot(velocity.x, velocity.y);
+        const perpendicularX = speed > 0.001 ? -velocity.y / speed : 1;
+        const perpendicularY = speed > 0.001 ? velocity.x / speed : 0;
+        const offsetX = this._selfPos.x - this._targetPos.x;
+        const offsetY = this._selfPos.y - this._targetPos.y;
+        const lateralOffset = offsetX * perpendicularX + offsetY * perpendicularY;
+        const side = lateralOffset > 0 ? -1 : lateralOffset < 0 ? 1 : 0;
+
+        this._physicsVelocity.set(
+            velocity.x + perpendicularX * side * ROLLING_LOG_LATERAL_ESCAPE_SPEED,
+            velocity.y + perpendicularY * side * ROLLING_LOG_LATERAL_ESCAPE_SPEED,
+        );
+        this._velocity.set(
+            EnemyNavigation.worldSpeedForPhysicsVelocity(this._physicsVelocity.x),
+            EnemyNavigation.worldSpeedForPhysicsVelocity(this._physicsVelocity.y),
+        );
+        this._rb!.linearVelocity = new Vec2(this._physicsVelocity);
+        this._visualFacing.faceByVelocity(this.visualNode, this._velocity.x);
+        this._updateLocomotionAnim(true);
+        return true;
     }
 
 
