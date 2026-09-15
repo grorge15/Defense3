@@ -1614,7 +1614,36 @@
 
 ---
 
-## fix-enemy-nav-ignore-airwall-group — 敌人索敌把 airwall 当硬障碍
+## fix-log-contact-cut-projection — 滚木接触点切割与木杆投影同步
+
+### v1（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 电锯按左右端固定缩一格（约视觉 0.15），不在锯–木接触处切断；蓝线固定仍用逻辑长度；新增「木杆投影」不会随滚木变长变短。 |
+| **原因** | `SawTrap`/`Log.cutFromSide` 只改离散逻辑长度；固定门槛读 `blueLineMinLogLength`；投影节点无脚本驱动。 |
+| **解决** | `cutAtLocalX` 按接触点（或锯中心）本地 X 保留玩家侧；Visual 与 Collider 同宽同中心；蓝线用 `rollingWidth >= base×logFixedMinWidthFactor`；`木杆投影` contentSize.x = 视觉有效宽 − 30；固定仍 F1（LogFixPoint + 标定几何）并同步投影。 |
+| **验证** | `node .cursor/scripts/test-log-contact-cut-projection.cjs`、`npx tsc --noEmit`、`npx openspec validate fix-log-contact-cut-projection --strict` 通过。 |
+
+### v2（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 运行时 `木杆投影` contentSize 被改写，不再是 pref_log 预制体里的数值（如 170）。 |
+| **原因** | `_refreshLengthVisual` 用 `视觉有效宽 − 30` 调用 `setContentSize`，onLoad 初始长度倍率即覆盖预制体宽度。 |
+| **解决** | 保留预制体 contentSize；缓存 `_baseShadowScale`，用与 Visual 相同的长度倍率只改 `scale.x`，并继续同步中心 X 偏移。 |
+| **验证** | `node .cursor/scripts/test-log-contact-cut-projection.cjs`、`npx tsc --noEmit`。 |
+
+### v3（2026-09-14）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 不希望用投影 scale 表达长度；要求投影 contentSize.width 始终 = log Visual 宽 − 30。 |
+| **原因** | v2 改为改 shadow scale.x，与需求不符。 |
+| **解决** | 恢复只写投影 `contentSize.width = logContentWidth − logShadowWidthSlack`；不改投影 scale；中心 X 仍同步。 |
+| **验证** | `node .cursor/scripts/test-log-contact-cut-projection.cjs`、`npx tsc --noEmit`。 |
+
+---
 
 ### v1（2026-09-14）
 
