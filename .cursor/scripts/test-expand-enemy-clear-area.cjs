@@ -88,6 +88,7 @@ const mocks = {
     '../core/AnimUtil': { playAnim() {}, playAttackWithFrameHit(_node, _clip, hit) { hit(); } },
     '../core/AirWallAabb': { AirWallAabb: { bodySize() { return { w: 10, h: 10 }; }, collectAirWalls() { return []; }, steerDirection() {} } },
     '../core/AttackReservation': { AttackReservation: { releaseForTarget() {} } },
+    '../core/AudioManager': { AudioManager: { playSfx() {} } },
     '../core/EnemyNavigation': { EnemyNavigation: nav }, '../core/EventManager': { EventManager: { instance: eventManager } }, '../core/GameConfig': { GameConfig: gameConfig }, '../core/GameEvents': { GameEvents: { ENEMY_NAVIGATION_INVALIDATED: 'nav', PARKOUR_FINISHED: 'parkour', BUILD_COMPLETE: 'build', COIN_CHANGED: 'coin', BOTH_ADVANCED_TOWERS_COMPLETE: 'advanced', BOSS_TARGET_REGISTER: 'target', HP_CHANGED: 'hp' } },
     '../core/FlowField': { stableFlowBody(value) { return value; } }, '../core/VisualFacing': { VisualFacing }, '../core/EnemyHitVfx': { playEnemyHitVfx() {} },
     '../game/CoinSystem': { CoinSystem }, '../game/GameManager': { GameManager: { instance: { setPhase() {} } } }, '../game/GamePhase': { GamePhase: { DefensePhase: 'defense', Ultimate: 'ultimate' } },

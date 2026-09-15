@@ -233,8 +233,14 @@ class CoinUI extends Component {
 }
 CoinUI.instance = null;
 
-class EnemyMinion extends Component {}
-class EnemyBoss extends Component {}
+class EnemyMinion extends Component {
+    constructor(hp = 100) { super(); this.currentHp = hp; this.isDead = false; this.hits = []; }
+    takeDamage(amount) { this.hits.push(amount); this.currentHp -= amount; }
+}
+class EnemyBoss extends Component {
+    constructor(hp = 100) { super(); this.currentHp = hp; this.isDead = false; this.hits = []; }
+    takeDamage(amount) { this.hits.push(amount); this.currentHp -= amount; }
+}
 class EnemySpawner extends Component {}
 
 const eventManager = { onEvent() {}, offEvent() {}, emitEvent() {} };
@@ -253,6 +259,9 @@ const gameConfig = {
     cameraFollowSmooth: 100,
     ultimateZoomDistance: 400,
     ultimateZoomDuration: 1.5,
+    ultimateZoomFallbackGrace: 0.25,
+    ultimateFirstWaveDamageRatio: 0.5,
+    ultimateVfxLoadFallbackDelay: 1,
     ultimateGameOverDelay: 1,
     ultimateOnce: true,
 };
@@ -437,6 +446,8 @@ test('CameraFollow replaces and destroys pending completion callbacks', () => {
 class DeferredCamera {
     constructor() {
         this.isValid = true;
+        this.enabled = true;
+        this.node = { activeInHierarchy: true };
         this.calls = [];
     }
 
@@ -454,15 +465,9 @@ function playablePrefab(playLog, finishers) {
         const node = new Node('BigMove');
         const animation = attach(node, Animation);
         const play = animation.play.bind(animation);
-        animation.play = (name) => {
-            playLog.push(name);
-            play(name);
-        };
+        animation.play = (name) => { playLog.push(name); play(name); };
         const once = animation.once.bind(animation);
-        animation.once = (event, callback) => {
-            finishers.push(callback);
-            once(event, callback);
-        };
+        animation.once = (event, callback) => { finishers.push(callback); once(event, callback); };
         return node;
     });
 }
@@ -481,65 +486,101 @@ function makeFinale({ camera = new DeferredCamera(), points = [], prefab = null 
     return { scene, ultimate, player, camera, get clears() { return clears; } };
 }
 
-test('UltimateSystem waits for camera completion then starts every valid BigMove together', () => {
+function addEnemy(scene, Type, hp, { active = true, dead = false } = {}) {
+    const enemy = attach(scene.addChild(new Node(Type.name)), Type);
+    enemy.currentHp = hp;
+    enemy.isDead = dead;
+    enemy.node.active = active;
+    return enemy;
+}
+
+test('UltimateSystem plays a collective first wave, halves live HP once, then starts the second wave with camera pullback', () => {
     const plays = [];
     const finishers = [];
     const world = makeFinale({ points: ['Left', 'Right'], prefab: playablePrefab(plays, finishers) });
+    const minion100 = addEnemy(world.scene, EnemyMinion, 100);
+    const minion30 = addEnemy(world.scene, EnemyMinion, 30);
+    const boss1 = addEnemy(world.scene, EnemyBoss, 1);
+    const dead = addEnemy(world.scene, EnemyMinion, 20, { dead: true });
+    const inactive = addEnemy(world.scene, EnemyBoss, 40, { active: false });
+
     world.ultimate._runFinale();
-    equal(world.camera.calls.length, 1, 'finale requests one camera pullback');
-    equal(plays.length, 0, 'BigMove does not start before camera completion');
-    equal(world.clears, 0, 'enemy clearing does not start before camera completion');
+    equal(plays.length, 2, 'first wave starts immediately at every valid point');
+    equal(world.camera.calls.length, 0, 'camera pullback waits for the first wave');
+    equal(minion100.currentHp, 50, '100 current HP becomes 50');
+    equal(minion30.currentHp, 15, '30 current HP becomes 15');
+    equal(boss1.currentHp, 0.5, '1 current HP retains fractional 0.5');
+    equal(minion100.hits.length + minion30.hits.length + boss1.hits.length, 3, 'first wave applies one hit to each valid live enemy');
+    equal(dead.hits.length + inactive.hits.length, 0, 'dead and inactive enemies are skipped');
+    equal(world.clears, 0, 'first wave never begins final cleanup');
+
+    finishers.slice(0, 2).forEach((finish) => finish());
+    equal(plays.length, 4, 'second wave starts at every point after the first wave settles');
+    equal(world.camera.calls.length, 1, 'second wave starts camera pullback in the same boundary');
+    equal(minion100.hits.length + minion30.hits.length + boss1.hits.length, 3, 'second wave never repeats first-wave damage');
+    finishers.slice(2).forEach((finish) => finish());
+    equal(world.clears, 0, 'second-wave completion alone waits for camera');
     world.camera.calls[0].callback();
-    equal(plays.length, 2, 'all valid BigMove points start in the completion callback');
-    equal(finishers.length, 2, 'all started effects retain their completion handlers');
+    equal(world.clears, 1, 'camera and second-wave completion join into one cleanup');
     world.camera.calls[0].callback();
-    equal(plays.length, 2, 'a repeated camera callback cannot create a second VFX wave');
     finishers.forEach((finish) => finish());
-    equal(world.clears, 1, 'all effects settle into one enemy-clear operation');
-    finishers.forEach((finish) => finish());
-    equal(world.clears, 1, 'duplicate animation completion cannot settle twice');
+    equal(world.clears, 1, 'late duplicate callbacks cannot repeat cleanup');
 });
 
-test('UltimateSystem uses immediate no-camera fallback and delays empty-point fallback', () => {
-    const noCamera = makeFinale({ camera: null });
-    noCamera.ultimate._runFinale();
-    equal(noCamera.clears, 1, 'missing camera starts the existing fallback immediately');
-
-    const emptyPoints = makeFinale();
-    emptyPoints.ultimate._runFinale();
-    equal(emptyPoints.clears, 0, 'empty points still wait when a camera is valid');
-    emptyPoints.camera.calls[0].callback();
-    equal(emptyPoints.clears, 1, 'empty points settle after the camera completion');
+test('UltimateSystem also joins when the camera finishes before the second wave', () => {
+    const plays = [];
+    const finishers = [];
+    const world = makeFinale({ points: ['Only'], prefab: playablePrefab(plays, finishers) });
+    world.ultimate._runFinale();
+    finishers[0]();
+    equal(world.camera.calls.length, 1, 'second-wave boundary starts exactly one zoom');
+    world.camera.calls[0].callback();
+    equal(world.clears, 0, 'camera completion alone cannot clear enemies');
+    finishers[1]();
+    equal(world.clears, 1, 'second wave completes the camera-first join');
 });
 
-test('UltimateSystem preserves resource and animation fallbacks after camera completion', () => {
+test('UltimateSystem handles empty points, missing camera, and resource failure without skipping the first-wave damage boundary', () => {
+    const empty = makeFinale({ camera: null });
+    const enemy = addEnemy(empty.scene, EnemyMinion, 30);
+    empty.ultimate._runFinale();
+    equal(enemy.currentHp, 15, 'empty-point fallback still applies first-wave damage once');
+    equal(empty.clears, 1, 'empty points and missing camera settle through both waves');
+
     resourceLoads.length = 0;
-    const resourceFailure = makeFinale({ points: ['Only'] });
-    resourceFailure.ultimate._runFinale();
-    resourceFailure.camera.calls[0].callback();
-    equal(resourceLoads.length, 1, 'VFX loading begins only after camera completion');
-    equal(resourceFailure.clears, 0, 'resource fallback cannot clear before its callback');
+    const failed = makeFinale({ points: ['Only'] });
+    addEnemy(failed.scene, EnemyBoss, 100);
+    failed.ultimate._runFinale();
+    equal(resourceLoads.length, 1, 'first wave begins the VFX resource load');
     resourceLoads[0][2](new Error('missing'), null);
-    equal(resourceFailure.clears, 1, 'resource failure keeps the existing clear-and-victory fallback');
-
-    const missingAnimation = makeFinale({ points: ['Only'], prefab: new Prefab(() => new Node('NoAnimation')) });
-    missingAnimation.ultimate._runFinale();
-    missingAnimation.camera.calls[0].callback();
-    equal(missingAnimation.clears, 1, 'missing animation keeps the existing completion fallback');
+    equal(failed.camera.calls.length, 1, 'failed first-wave presentation still begins second wave and zoom');
+    equal(resourceLoads.length, 2, 'second wave retries only its own unavailable presentation');
+    resourceLoads[1][2](new Error('missing'), null);
+    equal(failed.clears, 0, 'second presentation failure still waits for usable camera');
+    failed.camera.calls[0].callback();
+    equal(failed.clears, 1, 'failed presentation and completed camera safely settle');
 });
 
-test('UltimateSystem ignores camera callbacks after destruction or disablement', () => {
-    const destroyed = makeFinale({ points: ['Only'], prefab: playablePrefab([], []) });
-    destroyed.ultimate._runFinale();
-    destroyed.ultimate.isValid = false;
-    destroyed.camera.calls[0].callback();
-    equal(destroyed.clears, 0, 'destroyed finale does not continue from a delayed callback');
+test('UltimateSystem handles synchronous VFX and camera completion, invalid instances, and disposal without a third wave', () => {
+    const plays = [];
+    const finishers = [];
+    const syncPrefab = playablePrefab(plays, finishers);
+    const world = makeFinale({ points: ['A', 'B'], prefab: syncPrefab });
+    world.ultimate.bigMovePoints.push(world.ultimate.bigMovePoints[0]);
+    world.camera.zoomOut = (_distance, _duration, callback) => callback();
+    world.ultimate._runFinale();
+    equal(plays.length, 2, 'duplicate point is filtered in the first wave');
+    finishers.slice(0, 2).forEach((finish) => finish());
+    equal(plays.length, 4, 'duplicate point is also filtered in the second wave');
+    finishers.slice(2).forEach((finish) => finish());
+    equal(world.clears, 1, 'synchronous camera callback is registered before the second-wave join');
 
-    const disabled = makeFinale({ points: ['Only'], prefab: playablePrefab([], []) });
-    disabled.ultimate._runFinale();
-    disabled.ultimate.enabled = false;
-    disabled.camera.calls[0].callback();
-    equal(disabled.clears, 0, 'disabled finale does not continue from a delayed callback');
+    const disposed = makeFinale({ points: ['Only'], prefab: playablePrefab([], []) });
+    disposed.ultimate._runFinale();
+    disposed.ultimate.enabled = false;
+    disposed.ultimate.onDisable();
+    disposed.ultimate.scheduled.forEach(({ callback }) => callback());
+    equal(disposed.clears, 0, 'disabled finale ignores pending VFX, zoom, and load fallbacks');
 });
 
 if (!process.exitCode) {

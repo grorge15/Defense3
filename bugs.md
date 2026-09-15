@@ -1769,3 +1769,81 @@
 | **验证** | `npx tsc --noEmit` 通过；未改 Prefab / Main.scene。 |
 
 ---
+
+## fix-boss-spawn-on-barracks — Boss 应在兵营建成时生成
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 两座初级塔建成后即生成 Boss，早于兵营建造。 |
+| **原因** | `_onBasicTowerBuilt` 在两塔完成后调用 `_trySpawnBossAfterBasicTowers`。 |
+| **解决** | 两塔仅 unlock 兵营地块；首座兵营 `BUILD_COMPLETE` 后 `_trySpawnBossAfterBarracks` → `trySpawnFirst`。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`。 |
+
+---
+
+## fix-hero-hide-after-death-anim — Hero 死亡动画后仍残留
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Hero 播完死亡动画后节点仍显示。 |
+| **原因** | `_die` 只 `playAnim('die')`，未在动画结束隐藏节点。 |
+| **解决** | 有 die clip 时监听 `FINISHED` 再 `node.active=false`；无 clip 立即隐藏；顺带关血条。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`。 |
+
+---
+
+## fix-hit-flash-soldier-log-boss-minion — 盾兵/滚木/Boss/小怪缺受击闪红
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 盾兵、滚木（固定后受伤）、Boss、小怪受击无红色闪烁。 |
+| **原因** | 各自 `takeDamage` 未调用 `HitFlash`（敌人仅有 hit VFX）。 |
+| **解决** | 四处 `takeDamage` 增加 `HitFlash.flash(visualNode ?? node)`；保留 Boss/Minion 原有 VFX。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`。 |
+
+---
+
+## fix-archer-single-shot — 弓箭手三连发
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 塔上弓兵一次攻击打最多 3 个目标。 |
+| **原因** | `GameConfig.soldierRangedTargetCount = 3`。 |
+| **解决** | 改为 `1`，`_selectTowerTargets` / volley 自动单发。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`。 |
+
+---
+
+## fix-barracks-hit-flash-shake — 兵营受击无反馈
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 兵营挨打无闪红、无抖动。 |
+| **原因** | 继承 `Building.takeDamage`，无视觉反馈。 |
+| **解决** | `Barracks.takeDamage` 先 `HitFlash` + `HitShake`（新建 `HitShake.ts`），再 `super.takeDamage`。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`。 |
+
+---
+
+## fix-yellow-line-charge-decel-pulse — 黄线减速脉冲与固定闪红
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 触黄线后一直保持蓄力慢速直到蓝线；固定时无红色受击效果。 |
+| **原因** | Player 用 `_parkourCharging \|\| log.phase===charging` 整段切 chargeSpeed；锁成功无 HitFlash。 |
+| **解决** | `playerParkourChargeDecelDuration=0.5`；`startParkourChargeDecel` 在 0.5s 内 lerp 到 charge 后瞬间恢复 forward；蓝线固定成功 `HitFlash`；不够宽仍淡出。 |
+| **验证** | `node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx tsc --noEmit`、`openspec validate --strict`。 |
+
+---
