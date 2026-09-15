@@ -1655,7 +1655,10 @@ should('AC-INVALIDATE: structural, animation, topology and same-frame notified t
     h.scene.emit('node-destroyed'); assert.strictEqual(h.service._field.debugEntries, 0);
 });
 
-should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real service and final safe speed', () => {
+should('AC-ACTUAL-CONTACT: rolling Log uses physics while fixed Log keeps navigation behavior', () => {
+    const minionSource = fs.readFileSync(path.join(root, 'assets/scripts/enemy/EnemyMinion.ts'), 'utf8');
+    assert.doesNotMatch(minionSource, /_adjustVelocityAgainstLog|_readRideSpeedY|_fillLogAabb|_fillVisualAabb|_resolveLog/,
+        'rolling Log AABB carry compensation must not remain in EnemyMinion');
     clearLoaded(['assets/scripts/enemy/EnemyMinion.ts', 'assets/scripts/enemy/EnemyBoss.ts', 'assets/scripts/core/EnemyNavigation.ts']);
     const base = actualScriptMocks({ [path.join(root, 'assets/scripts/enemy/EnemyAI.ts')]: { EnemyAI: class {} } });
     delete base.mocks[path.join(root, 'assets/scripts/core/EnemyNavigation.ts')];
@@ -1713,9 +1716,7 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
         assert.deepStrictEqual(unit._bodySize(), original);
         unit.node.move(0, 25);
         if (Type === EnemyMinion) {
-            unit._target = target; unit._forceChaseTarget = true; unit._resolveLog = () => log;
-            unit._fillLogAabb = (_l, r) => r.set(-100, -20, 200, 40);
-            unit._fillVisualAabb = (_n, r) => r.set(-20, 15, 40, 40); unit._readRideSpeedY = () => 5;
+            unit._target = target; unit._forceChaseTarget = true;
         } else {
             unit._scanTargetsByInterval = () => {}; unit._resolveChaseTarget = () => target;
         }
@@ -1749,7 +1750,7 @@ should('AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real servi
         unit.node.worldScale = { x: 1, y: 1, z: 1 }; unit.node.worldRotation = { x: 0, y: 0, z: 0, w: 1 };
         const box = new base.cc.BoxCollider2D(); box.node = unit.node; box.size = { width: 40, height: 40 }; box.offset = { x: 0, y: 0 };
         unit.node.components.set(base.cc.BoxCollider2D, box); unit._rb = { linearVelocity: new base.cc.Vec2() };
-        if (Type === EnemyMinion) { unit._target = target; unit._forceChaseTarget = true; unit._resolveLog = () => null; }
+        if (Type === EnemyMinion) { unit._target = target; unit._forceChaseTarget = true; }
         else { unit._scanTargetsByInterval = () => {}; unit._resolveChaseTarget = () => target; }
         let sawField = false, sawBoundaryApproach = false;
         for (let frame = 0; frame < 300; frame++) {

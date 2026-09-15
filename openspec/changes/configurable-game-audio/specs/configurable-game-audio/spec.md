@@ -2,7 +2,7 @@
 
 ## Requirement: Inspector-configurable audio cues
 
-The game SHALL expose a scene-level audio manager whose BGM and sound-effect cues can each be enabled, assigned an optional clip, volume multiplier, and minimum replay interval in the Inspector.
+The game SHALL expose an AudioManager component whose BGM and sound-effect cues can each be enabled, assigned an optional clip, volume multiplier, and minimum replay interval in the Inspector. A scene editor SHALL attach the component and assign clips through the Inspector; gameplay requests SHALL safely no-op when the component is unavailable.
 
 ### Scenario: Optional cue remains silent
 
@@ -14,9 +14,14 @@ The game SHALL expose a scene-level audio manager whose BGM and sound-effect cue
 - **WHEN** a designer changes a configured cue's clip, enabled state, or volume multiplier and saves the scene
 - **THEN** the changed configuration is used after reopening the scene
 
+### Scenario: AudioManager is not attached
+
+- **WHEN** gameplay requests an audio cue before a scene editor has attached AudioManager
+- **THEN** gameplay continues without audible output or an exception
+
 ## Requirement: Confirmed feedback mapping
 
-The game SHALL provide default scene bindings for BGM, player attack, tower volley, Hero 2 attack, normal enemy death, coin collection, build completion, and hero spawning; Hero 1 attack SHALL default to no clip.
+The game SHALL support Inspector bindings for BGM, player attack, tower volley, Hero 2 attack, normal enemy death, coin collection, build completion, and hero spawning; Hero 1 attack SHALL default to no clip. The recommended initial binding uses `bgm`, `playerAttack`, `arrowShoot`, `shandian`, `monsterDie`, `gold`, `build`, and `升级2` respectively.
 
 ### Scenario: Hero attack mapping
 

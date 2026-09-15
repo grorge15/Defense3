@@ -9,8 +9,10 @@
 - 新增场景级、Inspector 可配置的背景音乐和短音效管理。
 - 为成功的攻击、金币收集、建造、英雄生成和普通怪物死亡增加听觉反馈。
 - 保护浏览器自动播放限制、高频事件和终结清场的既有行为。
+- AudioManager 的场景挂载与音频资源绑定由关卡编辑者在 Inspector 中完成；脚本在组件未挂载时安全静音。
 
 ## Impact
 
 - Affected specs: `configurable-game-audio`
 - Affected code: 场景初始化、战斗、英雄、塔兵、金币、英雄圣地和敌人死亡流程。
+- Scene operation: `Main.scene` 不由本次自动化修改。

@@ -112,6 +112,15 @@
 | **解决** | `Log` 开始跑酷时先停止滚动动画，在跑酷/蓄力阶段按玩家实际速度启动或停止动画，避免静止时播放。 |
 | **验证** | `npx --no-install tsc --noEmit`、`git diff --check` 通过；未修改场景或 prefab。 |
 
+
+### v5（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 跑酷中 Player 未稳定成为 Log 子节点，导致玩家不随滚木移动。 |
+| **原因** | 仅调用 `setParent` 后启动二次接线或层级恢复可能使 Player 脱离 Log，且没有自愈机制。 |
+| **解决** | 显式保存 Player 世界坐标后通过 `Log.addChild` 挂接并恢复世界坐标；滚动期间检测异常父节点并自动重新挂接，同时保留 Rigidbody2D 与 Collider2D 的物理状态迁移。 |
+| **验证** | `node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`npx --no-install tsc --noEmit --pretty false` 与 `git diff --check` 通过；未做 Cocos 实机测试。 |
 ---
 
 ## fix-log-fixed-bow-saw — 固定后滚木转 / 拾弓不射 / 电锯不砍木
@@ -1684,5 +1693,17 @@
 | **原因** | `Log.extend()` 用 `_lastCutSide` 分支决定增长方向，非对称改左右边。 |
 | **解决** | `extend()` 始终 `_rollingLeftEdge -= addedWidth * 0.5`、`_rollingRightEdge += addedWidth * 0.5`；字段仅服务于该分支，移除后一并删除 `_lastCutSide` 写入（`cutAtLocalX` 切割逻辑本身未改）。 |
 | **验证** | `npx --no-install tsc --noEmit` 通过；`extend()` 内已无 `_lastCutSide` 分支。 |
+
+---
+## fix-audio-manager-assetdb-index — 已绑定 AudioManager 但无背景音乐
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 已在场景绑定 `AudioManager`，但预览中没有背景音乐。 |
+| **原因** | `AudioManager.ts` 未被 Cocos AssetDB 索引，场景组件无法加载。 |
+| **解决** | 顺序重导入当前有效的 `Log.ts`，刷新 `core` 目录，再重新导入 `AudioManager.ts`；资产恢复为 `invalid=false`。错误日志已清空，未出现新错误。 |
+| **验证** | `assets_query_asset_info` 返回 `imported=true`、`invalid=false`；系统 error 日志为空。需重启预览并点击一次画布试听。 |
 
 ---
