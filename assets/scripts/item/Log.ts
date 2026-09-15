@@ -7,6 +7,7 @@ import {
     Node,
     RigidBody2D,
     Size,
+    UITransform,
     Vec2,
     Vec3,
 } from 'cc';
@@ -24,6 +25,8 @@ const { ccclass, property } = _decorator;
 
 export type LogPhase = 'rolling' | 'charging' | 'fixed' | 'failed';
 export type LogCutSide = 'left' | 'right';
+
+const LOG_SHADOW_NODE_NAME = '木杆投影';
 
 @ccclass('Log')
 export class Log extends Component {
@@ -61,6 +64,10 @@ export class Log extends Component {
     private _yellowTriggered = false;
     private _blueTriggered = false;
     private readonly _baseVisualScale = new Vec3(1, 1, 1);
+    private _baseVisualContentWidth = 200;
+    private _shadowNode: Node | null = null;
+    private _shadowTransform: UITransform | null = null;
+    private readonly _baseShadowPosition = new Vec3();
     private _rollingLeftEdge = -0.5;
     private _rollingRightEdge = 0.5;
     private _lastCutSide: LogCutSide | null = null;
@@ -91,7 +98,12 @@ export class Log extends Component {
         if (this.visualNode) {
             this._baseVisualScale.set(this.visualNode.scale);
             this._baseVisualPosition.set(this.visualNode.position);
+            const visualUi = this.visualNode.getComponent(UITransform);
+            if (visualUi && visualUi.contentSize.width > 0.01) {
+                this._baseVisualContentWidth = visualUi.contentSize.width;
+            }
         }
+        this._resolveShadowNode();
         this._resetRollingGeometry();
         this._refreshLengthVisual();
     }
@@ -154,8 +166,17 @@ export class Log extends Component {
         );
     }
 
+    /** Approximate logical length for debug/UI; geometry uses rolling edges. */
     getCurrentLength(): number {
         return this._currentLength;
+    }
+
+    getRollingWidth(): number {
+        return this._rollingWidth();
+    }
+
+    meetsFixedWidthRequirement(): boolean {
+        return this._rollingWidth() >= this._fixedMinRollingWidth();
     }
 
     getPhase(): LogPhase {
@@ -184,55 +205,81 @@ export class Log extends Component {
     }
 
     extend(): void {
-        if (this._currentLength >= GameConfig.logMaxLength) {
+        const maxWidth = this._maxRollingWidth();
+        const previousWidth = this._rollingWidth();
+        if (previousWidth >= maxWidth - 0.01) {
             return;
         }
-        const previousWidth = this._rollingWidth();
-        this._currentLength = Math.min(
-            this._currentLength + GameConfig.logExtendAmount,
-            GameConfig.logMaxLength,
-        );
-        const addedWidth = this._rollingWidthForLength(this._currentLength) - previousWidth;
-        if (addedWidth > 0) {
-            if (this._lastCutSide === 'left') {
-                this._rollingLeftEdge -= addedWidth;
-            } else if (this._lastCutSide === 'right') {
-                this._rollingRightEdge += addedWidth;
-            } else {
-                this._rollingLeftEdge -= addedWidth * 0.5;
-                this._rollingRightEdge += addedWidth * 0.5;
-            }
+        const addedWidth = Math.min(this._extendWorldStep(), maxWidth - previousWidth);
+        if (addedWidth <= 0.01) {
+            return;
         }
+        if (this._lastCutSide === 'left') {
+            this._rollingLeftEdge -= addedWidth;
+        } else if (this._lastCutSide === 'right') {
+            this._rollingRightEdge += addedWidth;
+        } else {
+            this._rollingLeftEdge -= addedWidth * 0.5;
+            this._rollingRightEdge += addedWidth * 0.5;
+        }
+        this._syncLengthFromWidth();
         this._refreshLengthVisual();
     }
 
     shrink(): void {
-        this.cutFromSide('right');
+        const width = this._rollingWidth();
+        const step = this._extendWorldStep();
+        const cutX = this._rollingRightEdge - Math.min(step, Math.max(0, width - this._minRollingWidth()));
+        this.cutAtLocalX(cutX, 'left');
     }
 
-    cutFromSide(side: LogCutSide): boolean {
-        if (!this.canBeCutBySaw() || this._currentLength <= GameConfig.logMinLength) {
+    /**
+     * Cut at log-local X. `keep` is the side of the cut that remains.
+     */
+    cutAtLocalX(cutX: number, keep: LogCutSide): boolean {
+        if (!this.canBeCutBySaw()) {
             return false;
         }
-
-        const nextLength = Math.max(
-            this._currentLength - GameConfig.logShrinkAmount,
-            GameConfig.logMinLength,
-        );
-        const nextWidth = this._rollingWidthForLength(nextLength);
-        if (nextWidth <= 0.01) {
+        const left = this._rollingLeftEdge;
+        const right = this._rollingRightEdge;
+        const width = right - left;
+        const minW = this._minRollingWidth();
+        if (width <= minW + 0.01) {
             return false;
         }
-
-        this._currentLength = nextLength;
-        if (side === 'left') {
-            this._rollingLeftEdge = this._rollingRightEdge - nextWidth;
+        const clamped = Math.min(right, Math.max(left, cutX));
+        if (keep === 'left') {
+            const nextRight = Math.max(left + minW, Math.min(right, clamped));
+            if (nextRight >= right - 0.01) {
+                return false;
+            }
+            this._rollingRightEdge = nextRight;
+            this._lastCutSide = 'right';
         } else {
-            this._rollingRightEdge = this._rollingLeftEdge + nextWidth;
+            const nextLeft = Math.min(right - minW, Math.max(left, clamped));
+            if (nextLeft <= left + 0.01) {
+                return false;
+            }
+            this._rollingLeftEdge = nextLeft;
+            this._lastCutSide = 'left';
         }
-        this._lastCutSide = side;
+        this._syncLengthFromWidth();
         this._refreshLengthVisual();
         return true;
+    }
+
+    /** @deprecated Prefer cutAtLocalX; shrinks one world step from the named side. */
+    cutFromSide(side: LogCutSide): boolean {
+        const width = this._rollingWidth();
+        const step = this._extendWorldStep();
+        const remove = Math.min(step, Math.max(0, width - this._minRollingWidth()));
+        if (remove <= 0.01) {
+            return false;
+        }
+        if (side === 'left') {
+            return this.cutAtLocalX(this._rollingLeftEdge + remove, 'right');
+        }
+        return this.cutAtLocalX(this._rollingRightEdge - remove, 'left');
     }
 
     enterChargeZone(): void {
@@ -241,7 +288,6 @@ export class Log extends Component {
         }
         this._phase = 'charging';
         this._pushPlayer?.setParkourCharging(true);
-        // 已去掉蓄力呼吸缩放动效
     }
 
     tryLockAtFinish(canLock: boolean): void {
@@ -249,6 +295,8 @@ export class Log extends Component {
             return;
         }
         this._pushPlayer?.setParkourCharging(false);
+        const width = this._rollingWidth();
+        const need = this._fixedMinRollingWidth();
         if (canLock) {
             this._phase = 'fixed';
             this._isLocked = true;
@@ -258,7 +306,7 @@ export class Log extends Component {
             this.unbindPlayer();
             this._spawnHpBar();
             console.info(
-                `[Log] blue line LOCK OK length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength}`,
+                `[Log] blue line LOCK OK width=${width.toFixed(1)} need>=${need.toFixed(1)}`,
             );
             EventManager.instance.emitEvent(GameEvents.BOSS_TARGET_REGISTER, {
                 node: this.node,
@@ -272,16 +320,16 @@ export class Log extends Component {
         this._stopRollAnim();
         this._freezeVisualRotation();
         console.warn(
-            `[Log] blue line LOCK FAIL length=${this._currentLength} need>=${GameConfig.blueLineMinLogLength} -> fade out`,
+            `[Log] blue line LOCK FAIL width=${width.toFixed(1)} need>=${need.toFixed(1)} -> fade out`,
         );
         EventManager.instance.emitEvent(GameEvents.LOG_FAILED, {
             length: this._currentLength,
-            need: GameConfig.blueLineMinLogLength,
+            width,
+            need,
         });
         this._fadeOut();
     }
 
-    /** 固定后使用独立的本地碰撞盒，不随 Visual 长度缩放。 */
     private _enableAsSolidBarrier(): void {
         this._freezeVisualRotation();
         if (this._rb) {
@@ -293,13 +341,11 @@ export class Log extends Component {
         }
         this._applyFixedGeometry();
         if (this._collider) {
-            // 强制把尺寸写回物理世界（Static 切换后偶发不同步）
             this._collider.apply();
         }
         this._hp = GameConfig.logMaxHp;
     }
 
-    /** 使用 prefab 内置血条 */
     private _spawnHpBar(): void {
         if (this._hpBarSpawned) {
             return;
@@ -330,7 +376,6 @@ export class Log extends Component {
         this._fadeOut();
     }
 
-    /** 固定/失败后停止滚动，避免 Visual 继续改 rotation */
     private _freezeVisualRotation(): void {
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
@@ -353,11 +398,6 @@ export class Log extends Component {
         this._pollParkourLines();
     }
 
-    /**
-     * 玩家 Dynamic 物理步进之后再贴 offset：根节点直接落到目标点，
-     * 同步玩家速度（禁止 (desired-self)/dt）。
-     * 贴位后对 airWall 做 AABB 推出（sensor 时引擎不挡）；仍用 setWorldPosition，不追误差。
-     */
     lateUpdate(): void {
         if (this._isLocked || this._isFading || !this._pushPlayer) {
             return;
@@ -427,6 +467,14 @@ export class Log extends Component {
         }
     }
 
+    private _resolveShadowNode(): void {
+        this._shadowNode = this.node.getChildByName(LOG_SHADOW_NODE_NAME);
+        this._shadowTransform = this._shadowNode?.getComponent(UITransform) ?? null;
+        if (this._shadowNode) {
+            this._baseShadowPosition.set(this._shadowNode.position);
+        }
+    }
+
     private _resolveFixedPoint(): void {
         const scene = this.node.scene;
         const gameRoot = scene ? this._findNodeByName(scene, 'GameRoot') : null;
@@ -470,7 +518,7 @@ export class Log extends Component {
             if (this._selfPos.y >= this._tmpLinePos.y) {
                 this._blueTriggered = true;
                 EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
-                this.tryLockAtFinish(this.getCurrentLength() >= GameConfig.blueLineMinLogLength);
+                this.tryLockAtFinish(this.meetsFixedWidthRequirement());
             }
         }
     }
@@ -516,7 +564,8 @@ export class Log extends Component {
             return;
         }
 
-        const visualLengthScale = this._rollingWidthForLength(this._currentLength) / this._baseColliderWidth;
+        const width = this._rollingWidth();
+        const visualLengthScale = width / this._baseColliderWidth;
         const centerOffsetX = (this._rollingLeftEdge + this._rollingRightEdge) * 0.5;
         if (this.visualNode) {
             this.visualNode.setScale(
@@ -532,22 +581,23 @@ export class Log extends Component {
         }
         if (this._collider) {
             this._collider.size = new Size(
-                Math.max(0.01, this._rollingWidth()),
+                Math.max(0.01, width),
                 this._baseColliderHeight,
             );
             this._collider.offset = new Vec2(
                 this._baseColliderOffset.x + centerOffsetX,
                 this._baseColliderOffset.y,
             );
-            // 拾取加长时必须 apply，否则物理盒仍是旧尺寸
             this._collider.apply();
         }
+        this._syncShadowContentWidth(this._visualContentWidth(visualLengthScale), centerOffsetX);
     }
 
     private _applyFixedGeometry(): void {
+        const fixedVisualScale = 2.0;
         if (this.visualNode) {
             this.visualNode.setScale(
-                this._baseVisualScale.x * 2.0,
+                this._baseVisualScale.x * fixedVisualScale,
                 this._baseVisualScale.y,
                 this._baseVisualScale.z,
             );
@@ -564,6 +614,30 @@ export class Log extends Component {
             );
             this._collider.sensor = false;
         }
+        this._syncShadowContentWidth(this._visualContentWidth(fixedVisualScale), 0);
+    }
+
+    /** Current log Visual content width (prefab contentSize × length scale). */
+    private _visualContentWidth(visualLengthScale: number): number {
+        return Math.max(0.01, this._baseVisualContentWidth * visualLengthScale);
+    }
+
+    /** 木杆投影 contentSize.width = log Visual content width − slack; do not touch shadow scale. */
+    private _syncShadowContentWidth(logContentWidth: number, centerOffsetX: number): void {
+        if (!this._shadowNode || !this._shadowTransform) {
+            this._resolveShadowNode();
+        }
+        if (!this._shadowNode || !this._shadowTransform) {
+            return;
+        }
+        const shadowWidth = Math.max(0.01, logContentWidth - GameConfig.logShadowWidthSlack);
+        const size = this._shadowTransform.contentSize;
+        this._shadowTransform.setContentSize(shadowWidth, size.height);
+        this._shadowNode.setPosition(
+            this._baseShadowPosition.x + centerOffsetX,
+            this._baseShadowPosition.y,
+            this._baseShadowPosition.z,
+        );
     }
 
     private _resetRollingGeometry(): void {
@@ -580,6 +654,31 @@ export class Log extends Component {
 
     private _rollingWidth(): number {
         return Math.max(0.01, this._rollingRightEdge - this._rollingLeftEdge);
+    }
+
+    private _minRollingWidth(): number {
+        return this._rollingWidthForLength(GameConfig.logMinLength);
+    }
+
+    private _maxRollingWidth(): number {
+        return this._rollingWidthForLength(GameConfig.logMaxLength);
+    }
+
+    private _fixedMinRollingWidth(): number {
+        return Math.max(0.01, this._baseColliderWidth * GameConfig.logFixedMinWidthFactor);
+    }
+
+    private _extendWorldStep(): number {
+        return Math.max(0.01, this._baseColliderWidth * GameConfig.logVisualScalePerLength);
+    }
+
+    private _syncLengthFromWidth(): void {
+        const scale = this._rollingWidth() / this._baseColliderWidth;
+        const approx = (scale - GameConfig.logVisualBaseScale) / GameConfig.logVisualScalePerLength;
+        this._currentLength = Math.max(
+            GameConfig.logMinLength,
+            Math.min(GameConfig.logMaxLength, approx),
+        );
     }
 
     private _fadeOut(): void {

@@ -6,7 +6,6 @@ import {
     IPhysics2DContact,
 } from 'cc';
 import { EventManager } from '../core/EventManager';
-import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { Log } from '../item/Log';
 
@@ -15,7 +14,7 @@ const { ccclass, property } = _decorator;
 export type ParkourLineKind = 'yellow' | 'blue';
 
 /**
- * 黄/蓝线 Trigger 区：黄线 → enterChargeZone；蓝线 → 跑酷结束并按长度尝试固定滚木。
+ * 黄/蓝线 Trigger 区：黄线 → enterChargeZone；蓝线 → 跑酷结束并按世界宽度尝试固定滚木。
  */
 @ccclass('ParkourLineZone')
 export class ParkourLineZone extends Component {
@@ -69,6 +68,6 @@ export class ParkourLineZone extends Component {
         }
 
         EventManager.instance.emitEvent(GameEvents.PARKOUR_FINISHED);
-        this.log.tryLockAtFinish(this.log.getCurrentLength() >= GameConfig.blueLineMinLogLength);
+        this.log.tryLockAtFinish(this.log.meetsFixedWidthRequirement());
     };
 }

@@ -10,6 +10,7 @@ import {
     IPhysics2DContact,
     Node,
     RigidBody2D,
+    Vec2,
     Vec3,
 } from 'cc';
 import { Player } from '../character/Player';
@@ -20,7 +21,7 @@ import { Log, LogCutSide } from '../item/Log';
 const { ccclass, property } = _decorator;
 
 /**
- * 跑酷电锯陷阱：Trigger 碰玩家造成伤害，碰滚木砍短。
+ * 跑酷电锯陷阱：Trigger 碰玩家造成伤害，碰滚木按接触点砍短。
  * 玩家/滚木用 setPosition + 传感器时物理接触常丢，故加 AABB/距离轮询。
  * 视觉以序列帧 spin 为主；程序 euler 默认关闭（spinSpeed=0）。
  */
@@ -40,8 +41,9 @@ export class SawTrap extends Component {
     private readonly _hitCooldown = new Set<string>();
     private readonly _selfPos = new Vec3();
     private readonly _otherPos = new Vec3();
+    private readonly _cutWorld = new Vec3();
     private readonly _localPlayerPos = new Vec3();
-    private readonly _localSawPos = new Vec3();
+    private readonly _localCutPos = new Vec3();
 
     onLoad(): void {
         this._rb = this.getComponent(RigidBody2D);
@@ -93,7 +95,7 @@ export class SawTrap extends Component {
                 continue;
             }
             if (player && this._overlaps(log.node, log.getBoxCollider())) {
-                this._hitLog(log, player);
+                this._hitLog(log, player, null);
             }
         }
 
@@ -137,10 +139,9 @@ export class SawTrap extends Component {
     private _onBeginContact = (
         selfCollider: Collider2D,
         otherCollider: Collider2D,
-        _contact: IPhysics2DContact | null,
+        contact: IPhysics2DContact | null,
     ): void => {
         void selfCollider;
-        void _contact;
         const other = otherCollider.node;
         const player =
             other.getComponent(Player) ?? other.parent?.getComponent(Player) ?? null;
@@ -150,8 +151,8 @@ export class SawTrap extends Component {
         }
         const log = other.getComponent(Log) ?? other.parent?.getComponent(Log) ?? null;
         if (log) {
-            const player = this.node.scene?.getComponentInChildren(Player) ?? null;
-            this._hitLog(log, player);
+            const chasePlayer = this.node.scene?.getComponentInChildren(Player) ?? null;
+            this._hitLog(log, chasePlayer, contact);
         }
     };
 
@@ -164,7 +165,7 @@ export class SawTrap extends Component {
         this._markCooldown(key);
     }
 
-    private _hitLog(log: Log, player: Player | null): void {
+    private _hitLog(log: Log, player: Player | null, contact: IPhysics2DContact | null): void {
         if (!player || !log.canBeCutBySaw()) {
             return;
         }
@@ -172,24 +173,38 @@ export class SawTrap extends Component {
         if (this._hitCooldown.has(key)) {
             return;
         }
-        const side = this._resolveCutSide(log, player);
-        if (!side) {
-            return;
-        }
-        log.cutFromSide(side);
-        this._markCooldown(key);
-    }
-
-    private _resolveCutSide(log: Log, player: Player): LogCutSide | null {
+        this._fillCutWorld(contact);
+        log.node.inverseTransformPoint(this._localCutPos, this._cutWorld);
         player.node.getWorldPosition(this._otherPos);
         log.node.inverseTransformPoint(this._localPlayerPos, this._otherPos);
-        log.node.inverseTransformPoint(this._localSawPos, this._selfPos);
-        const sawToPlayer = this._localSawPos.x - this._localPlayerPos.x;
-        if (Math.abs(sawToPlayer) > 0.001) {
-            return sawToPlayer < 0 ? 'left' : 'right';
+        const keep = this._resolveKeepSide();
+        if (!keep) {
+            return;
         }
+        if (log.cutAtLocalX(this._localCutPos.x, keep)) {
+            this._markCooldown(key);
+        }
+    }
 
-        // If Saw and Player overlap on the cutting axis, fall back to their side of the log.
+    private _fillCutWorld(contact: IPhysics2DContact | null): void {
+        this.node.getWorldPosition(this._selfPos);
+        this._cutWorld.set(this._selfPos);
+        if (!contact) {
+            return;
+        }
+        const manifold = contact.getWorldManifold?.();
+        const points = manifold?.points as Vec2[] | undefined;
+        if (points && points.length > 0) {
+            this._cutWorld.set(points[0].x, points[0].y, this._selfPos.z);
+        }
+    }
+
+    /** Keep the segment on the player's side of the cut. */
+    private _resolveKeepSide(): LogCutSide | null {
+        const dx = this._localPlayerPos.x - this._localCutPos.x;
+        if (Math.abs(dx) > 0.001) {
+            return dx < 0 ? 'left' : 'right';
+        }
         if (Math.abs(this._localPlayerPos.x) <= 0.001) {
             return null;
         }

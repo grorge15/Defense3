@@ -134,15 +134,27 @@ export class GameConfig {
 
     // --- 滚木 ---
     static readonly logRollSpeed = 4;
+    /** @deprecated Prefer world-width extend via logVisualScalePerLength × collider base. */
     static readonly logExtendAmount = 1;
+    /** @deprecated Saw cuts use contact local X; retained for debug/compat only. */
     static readonly logShrinkAmount = 1;
     static readonly logMinLength = 1;
     static readonly logMaxLength = 10;
     static readonly logInitialLength = 3;
-    static readonly logVisualBaseScale = 0.4;
+    static readonly logVisualBaseScale = 0.55;
     static readonly logVisualScalePerLength = 0.15;
-    /** 蓝线固定所需最小滚木长度 */
+    /**
+     * Legacy logical blue-line gate. Lock now uses rolling world width vs
+     * baseColliderWidth * logFixedMinWidthFactor.
+     */
     static readonly blueLineMinLogLength = 6;
+    /**
+     * Blue-line lock when rollingWidth >= baseColliderWidth * this factor
+     * (equals old length>=6 visual scale: 0.4 + 6*0.15).
+     */
+    static readonly logFixedMinWidthFactor = 0.4 + 6 * 0.15;
+    /** Ground shadow UITransform width = log Visual content width − slack. */
+    static readonly logShadowWidthSlack = 30;
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 15;
