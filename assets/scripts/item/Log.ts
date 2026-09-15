@@ -17,6 +17,7 @@ import { playAnim } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { HitFlash } from '../core/HitFlash';
 import { EnemyNavigation } from '../core/EnemyNavigation';
 import { TweenUtil } from '../core/TweenUtil';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -70,7 +71,6 @@ export class Log extends Component {
     private readonly _baseShadowPosition = new Vec3();
     private _rollingLeftEdge = -0.5;
     private _rollingRightEdge = 0.5;
-    private _lastCutSide: LogCutSide | null = null;
     private _hp = GameConfig.logMaxHp;
     private _hpBarSpawned = false;
     private _rollAnimPlaying = false;
@@ -119,7 +119,6 @@ export class Log extends Component {
         this._yellowTriggered = false;
         this._blueTriggered = false;
         this._currentLength = GameConfig.logInitialLength;
-        this._lastCutSide = null;
         this._resetRollingGeometry();
         this._refreshLengthVisual();
         this._stopRollAnim();
@@ -214,14 +213,8 @@ export class Log extends Component {
         if (addedWidth <= 0.01) {
             return;
         }
-        if (this._lastCutSide === 'left') {
-            this._rollingLeftEdge -= addedWidth;
-        } else if (this._lastCutSide === 'right') {
-            this._rollingRightEdge += addedWidth;
-        } else {
-            this._rollingLeftEdge -= addedWidth * 0.5;
-            this._rollingRightEdge += addedWidth * 0.5;
-        }
+        this._rollingLeftEdge -= addedWidth * 0.5;
+        this._rollingRightEdge += addedWidth * 0.5;
         this._syncLengthFromWidth();
         this._refreshLengthVisual();
     }
@@ -254,17 +247,16 @@ export class Log extends Component {
                 return false;
             }
             this._rollingRightEdge = nextRight;
-            this._lastCutSide = 'right';
         } else {
             const nextLeft = Math.min(right - minW, Math.max(left, clamped));
             if (nextLeft <= left + 0.01) {
                 return false;
             }
             this._rollingLeftEdge = nextLeft;
-            this._lastCutSide = 'left';
         }
         this._syncLengthFromWidth();
         this._refreshLengthVisual();
+        HitFlash.flash(this.visualNode);
         return true;
     }
 

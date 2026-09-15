@@ -66,14 +66,14 @@ export class GameConfig {
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
      */
-    static readonly heroFollowDistance = 200;
+    static readonly heroFollowDistance = 130;
     /**
      * 英雄相对玩家的软拴绳半径（世界单位）。
      * ≤0 时用 max(heroFollowDistance * 8, 12)，防止脱节。
      */
-    static readonly heroFollowLeash = 30;
+    static readonly heroFollowLeash = 15;
     /** Boss 重新索敌间隔（秒） */
-    static readonly bossRetargetInterval = 2;
+    static readonly bossRetargetInterval = 0.6;
     /** Boss 扫描场景中新防守目标的间隔（秒） */
     static readonly bossTargetScanInterval = 1.0;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
