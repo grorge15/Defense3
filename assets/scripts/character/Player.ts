@@ -341,6 +341,10 @@ export class Player extends Component {
         if (this._isDead || amount <= 0) {
             return;
         }
+        const phase = GameManager.instance?.getPhase();
+        if (phase === GamePhase.Ultimate || phase === GamePhase.GameOver) {
+            return;
+        }
         HitFlash.flash(this.visualNode ?? this.node);
         this._health?.takeDamage(amount);
     }
