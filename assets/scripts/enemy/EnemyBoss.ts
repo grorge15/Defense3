@@ -30,6 +30,7 @@ import { FlowBody, stableFlowBody } from '../core/FlowField';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { playEnemyHitVfx, type EnemyHitSource } from '../core/EnemyHitVfx';
+import { HitFlash } from '../core/HitFlash';
 import { VisualFacing } from '../core/VisualFacing';
 import { Log } from '../item/Log';
 import { HpBarUI } from '../ui/HpBarUI';
@@ -465,6 +466,7 @@ export class EnemyBoss extends Component {
         if (this._isDead) {
             return;
         }
+        HitFlash.flash(this.visualNode ?? this.node);
         this._hp -= amount;
         EventManager.instance.emitEvent(
             GameEvents.HP_CHANGED,

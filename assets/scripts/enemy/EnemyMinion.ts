@@ -26,6 +26,7 @@ import { VisualFacing } from '../core/VisualFacing';
 import { CoinSystem } from '../game/CoinSystem';
 import { Player } from '../character/Player';
 import { playEnemyHitVfx, type EnemyHitSource } from '../core/EnemyHitVfx';
+import { HitFlash } from '../core/HitFlash';
 import { HpBarUI } from '../ui/HpBarUI';
 import { EnemyAI } from './EnemyAI';
 
@@ -276,6 +277,7 @@ export class EnemyMinion extends Component {
         if (this._isDead) {
             return;
         }
+        HitFlash.flash(this.visualNode ?? this.node);
         this._hp -= amount;
         EventManager.instance.emitEvent(
             GameEvents.HP_CHANGED,

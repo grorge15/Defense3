@@ -1,5 +1,7 @@
 import { _decorator, Component, instantiate, Node, Prefab, Vec3 } from 'cc';
 import { GameConfig } from '../core/GameConfig';
+import { HitFlash } from '../core/HitFlash';
+import { HitShake } from '../core/HitShake';
 import { Building } from './Building';
 
 const { ccclass, property } = _decorator;
@@ -30,6 +32,16 @@ export class Barracks extends Building {
             this.maxHp = GameConfig.barracksMaxHp;
         }
         super.onLoad();
+    }
+
+    takeDamage(amount: number): void {
+        if (!this.isAlive()) {
+            return;
+        }
+        const visual = this.visualNode ?? this.node;
+        HitFlash.flash(visual);
+        HitShake.shake(visual, 3, 0.1);
+        super.takeDamage(amount);
     }
 
     activate(): void {

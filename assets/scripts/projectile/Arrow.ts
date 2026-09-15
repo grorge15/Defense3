@@ -60,6 +60,24 @@ export class Arrow extends Component {
         speed?: number,
         reservation: AttackReservationToken | null = null,
     ): void {
+        this.node.getWorldPosition(this._pos);
+        target.getWorldPosition(this._enemyPos);
+        Vec3.subtract(this._dir, this._enemyPos, this._pos);
+        if (this._dir.lengthSqr() < 0.0001) {
+            this._dir.set(0, 1, 0);
+        } else {
+            this._dir.normalize();
+        }
+        this.initWithDirection(this._dir, damage, speed, reservation);
+    }
+
+    /** 固定世界方向直线飞行（扇形侧箭无需伪目标） */
+    initWithDirection(
+        direction: Readonly<Vec3>,
+        damage?: number,
+        speed?: number,
+        reservation: AttackReservationToken | null = null,
+    ): void {
         this._releaseReservation();
         this._reservation = reservation;
         this._damage = damage ?? GameConfig.playerAttackDamage;
@@ -68,9 +86,7 @@ export class Arrow extends Component {
         this._traveled = 0;
         this._piercedIds.clear();
 
-        this.node.getWorldPosition(this._pos);
-        target.getWorldPosition(this._enemyPos);
-        Vec3.subtract(this._dir, this._enemyPos, this._pos);
+        this._dir.set(direction.x, direction.y, direction.z);
         if (this._dir.lengthSqr() < 0.0001) {
             this._dir.set(0, 1, 0);
         } else {

@@ -19,6 +19,7 @@ import { EventManager } from '../core/EventManager';
 import type { EnemyHitSource } from '../core/EnemyHitVfx';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { HitFlash } from '../core/HitFlash';
 import { VisualFacing } from '../core/VisualFacing';
 import { Arrow } from '../projectile/Arrow';
 import { AudioManager } from '../core/AudioManager';
@@ -233,6 +234,7 @@ export class Soldier extends Component {
         if (this._isDead) {
             return;
         }
+        HitFlash.flash(this.visualNode ?? this.node);
         this._hp -= amount;
         EventManager.instance.emitEvent(
             GameEvents.HP_CHANGED,

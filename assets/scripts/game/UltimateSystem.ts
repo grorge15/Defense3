@@ -26,7 +26,7 @@ const { ccclass, property } = _decorator;
 const BIG_MOVE_VFX_PATH = 'prefabs/VFX/Vfx_BigMove';
 
 /**
- * 大招/收尾：两侧高级塔完成后自动清场 → 锁移动 → 镜头拉远 → GameOver。
+ * 大招/收尾：两侧高级塔完成后自动触发两轮 BigMove，再进入既有死亡清理与结算。
  * 空格仍可手动触发（若尚未自动播完）。
  */
 @ccclass('UltimateSystem')
@@ -47,10 +47,14 @@ export class UltimateSystem extends Component {
     private _castCount = 0;
     private _finishing = false;
     private _finaleSettled = false;
-    private _bigMoveStarted = false;
+    private _firstWaveStarted = false;
+    private _firstWaveDamageApplied = false;
+    private _secondWaveStarted = false;
     private _enemyCleanupStarted = false;
     private _enemyCleanupSettled = false;
     private _victoryScheduled = false;
+    private readonly _bigMoveInstances = new Set<Node>();
+
 
     setBigMovePoints(points: Node[]): void {
         this.bigMovePoints = points;

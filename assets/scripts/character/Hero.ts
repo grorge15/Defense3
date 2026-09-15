@@ -1,5 +1,6 @@
 import {
     _decorator,
+    Animation,
     BoxCollider2D,
     Collider2D,
     Component,
@@ -445,9 +446,24 @@ export class Hero extends Component {
         if (shadow) {
             shadow.active = false;
         }
+        const hpBar = this.node.getComponentInChildren(HpBarUI);
+        if (hpBar) {
+            hpBar.node.active = false;
+        }
         if (this.visualNode) {
+            const animation = this.visualNode.getComponent(Animation);
+            if (animation?.getState('die')) {
+                animation.once(Animation.EventType.FINISHED, () => {
+                    if (this._isDead) {
+                        this.node.active = false;
+                    }
+                });
+                playAnim(this.visualNode, 'die');
+                return;
+            }
             playAnim(this.visualNode, 'die');
         }
+        this.node.active = false;
     }
 
     private _updateLocomotionAnim(isMoving: boolean): void {

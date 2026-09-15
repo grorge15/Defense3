@@ -63,11 +63,15 @@ export class GameConfig {
     /** 箭矢最大穿透敌人数（含首命中） */
     static readonly arrowMaxPierce = 5;
     /** 玩家箭矢前 N 个命中目标造成满额 playerAttackDamage */
-    static readonly arrowFullDamageHits = 3;
+    static readonly arrowFullDamageHits = 1;
     /** 超过满伤命中数后，每多命中一个目标的伤害倍率 */
     static readonly arrowPierceDamageFalloff = 0.7;
     /** 箭矢最大飞行距离（世界单位） */
     static readonly arrowMaxDistance = 300;
+    /** 玩家同帧扇形箭数量（含中心） */
+    static readonly playerArrowFanCount = 3;
+    /** 玩家扇形总张角（度）；3 发时为 -22.5 / 0 / +22.5 */
+    static readonly playerArrowFanTotalAngleDeg = 45;
 
     // --- 相机跟随（玩法在 XY 平面，主相机从 +Z 看向原点；UI 由 UICamera 单独渲染）---
     static readonly cameraFollowOffsetX = 0;
@@ -81,8 +85,10 @@ export class GameConfig {
     static readonly playerMoveSpeed = 9;
     static readonly playerParkourForwardSpeed = 9;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 8;
-    static readonly heroFollowSpeed = 6;
+    static readonly playerParkourChargeSpeed = 3;
+    /** 触黄线后减速到 chargeSpeed 的时长（秒），结束后瞬间恢复 forwardSpeed */
+    static readonly playerParkourChargeDecelDuration = 0.8;
+    static readonly heroFollowSpeed = 7;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
@@ -99,13 +105,13 @@ export class GameConfig {
     static readonly bossTargetScanInterval = 2;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
     static readonly minionAggroRange = 420;
-    static readonly minionMoveSpeed = 3;
+    static readonly minionMoveSpeed = 3.5;
     static readonly bossMoveSpeed = 4.5;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
     static readonly soldierMoveSpeed = 4;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
     static readonly soldierRetargetInterval = 3;
-    static readonly soldierRangedTargetCount = 3;
+    static readonly soldierRangedTargetCount = 1;
     /** 近战小兵停步/出手距离 */
     static readonly soldierMeleeAttackRange = 40;
 

@@ -72,6 +72,8 @@ export class Player extends Component {
     private readonly _parkourFollowWorldPosition = new Vec3();
 
     private _parkourCharging = false;
+    private _chargeDecelActive = false;
+    private _chargeDecelElapsed = 0;
     private _parkourInputUnlocked = false;
     private readonly _visualFacing = new VisualFacing();
 
@@ -288,11 +290,24 @@ export class Player extends Component {
         this._boundLog = log;
         if (!log) {
             this._parkourCharging = false;
+            this._chargeDecelActive = false;
+            this._chargeDecelElapsed = 0;
         }
+    }
+
+    /** 触黄线：0.5s 内减速到 chargeSpeed，结束后恢复 forwardSpeed */
+    startParkourChargeDecel(): void {
+        this._parkourCharging = true;
+        this._chargeDecelActive = true;
+        this._chargeDecelElapsed = 0;
     }
 
     setParkourCharging(charging: boolean): void {
         this._parkourCharging = charging;
+        if (!charging) {
+            this._chargeDecelActive = false;
+            this._chargeDecelElapsed = 0;
+        }
     }
 
     bindCombatSystem(combat: CombatSystem | null): void {
@@ -369,11 +384,20 @@ export class Player extends Component {
                 return;
             }
             this._velocity.x = this._moveDir.x * GameConfig.playerMoveSpeed;
-            const charging =
-                this._parkourCharging || this._boundLog?.getPhase() === 'charging';
-            this._velocity.y = charging
-                ? GameConfig.playerParkourChargeSpeed
-                : GameConfig.playerParkourForwardSpeed;
+            const forward = GameConfig.playerParkourForwardSpeed;
+            const charge = GameConfig.playerParkourChargeSpeed;
+            if (this._chargeDecelActive) {
+                this._chargeDecelElapsed += dt;
+                const dur = Math.max(0.001, GameConfig.playerParkourChargeDecelDuration);
+                const t = Math.min(1, this._chargeDecelElapsed / dur);
+                this._velocity.y = forward + (charge - forward) * t;
+                if (t >= 1) {
+                    this._chargeDecelActive = false;
+                    this._velocity.y = forward;
+                }
+            } else {
+                this._velocity.y = forward;
+            }
         } else {
             const len = this._moveDir.length();
             if (len > 0.001) {
@@ -418,6 +442,8 @@ export class Player extends Component {
 
     private _onParkourFinished = (): void => {
         this._parkourCharging = false;
+        this._chargeDecelActive = false;
+        this._chargeDecelElapsed = 0;
         this.setMode('defense');
     };
 

@@ -197,6 +197,7 @@ export class Log extends Component {
         if (!this.isAttackable() || amount <= 0) {
             return;
         }
+        HitFlash.flash(this.visualNode ?? this.node);
         this._hp = Math.max(0, this._hp - amount);
         EventManager.instance.emitEvent(
             GameEvents.HP_CHANGED,
@@ -285,7 +286,7 @@ export class Log extends Component {
             return;
         }
         this._phase = 'charging';
-        this._pushPlayer?.setParkourCharging(true);
+        this._pushPlayer?.startParkourChargeDecel();
     }
 
     tryLockAtFinish(canLock: boolean): void {
@@ -303,6 +304,7 @@ export class Log extends Component {
             this.unbindPlayer();
             this._resolveFixedPoint();
             this._enableAsSolidBarrier();
+            HitFlash.flash(this.visualNode ?? this.node);
             EnemyNavigation.get(this.node.scene)?.invalidate();
             this._spawnHpBar();
             console.info(
