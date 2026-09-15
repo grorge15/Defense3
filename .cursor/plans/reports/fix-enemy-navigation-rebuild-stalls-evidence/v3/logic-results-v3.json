@@ -1,5 +1,5 @@
 {
-  "node": "v22.22.0",
+  "node": "v22.17.0",
   "typescript": "5.4.5",
   "testResults": [
     {
@@ -104,6 +104,10 @@
     },
     {
       "name": "AC-RUNTIME-CONTRACT: active polygon air walls enter the navigation obstacle snapshot",
+      "passed": true
+    },
+    {
+      "name": "AC-RUNTIME-CONTRACT: Default airWall stays Hard while airwall groups are ignored unless explicitly marked",
       "passed": true
     },
     {
@@ -263,7 +267,7 @@
       "passed": true
     },
     {
-      "name": "AC-ACTUAL-CONTACT: real Minion and Boss use stable envelopes, real service and final safe speed",
+      "name": "AC-ACTUAL-CONTACT: rolling Log uses physics while fixed Log keeps navigation behavior",
       "passed": true,
       "details": {
         "translatingFrames": 600,
@@ -281,8 +285,8 @@
           "misses": 2,
           "peakBytes": 23168,
           "peakEntries": 8,
-          "lineChecks": 30566,
-          "pointChecks": 126086,
+          "lineChecks": 30532,
+          "pointChecks": 126018,
           "approachHits": 584
         }
       }

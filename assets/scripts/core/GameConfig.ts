@@ -26,27 +26,27 @@ export class GameConfig {
     static readonly audioHeroSpawnMinInterval = 0;
     // --- 生命值 ---
     static readonly playerMaxHp = 700;
-    static readonly heroMaxHp = 100;
+    static readonly heroMaxHp = 300;
     static readonly bossMaxHp = 1500;
     static readonly minionMaxHp = 15;
     static readonly soldierMaxHp = 20;
-    static readonly barrierMaxHp = 3000;
+    static readonly barrierMaxHp = 6000;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
-    static readonly towerMaxHp = 200;
-    static readonly barracksMaxHp = 400;
+    static readonly towerMaxHp = 300;
+    static readonly barracksMaxHp = 900;
     /** 滚木固定后作为可攻击障碍的最大生命 */
-    static readonly logMaxHp = 1000;
+    static readonly logMaxHp = 400;
     static readonly logFixedColliderOffsetX = -2;
     static readonly logFixedColliderOffsetY = 10;
     static readonly logFixedColliderWidth = 235;
     static readonly logFixedColliderHeight = 19;
 
     // --- 攻击 ---
-    static readonly bossAttackDamage = 90;
+    static readonly bossAttackDamage = 120;
     /** Boss 对建筑/屏障/小兵一击拆毁伤害（≥ 各建筑 maxHp） */
-    static readonly bossBuildingDamage = 200;
+    static readonly bossBuildingDamage = 300;
     static readonly playerAttackDamage = 15;
-    static readonly minionAttackDamage = 3;
+    static readonly minionAttackDamage = 2;
     /**
      * 玩家射箭冷却（秒）。须 ≥ melee_attack 时长（0.7），
      * 否则会出现「动画未结束又开下一轮」。
@@ -63,26 +63,26 @@ export class GameConfig {
     /** 箭矢最大穿透敌人数（含首命中） */
     static readonly arrowMaxPierce = 5;
     /** 玩家箭矢前 N 个命中目标造成满额 playerAttackDamage */
-    static readonly arrowFullDamageHits = 2;
+    static readonly arrowFullDamageHits = 3;
     /** 超过满伤命中数后，每多命中一个目标的伤害倍率 */
     static readonly arrowPierceDamageFalloff = 0.7;
     /** 箭矢最大飞行距离（世界单位） */
     static readonly arrowMaxDistance = 300;
 
     // --- 相机跟随（玩法在 XY 平面，主相机从 +Z 看向原点；UI 由 UICamera 单独渲染）---
-    static readonly cameraFollowOffsetX = -15;
-    static readonly cameraFollowOffsetY = -390;
+    static readonly cameraFollowOffsetX = 0;
+    static readonly cameraFollowOffsetY = -440;
     /** 相对目标沿 +Z 拉开的观察距离 */
-    static readonly cameraFollowOffsetZ = 1270;
+    static readonly cameraFollowOffsetZ = 1485;
     /** 跟随平滑系数（越大越贴） */
     static readonly cameraFollowSmooth = 6;
 
     // --- 移动 ---
-    static readonly playerMoveSpeed = 6;
-    static readonly playerParkourForwardSpeed = 7;
+    static readonly playerMoveSpeed = 9;
+    static readonly playerParkourForwardSpeed = 9;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 6;
-    static readonly heroFollowSpeed = 4;
+    static readonly playerParkourChargeSpeed = 8;
+    static readonly heroFollowSpeed = 6;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
      * 到达该距离后 idle；攻击中不跟随。
@@ -99,12 +99,12 @@ export class GameConfig {
     static readonly bossTargetScanInterval = 2;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
     static readonly minionAggroRange = 420;
-    static readonly minionMoveSpeed = 4;
+    static readonly minionMoveSpeed = 3;
     static readonly bossMoveSpeed = 4.5;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
     static readonly soldierMoveSpeed = 4;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
-    static readonly soldierRetargetInterval = 1;
+    static readonly soldierRetargetInterval = 3;
     static readonly soldierRangedTargetCount = 3;
     /** 近战小兵停步/出手距离 */
     static readonly soldierMeleeAttackRange = 40;
@@ -178,8 +178,8 @@ export class GameConfig {
     static readonly logShadowWidthSlack = 0;
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
-    static readonly sawTrapDamage = 15;
-    static readonly farSpawnInterval = 0.8;
+    static readonly sawTrapDamage = 70;
+    static readonly farSpawnInterval = 1.0;
     /** 场上同时存活小怪上限（含侧路） */
     static readonly farSpawnMaxAlive = 50;
     /** 小怪死亡后回池并在 SpawnPoint 重生的延迟（秒） */
@@ -214,11 +214,11 @@ export class GameConfig {
     static readonly barracksBuildCost = 40;
     static readonly heroShrineBuildCost = 50;
     static readonly expandAreaBuildCost = 60;
-    static readonly barracksSpawnInterval = 3;
+    static readonly barracksSpawnInterval = 4;
 
     // --- 金币 ---
     /** 小怪死亡掉落面额 */
-    static readonly coinDropAmount = 2;
+    static readonly coinDropAmount = 1;
     /** 吸附飞向玩家的速度（世界单位/秒） */
     static readonly coinMagnetSpeed = 420;
     /**
@@ -247,7 +247,7 @@ export class GameConfig {
     static readonly hitFlashDuration = 0.12;
 
     // --- 对象池上限 ---
-    static readonly poolMaxEnemies = 200;
+    static readonly poolMaxEnemies = 140;
     static readonly poolMaxProjectiles = 20;
     static readonly poolMaxCoins = 50;
     static readonly poolMaxSoldiers = 16;

@@ -899,6 +899,11 @@ export class EnemyBoss extends Component {
         this._isDead = true;
         this._isAttacking = false;
         this._canMove = false;
+        const hpBar = this.node.getComponentInChildren(HpBarUI);
+        if (hpBar) {
+            hpBar.applyHp(0, GameConfig.bossMaxHp);
+            hpBar.node.active = false;
+        }
         AudioManager.playSfx('enemyDeath');
         if (this._rb) {
             this._rb.linearVelocity = new Vec2(0, 0);
@@ -931,6 +936,7 @@ export class EnemyBoss extends Component {
         }
         bar.bindTarget(this.node);
         bar.hideWhenFull = false;
+        bar.hideWhenDead = true;
         bar.showMaxInLabel = false;
         bar.applyHp(this._hp, GameConfig.bossMaxHp, true);
         return bar;

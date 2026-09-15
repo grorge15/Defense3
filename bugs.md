@@ -121,7 +121,43 @@
 | **原因** | 仅调用 `setParent` 后启动二次接线或层级恢复可能使 Player 脱离 Log，且没有自愈机制。 |
 | **解决** | 显式保存 Player 世界坐标后通过 `Log.addChild` 挂接并恢复世界坐标；滚动期间检测异常父节点并自动重新挂接，同时保留 Rigidbody2D 与 Collider2D 的物理状态迁移。 |
 | **验证** | `node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`npx --no-install tsc --noEmit --pretty false` 与 `git diff --check` 通过；未做 Cocos 实机测试。 |
+
+### v6（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 小怪实体碰撞反作用会顶停滚木。 |
+| **原因** | Dynamic Log 与 EnemyMinion 形成完整 solver 接触，滚木受到反冲。 |
+| **解决** | 仅 rolling/charging Log 对 Minion 的 `PreSolve` 使用 `disabledOnce`；重叠 Minion 继承滚木速度并侧向脱离，固定滚木行为不变。 |
+| **验证** | `npx --no-install tsc --noEmit --pretty false`、`node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`node .cursor/scripts/test-enemy-navigation.cjs` 与 `git diff --check` 均通过；未做 Cocos 实机测试。 |
+
+### v7（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 滚木无法被固定；Dynamic Log 越过蓝线时可能漏掉 BlueLine Trigger。 |
+| **原因** | 黄/蓝线原先依赖物理触发，Dynamic Log 的接触事件在该路径上并不稳定。 |
+| **解决** | `Log.ts` 对 rolling/charging 状态加入世界 Y 一次性越线兜底：先用属性引用，再按名称查找 YellowLine/BlueLine；蓝线仅调用 `tryLockAtFinish(meetsFixedWidthRequirement())`，不直接发完成事件。rolling Log 仍只禁用当前与 EnemyMinion 的 `PRE_SOLVE` 接触，避免小怪反冲顶停；固定行为不变。 |
+| **验证** | `npx --no-install tsc --noEmit --pretty false`、`node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`node .cursor/scripts/test-enemy-navigation.cjs` 与 `git diff --check` 均通过；未做 Creator 实机测试。 |
+
+### v8（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 重叠滚动滚木的小怪横向脉冲向外，未向滚木中心收敛。 |
+| **原因** | 横向速度使用了与当前位置相同符号的垂线方向，造成远离中心的侧向推力。 |
+| **解决** | 根据垂线投影反转横向方向；中心线上横向分量为零，保留滚木前向物理速度继承与固定滚木行为。 |
+| **验证** | `npx --no-install tsc --noEmit --pretty false`、`node .cursor/scripts/test-enemy-navigation.cjs`、`node .cursor/scripts/test-parkour-log-physics-driver.cjs` 与 `git diff --check` 通过。 |
 ---
+### v9（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | `Main.scene` 中 BlueLine 序列化的 `ParkourLineZone.log` 为 null，物理 contact 可能漏掉，导致滚木越过蓝线后无法固定。 |
+| **原因** | 蓝线接触逻辑依赖 Inspector 引用和物理 contact；当前场景缺少该引用，Dynamic Log 的 contact 也不能作为唯一触发依据。 |
+| **解决** | `ParkourLineZone` 在 contact 时按场景懒解析 Log；Log 的蓝线兜底优先用 Collider2D 世界 AABB 的包含边界重叠判断，只有 collider 信息不可用时才回退到世界 Y 越线判断；蓝线仍只调用 `tryLockAtFinish()`。 |
+| **验证** | `npx --no-install tsc --noEmit --pretty false`、focused parkour harness 与 `git diff --check` 通过；Creator 手动测试待用户确认。 |
+
 
 ## fix-log-fixed-bow-saw — 固定后滚木转 / 拾弓不射 / 电锯不砍木
 
@@ -1705,5 +1741,31 @@
 | **原因** | `AudioManager.ts` 未被 Cocos AssetDB 索引，场景组件无法加载。 |
 | **解决** | 顺序重导入当前有效的 `Log.ts`，刷新 `core` 目录，再重新导入 `AudioManager.ts`；资产恢复为 `invalid=false`。错误日志已清空，未出现新错误。 |
 | **验证** | `assets_query_asset_info` 返回 `imported=true`、`invalid=false`；系统 error 日志为空。需重启预览并点击一次画布试听。 |
+
+---
+
+## fix-ultimate-finale-player-invulnerable — 大招镜头拉远期间玩家仍可受伤
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 解锁两侧高级塔后进入大招收尾/镜头拉远窗口时，玩家仍可受伤甚至死亡。 |
+| **原因** | `UltimateSystem._runFinale` 已切到 `GamePhase.Ultimate`，但 `Player.takeDamage` 只拦 `_isDead`/伤害量，未忽略 Ultimate（及 GameOver）阶段伤害。 |
+| **解决** | `Player.takeDamage` 在 `GamePhase.Ultimate` / `GamePhase.GameOver` 时直接 return；`heal` 不受影响。 |
+| **验证** | `npx tsc --noEmit` 通过；未改 Prefab / Main.scene。 |
+
+---
+
+## fix-boss-hp-bar-hide-on-death — Boss 死亡后血条仍可见
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 死亡后（至少在死亡动画、节点仍 active 期间）血条仍显示。 |
+| **原因** | `_bindEmbeddedHpBar` 未设 `hideWhenDead=true`；`_die()` 也未显式隐藏内嵌 `HpBarUI`，死亡动画期间节点仍 active 时血条可能残留。 |
+| **解决** | 绑定血条时设 `hideWhenDead=true`；`_die()` 内 `applyHp(0, bossMaxHp)` 并 `bar.node.active = false`。 |
+| **验证** | `npx tsc --noEmit` 通过；未改 Prefab / Main.scene。 |
 
 ---

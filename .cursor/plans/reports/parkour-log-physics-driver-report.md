@@ -65,6 +65,8 @@ This run did not modify `Main.scene`, any prefab, or any meta file. No scene/pre
 | AC-6 banned transform/compensation scan | Pass, reviewed | No legacy rolling follow/AABB compensation remains. `Log.ts` retains only fixed-point placement plus visual/shadow geometry placement; `EnemyMinion.ts` retains unrelated expansion relocation. |
 | AC-7 `git diff --check` | Pass | Exit code 0. Scope-only name check cannot pass because concurrent plan-external changes are present in the worktree. |
 | AC-8 `bugs.md` v5 update | Pass | Added under the existing `fix-log-follow-contact` topic. |
+| AC-9 rolling Log / Minion contact follow-up | Pass | Rolling/charging Log disables the Minion `PreSolve` contact once; overlapping Minions inherit Log velocity and separate laterally. Fixed Log behavior is unchanged. Final `tsc`, parkour-driver, enemy-navigation, and diff checks all passed. |
+| Follow-up: Dynamic line locking | Pass | Rolling/charging `Log.ts` now has a world-Y one-shot fallback for YellowLine/BlueLine (property reference, then name lookup); BlueLine only calls `tryLockAtFinish(meetsFixedWidthRequirement())`, while rolling `PRE_SOLVE` suppression remains limited to the current EnemyMinion contact. Fixed behavior is unchanged. `tsc`, parkour-driver, enemy-navigation, and diff checks passed; Creator play test was not performed. |
 | AC-PLAY | Not run | Nonblocking by plan; no in-editor or device play verification was performed. |
 
 ## MCP Metrics
@@ -81,4 +83,8 @@ This run did not modify `Main.scene`, any prefab, or any meta file. No scene/pre
 
 ## Completion
 
-The final TypeScript gate passed on 2026-09-15, AC-1 and AC-8 are complete, and this plan is DONE. AC-PLAY was not performed and is nonblocking; this report does not claim an in-editor or device play test.
+The final TypeScript gate, parkour-driver test, enemy-navigation test, and diff check passed on 2026-09-15. The post-completion rolling Log / Minion contact correction is recorded in AC-9 and `bugs.md` v6; this plan remains DONE. AC-PLAY was not performed and is nonblocking; this report does not claim an in-editor or device play test.
+
+## Follow-up (2026-09-15)
+
+BlueLine's serialized `ParkourLineZone.log` is null in `Main.scene`, so contact now lazily resolves Log from the scene. Blue fallback uses inclusive Collider2D world-AABB overlap, falling back to passed-line world Y only when collider data is unavailable; it still only calls `tryLockAtFinish()`. `tsc`, the focused parkour harness, and `git diff --check` passed. Creator manual testing remains pending with the user; status remains DONE.
