@@ -73,9 +73,9 @@ export class GameConfig {
      */
     static readonly heroFollowLeash = 15;
     /** Boss 重新索敌间隔（秒） */
-    static readonly bossRetargetInterval = 0.6;
+    static readonly bossRetargetInterval = 1.5;
     /** Boss 扫描场景中新防守目标的间隔（秒） */
-    static readonly bossTargetScanInterval = 1.0;
+    static readonly bossTargetScanInterval = 2;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
     static readonly minionAggroRange = 420;
     static readonly minionMoveSpeed = 4;
@@ -141,13 +141,13 @@ export class GameConfig {
     static readonly logMinLength = 1;
     static readonly logMaxLength = 10;
     static readonly logInitialLength = 3;
-    static readonly logVisualBaseScale = 0.55;
-    static readonly logVisualScalePerLength = 0.15;
+    static readonly logVisualBaseScale = 0.7;
+    static readonly logVisualScalePerLength = 0.1;
     /**
      * Legacy logical blue-line gate. Lock now uses rolling world width vs
      * baseColliderWidth * logFixedMinWidthFactor.
      */
-    static readonly blueLineMinLogLength = 6;
+    static readonly blueLineMinLogLength = 5;
     /**
      * Blue-line lock when rollingWidth >= baseColliderWidth * this factor
      * (equals old length>=6 visual scale: 0.4 + 6*0.15).
