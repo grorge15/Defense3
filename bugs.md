@@ -1652,6 +1652,15 @@
 | **解决** | 恢复只写投影 `contentSize.width = logContentWidth − logShadowWidthSlack`；不改投影 scale；中心 X 仍同步。 |
 | **验证** | `node .cursor/scripts/test-log-contact-cut-projection.cjs`、`npx tsc --noEmit`。 |
 
+### v4（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 电锯成功切割滚木时没有受击闪红反馈。 |
+| **原因** | `Log.cutAtLocalX()` 只更新长度几何，没有复用项目已有的红色受击表现。 |
+| **解决** | 成功更新滚木 Visual/Collider 几何后，对 `Visual` 调用共享 `HitFlash`；所有拒绝切割路径会在调用前返回，不产生误闪。 |
+| **验证** | `node .cursor/scripts/test-log-contact-cut-projection.cjs`、`npx --no-install tsc --noEmit` 与 `git diff --check` 通过；未修改 Prefab 或 Main.scene。 |
+
 ---
 
 ### v1（2026-09-14）
@@ -1662,5 +1671,18 @@
 | **原因** | `EnemyNavigation._isBlockingCollider` / `_trackCandidate` 按节点名 `airWall*` 登记为 Hard 导航障碍，未按物理组 `airwall`（index 6 / mask 64）排除。 |
 | **解决** | 增加 airwall 组判断（index/mask 兼容）；该组碰撞体不再因名字进 `_tracked`、不再判 Hard；显式 `NavigationObstacle` 仍生效；`AirWallAabb` 软推出未改。 |
 | **验证** | `npx tsc --noEmit` 通过。 |
+
+---
+
+## fix-log-extend-symmetric — 滚木增长按上次砍边单侧加长
+
+### v1（2026-09-15）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 电锯砍掉左边后加长只往左加，砍掉右边后只往右加；期望始终左右各加一半。 |
+| **原因** | `Log.extend()` 用 `_lastCutSide` 分支决定增长方向，非对称改左右边。 |
+| **解决** | `extend()` 始终 `_rollingLeftEdge -= addedWidth * 0.5`、`_rollingRightEdge += addedWidth * 0.5`；字段仅服务于该分支，移除后一并删除 `_lastCutSide` 写入（`cutAtLocalX` 切割逻辑本身未改）。 |
+| **验证** | `npx --no-install tsc --noEmit` 通过；`extend()` 内已无 `_lastCutSide` 分支。 |
 
 ---
