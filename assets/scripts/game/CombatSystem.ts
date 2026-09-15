@@ -45,6 +45,8 @@ export class CombatSystem extends Component {
     private _attackSequence = 0;
     private readonly _selfPos = new Vec3();
     private readonly _targetPos = new Vec3();
+    private readonly _baseDir = new Vec3();
+    private readonly _fanDir = new Vec3();
 
     onLoad(): void {
         if (this.attackRange <= 20) {
@@ -145,7 +147,7 @@ export class CombatSystem extends Component {
         const visual = player.visualNode;
         if (!visual) {
             const reservation = this._takePendingReservation();
-            this._spawnArrow(target, reservation);
+            this._spawnArrowFan(target, reservation);
             this._pendingTarget = null;
             player.setAttacking(false);
             return;
@@ -161,7 +163,7 @@ export class CombatSystem extends Component {
                 const t = this._pendingTarget;
                 this._pendingTarget = null;
                 if (t?.isValid && !player.isDead) {
-                    this._spawnArrow(t, this._takePendingReservation());
+                    this._spawnArrowFan(t, this._takePendingReservation());
                 } else {
                     this._releasePendingReservation();
                 }
@@ -260,31 +262,88 @@ export class CombatSystem extends Component {
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    private _spawnArrow(target: Node, reservation: AttackReservationToken | null): void {
+    private _spawnArrowFan(target: Node, reservation: AttackReservationToken | null): void {
         const player = this._resolvePlayer();
         if (!this.arrowPrefab || !player) {
             AttackReservation.release(reservation);
             return;
         }
 
-        const arrowNode = instantiate(this.arrowPrefab);
         const parent =
             this.projectileRoot ?? player.node.parent ?? this.node.scene;
         if (!parent) {
-            arrowNode.destroy();
             AttackReservation.release(reservation);
             return;
         }
+
+        player.node.getWorldPosition(this._selfPos);
+        target.getWorldPosition(this._targetPos);
+        Vec3.subtract(this._baseDir, this._targetPos, this._selfPos);
+        if (this._baseDir.lengthSqr() < 0.0001) {
+            this._baseDir.set(0, 1, 0);
+        } else {
+            this._baseDir.normalize();
+        }
+
+        const count = Math.max(1, Math.floor(GameConfig.playerArrowFanCount));
+        const halfDeg = GameConfig.playerArrowFanTotalAngleDeg * 0.5;
+        const centerIndex = Math.floor((count - 1) * 0.5);
+        let spawned = 0;
+
+        for (let i = 0; i < count; i++) {
+            const t = count === 1 ? 0.5 : i / (count - 1);
+            const angleDeg = -halfDeg + (halfDeg * 2) * t;
+            this._rotateDirZ(this._baseDir, angleDeg, this._fanDir);
+            const arrowReservation = i === centerIndex ? reservation : null;
+            if (this._spawnArrowWithDir(parent, player.node.worldPosition, this._fanDir, arrowReservation)) {
+                spawned += 1;
+            } else if (arrowReservation) {
+                AttackReservation.release(arrowReservation);
+            }
+        }
+
+        if (spawned > 0) {
+            AudioManager.playSfx('playerAttack');
+        }
+    }
+
+    private _spawnArrowWithDir(
+        parent: Node,
+        worldPos: Readonly<Vec3>,
+        dir: Readonly<Vec3>,
+        reservation: AttackReservationToken | null,
+    ): boolean {
+        if (!this.arrowPrefab) {
+            return false;
+        }
+        const arrowNode = instantiate(this.arrowPrefab);
         arrowNode.setParent(parent);
-        arrowNode.setWorldPosition(player.node.worldPosition);
+        arrowNode.setWorldPosition(worldPos.x, worldPos.y, worldPos.z);
 
         const arrow = arrowNode.getComponent(Arrow);
-        if (arrow) {
-            arrow.init(target, GameConfig.playerAttackDamage, GameConfig.arrowSpeed, reservation);
-            AudioManager.playSfx('playerAttack');
-        } else {
+        if (!arrow) {
             arrowNode.destroy();
-            AttackReservation.release(reservation);
+            return false;
+        }
+        arrow.initWithDirection(
+            dir,
+            GameConfig.playerAttackDamage,
+            GameConfig.arrowSpeed,
+            reservation,
+        );
+        return true;
+    }
+
+    /** Rotate XY direction around Z by degrees (gameplay plane). */
+    private _rotateDirZ(src: Readonly<Vec3>, angleDeg: number, out: Vec3): void {
+        const rad = (angleDeg * Math.PI) / 180;
+        const c = Math.cos(rad);
+        const s = Math.sin(rad);
+        out.set(src.x * c - src.y * s, src.x * s + src.y * c, src.z);
+        if (out.lengthSqr() < 0.0001) {
+            out.set(0, 1, 0);
+        } else {
+            out.normalize();
         }
     }
 
