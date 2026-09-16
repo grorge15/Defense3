@@ -27,9 +27,9 @@ export class GameConfig {
     // --- 生命值 ---
     static readonly playerMaxHp = 700;
     static readonly heroMaxHp = 300;
-    static readonly bossMaxHp = 1500;
+    static readonly bossMaxHp = 2000;
     static readonly minionMaxHp = 15;
-    static readonly soldierMaxHp = 20;
+    static readonly soldierMaxHp = 15;
     static readonly barrierMaxHp = 6000;
     /** 箭塔 / 兵营可被 Boss 摧毁的血量 */
     static readonly towerMaxHp = 300;
@@ -85,9 +85,9 @@ export class GameConfig {
     static readonly playerMoveSpeed = 9;
     static readonly playerParkourForwardSpeed = 9;
     /** 黄线蓄力段前进速度（应小于 playerParkourForwardSpeed） */
-    static readonly playerParkourChargeSpeed = 3;
+    static readonly playerParkourChargeSpeed = 2;
     /** 触黄线后减速到 chargeSpeed 的时长（秒），结束后瞬间恢复 forwardSpeed */
-    static readonly playerParkourChargeDecelDuration = 0.8;
+    static readonly playerParkourChargeDecelDuration = 1;
     static readonly heroFollowSpeed = 7;
     /**
      * 英雄相对玩家的期望跟随距离（世界单位）。
@@ -100,7 +100,7 @@ export class GameConfig {
      */
     static readonly heroFollowLeash = 15;
     /** Boss 重新索敌间隔（秒） */
-    static readonly bossRetargetInterval = 1.5;
+    static readonly bossRetargetInterval = 1.0;
     /** Boss 扫描场景中新防守目标的间隔（秒） */
     static readonly bossTargetScanInterval = 2;
     /** 小怪开始追击的索敌半径（世界单位）；以外 idle，避免远端预置怪全挤到玩家旁 */
@@ -108,7 +108,7 @@ export class GameConfig {
     static readonly minionMoveSpeed = 3.5;
     static readonly bossMoveSpeed = 4.5;
     /** 近战小兵移速（与小怪同量级；勿用百级像素误放大） */
-    static readonly soldierMoveSpeed = 4;
+    static readonly soldierMoveSpeed = 3.5;
     /** 近战小兵重索敌间隔（秒），避免每帧全场扫描 */
     static readonly soldierRetargetInterval = 3;
     static readonly soldierRangedTargetCount = 1;
@@ -143,6 +143,12 @@ export class GameConfig {
     static readonly enemyFlowCacheBytes = 8 * 1024 * 1024;
     static readonly enemyFlowMaxCells = 262144;
     static readonly enemyNavWorkUnitsPerFrame = 4096;
+    /** Cooperative scheduler deadline; checked every 32 work units. */
+    static readonly enemyNavJobTimeBudgetMs = 2;
+    static readonly enemyMinionDecisionInterval = 0.25;
+    static readonly enemyMinionAvoidanceInterval = 0.25;
+    static readonly enemyMinionAvoidanceMaxNeighbors = 4;
+    static readonly enemyMinionAvoidanceMaxVisits = 24;
     /** Cap how many units drop stale fields after a geometry epoch bump (per frame). */
     static readonly enemyNavMaxFieldInvalidationsPerFrame = 8;
     /** Cap distinct new distance-field jobs admitted per frame (coalesced keys do not count). */
@@ -185,7 +191,7 @@ export class GameConfig {
 
     // --- 跑酷陷阱 / 刷怪 / UI ---
     static readonly sawTrapDamage = 70;
-    static readonly farSpawnInterval = 1.0;
+    static readonly farSpawnInterval = 0.7;
     /** 场上同时存活小怪上限（含侧路） */
     static readonly farSpawnMaxAlive = 50;
     /** 小怪死亡后回池并在 SpawnPoint 重生的延迟（秒） */
@@ -215,12 +221,26 @@ export class GameConfig {
 
     // --- 建造（调试期统一 10 金）---
     static readonly wallBuildCost = 10;
-    static readonly towerBasicBuildCost = 30;
-    static readonly towerAdvancedBuildCost = 40;
-    static readonly barracksBuildCost = 40;
-    static readonly heroShrineBuildCost = 50;
-    static readonly expandAreaBuildCost = 60;
-    static readonly barracksSpawnInterval = 4;
+    static readonly towerBasicBuildCost = 25;
+    static readonly towerAdvancedBuildCost = 30;
+    static readonly barracksBuildCost = 35;
+    static readonly heroShrineBuildCost = 35;
+    static readonly expandAreaBuildCost = 45;
+    static readonly barracksSpawnInterval = 3;
+    /** 兵营首次出兵后，每波最多补刷的盾兵数 */
+    static readonly barracksRefillPerWave = 4;
+
+    // --- 建筑生成小怪击退 ---
+    /** 建筑 collider AABB 向外扩展的候选范围（世界单位）。 */
+    static readonly buildingSpawnMinionKnockbackRangePadding = 48;
+    /** 建筑 collider 无效时，以根节点世界中心为圆心的回退半径（世界单位）。 */
+    static readonly buildingSpawnMinionKnockbackFallbackRange = 96;
+    /** 初始击退速度（RigidBody2D 物理速度，米/秒）。 */
+    static readonly buildingSpawnMinionKnockbackInitialSpeed = 6;
+    /** 击退覆盖窗口（秒）。 */
+    static readonly buildingSpawnMinionKnockbackDuration = 0.3;
+    /** 速度按 remainingRatio 的该指数单调衰减；1 表示线性。 */
+    static readonly buildingSpawnMinionKnockbackDecayExponent = 1;
 
     // --- 金币 ---
     /** 小怪死亡掉落面额 */
@@ -265,6 +285,15 @@ export class GameConfig {
     static readonly ultimateZoomDistance = 400;
     /** 拉远缓动时长（秒） */
     static readonly ultimateZoomDuration = 1.5;
+    /** Camera callback safety margin when the follow component becomes unavailable mid-finale. */
+    static readonly ultimateZoomFallbackGrace = 0.25;
+    /** First BigMove wave applies this fraction of each enemy's current HP. */
+    static readonly ultimateFirstWaveDamageRatio = 0.5;
+    /** Delay after first BigMove wave finishes before starting second wave + zoom (seconds). */
+    static readonly ultimateInterWaveDelay = 0.8;
+    /** VFX resource fallback when an async load never resolves. */
+    static readonly ultimateVfxLoadFallbackDelay = 1;
+
     /** 拉远结束后再切 GameOver 的额外延迟（秒） */
     static readonly ultimateGameOverDelay = 0;
 
