@@ -136,6 +136,8 @@ export type FlowJobStats = {
     slices: number;
     lastSliceWork: number;
     totalWork: number;
+    lastSliceMs: number;
+    deadlineStops: number;
 };
 
 export type FlowBudget = { entries: number; bytes: number; cells: number };
@@ -182,7 +184,7 @@ export class FlowField {
     readonly debugStats = { visitedCells: 0, candidates: 0, hits: 0, misses: 0, peakBytes: 0, peakEntries: 0,
         lineChecks: 0, pointChecks: 0, approachHits: 0 };
     readonly debugJobStats: FlowJobStats = { queued: 0, completed: 0, cancelled: 0, coalesced: 0, refused: 0,
-        slices: 0, lastSliceWork: 0, totalWork: 0 };
+        slices: 0, lastSliceWork: 0, totalWork: 0, lastSliceMs: 0, deadlineStops: 0 };
     private readonly _budget: FlowBudget;
 
     constructor(cellSize: number, lookaheadCells: number, budget: FlowBudget = { entries: 32, bytes: 8 * 1024 * 1024, cells: 262144 }) {
@@ -938,11 +940,18 @@ export class FlowField {
     }
 
     // Requests only enqueue work. EnemyNavigation advances this queue once per frame.
-    advanceJobs(maxWork: number): number {
+    advanceJobs(maxWork: number, timeBudgetMs = Infinity): number {
         const allowance = Math.max(0, Math.floor(maxWork));
+        const now = (): number => typeof performance !== 'undefined' ? performance.now() : Date.now();
+        const started = now();
         let used = 0;
         if (allowance > 0 && this._jobOrder.length) this.debugJobStats.slices++;
         while (used < allowance && this._jobOrder.length) {
+            // Always make progress; a single primitive is not preemptible.
+            if (used > 0 && used % 32 === 0 && now() - started >= timeBudgetMs) {
+                this.debugJobStats.deadlineStops++;
+                break;
+            }
             if (this._jobCursor >= this._jobOrder.length) this._jobCursor = 0;
             const key = this._jobOrder[this._jobCursor];
             const job = this._jobs.get(key);
@@ -963,6 +972,7 @@ export class FlowField {
         this.debugJobStats.lastSliceWork = used;
         this.debugJobStats.totalWork += used;
         this._recordPeak();
+        this.debugJobStats.lastSliceMs = now() - started;
         return used;
     }
 

@@ -41,6 +41,8 @@ export type EnemyMoveRequest = {
     body: FlowBody;
     stopDistance?: number;
     preferEntranceNearestTo?: Node | null;
+    /** Minion execution composes its independently cached avoidance each frame. */
+    deferMinionAvoidance?: boolean;
 };
 
 type RouteTarget = {
@@ -84,6 +86,12 @@ const _tmpB = new Vec3();
 export class EnemyNavigation {
     /** Temporary, opt-in capture owned by EnemyMinion; never performs navigation queries. */
     static diagnosticFrame: { unit: Node; data: Record<string, any> } | null = null;
+
+    static minionPhase(unit: Node): number {
+        let hash = 2166136261;
+        for (const c of unit.uuid ?? unit.name) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
+        return (hash >>> 0) / 4294967296;
+    }
 
     static diagnosticSnapshot(unit: Node): Record<string, unknown> | null {
         const nav = unit.scene && sceneServices.get(unit.scene);
@@ -173,6 +181,7 @@ export class EnemyNavigation {
     private readonly _unitPositions = new Map<Node, FlowPoint>();
     private readonly _buckets = new Map<string, Node[]>();
     private readonly _peerPositions: FlowPoint[] = [];
+    private readonly _minionAvoidance = new Map<Node, { remaining: number; x: number; y: number }>();
     private readonly _velocity = new Vec2();
     private readonly _self = new Vec3();
     private readonly _target = new Vec3();
@@ -190,6 +199,7 @@ export class EnemyNavigation {
     private _contactLog: Log | null = null;
     private _discovered = false;
     private _lastGeometryFrame = -1;
+    private _lastSchedulerFrame = -1;
     private _diagnosticAt = 0;
     private _diagnosticQueryMs = 0;
     private _diagnosticQueries = 0;
@@ -204,7 +214,8 @@ export class EnemyNavigation {
     readonly debugStats = { fullSceneScan: 0, trackedColliderChecks: 0, signatureBuild: 0,
         invalidateRequests: 0, geometryCheckRequests: 0, effectiveCommits: 0, geometryChanges: 0, blockingScans: 0, surfaceScans: 0,
         selectedCacheHits: 0, selectedCacheMisses: 0, schedulerFrames: 0, schedulerWork: 0, schedulerLastWork: 0,
-        coalescedGeometryChecks: 0, incrementalCommits: 0, throttledFieldInvalidations: 0 };
+        coalescedGeometryChecks: 0, incrementalCommits: 0, throttledFieldInvalidations: 0,
+        minionAvoidanceUpdates: 0, avoidanceCandidateVisits: 0, minionAvoidanceMaxUsed: 0 };
     private readonly _area: FlowArea = {
         bounds: {
             minX: GameConfig.enemyNavDefaultMinX,
@@ -281,6 +292,7 @@ export class EnemyNavigation {
         this._field.clear();
         this._unitState.clear();
         this._obstacleCommitments.clear();
+        this._minionAvoidance.clear();
         this._registeredUnits.clear();
         this._unitPositions.clear();
         this._buckets.clear();
@@ -339,6 +351,7 @@ export class EnemyNavigation {
         if (state?.activeFieldId) this._field.release(state.activeFieldId);
         this._unitState.delete(unit);
         this._obstacleCommitments.delete(unit);
+        this._minionAvoidance.delete(unit);
         this._registeredUnits.delete(unit);
         const pos = this._unitPositions.get(unit);
         if (pos) {
@@ -612,7 +625,8 @@ export class EnemyNavigation {
             if (!first || first.node === request.target || !this._isDestructibleNode(first.node)) {
                 return { readiness: 'settled' as const, value: null };
             }
-            const surface = this._surface(from, first.rect, body, this._area, range);
+            const surface = (request.role === 'minion' ? this._localSurface(from, first.rect, body, range) : null)
+                ?? this._surface(from, first.rect, body, this._area, range);
             if (trace) trace.surfaceReadiness = surface.readiness;
             return surface.readiness === 'pending' ? surface : { readiness: 'settled' as const,
                 value: surface.value ? { target: first.node, point: surface.value } : null };
@@ -708,7 +722,9 @@ export class EnemyNavigation {
         out.set(result.x * speed, result.y * speed);
         if (trace) trace.candidateWorldVelocity = { x: out.x, y: out.y };
         this._registeredUnits.add(request.unit); this._insertUnitIntoBuckets(request.unit);
-        this._applyLocalAvoidance(request.unit, from, request.body, request.speed, out);
+        if (!request.deferMinionAvoidance || request.role !== 'minion') {
+            this._applyLocalAvoidance(request.unit, from, request.body, request.speed, out);
+        }
         this._constrainVelocity(from, request.body, request.dt, out);
         return out;
     }
@@ -807,6 +823,25 @@ export class EnemyNavigation {
         const by = Math.max(cy-body.height/2, Math.min(sy,cy+body.height/2));
         return Math.hypot(sx-bx,sy-by) <= range && this._field.lineClear({x:bx,y:by},{x:sx,y:sy},
             {width:0,height:0},attackArea);
+    }
+
+    private _localSurface(from: FlowPoint, rect: FlowRect, body: FlowBody, range: number): FlowQueryResult<FlowPoint> | null {
+        const ox = body.offsetX ?? 0, oy = body.offsetY ?? 0;
+        const x = Math.max(rect.xMin - ox, Math.min(from.x, rect.xMax - ox));
+        const y = Math.max(rect.yMin - oy, Math.min(from.y, rect.yMax - oy));
+        const gap = Math.max(0.05, range - 0.05);
+        const candidates = [
+            { x, y: rect.yMin - body.height / 2 - oy - gap },
+            { x, y: rect.yMax + body.height / 2 - oy + gap },
+            { x: rect.xMin - body.width / 2 - ox - gap, y },
+            { x: rect.xMax + body.width / 2 - ox + gap, y },
+        ];
+        candidates.sort((a, b) => distSqPoint(from, a) - distSqPoint(from, b));
+        for (const point of candidates) {
+            if (this._surfaceHit(point, rect, body, this._area, range) &&
+                this._field.lineClear(from, point, body, this._area)) return { readiness: 'settled', value: point };
+        }
+        return null;
     }
 
     private _surface(from: FlowPoint, rect: FlowRect, body: FlowBody, area: FlowArea, range: number,
@@ -1133,35 +1168,72 @@ export class EnemyNavigation {
         return !!this._area.walkablePolygons?.some((poly) => poly.length >= 3);
     }
 
+    get geometryVersion(): number {
+        this._prepareFrame();
+        return this._obstacles.version;
+    }
+
+    applyMinionAvoidance(request: EnemyMoveRequest, out: Vec2): void {
+        this._prepareFrame();
+        let cached = this._minionAvoidance.get(request.unit);
+        if (!cached) {
+            cached = { remaining: EnemyNavigation.minionPhase(request.unit) * GameConfig.enemyMinionAvoidanceInterval,
+                x: 0, y: 0 };
+            this._minionAvoidance.set(request.unit, cached);
+        }
+        cached.remaining -= Math.max(0, request.dt);
+        this._registeredUnits.add(request.unit);
+        if (cached.remaining <= 0) {
+            const push = new Vec2();
+            this._applyLocalAvoidance(request.unit, nodePoint(request.unit), request.body, request.speed, push,
+                GameConfig.enemyMinionAvoidanceMaxNeighbors, GameConfig.enemyMinionAvoidanceMaxVisits);
+            cached.x = push.x; cached.y = push.y;
+            cached.remaining = GameConfig.enemyMinionAvoidanceInterval;
+            this.debugStats.minionAvoidanceUpdates++;
+        }
+        out.x += cached.x; out.y += cached.y;
+        const magnitude = Math.hypot(out.x, out.y);
+        if (magnitude > request.speed) { out.x *= request.speed / magnitude; out.y *= request.speed / magnitude; }
+    }
+
     private _applyLocalAvoidance(
         unit: Node,
         self: FlowPoint,
         body: FlowBody,
         speed: number,
         out: Vec2,
+        maxNeighbors = Infinity,
+        maxVisits = Infinity,
     ): void {
         this._peerPositions.length = 0;
         const radius = Math.max(GameConfig.enemyPeerSeparationRadius, body.width, body.height);
         const bucketSize = Math.max(radius, this._largestAvoidanceRadius);
         const cx = Math.floor(self.x / bucketSize);
         const cy = Math.floor(self.y / bucketSize);
-        for (let ox = -1; ox <= 1; ox++) {
+        let visits = 0;
+        scan: for (let ox = -1; ox <= 1; ox++) {
             for (let oy = -1; oy <= 1; oy++) {
                 const bucket = this._buckets.get(`${cx + ox},${cy + oy}`);
                 if (!bucket) {
                     continue;
                 }
                 for (const peer of bucket) {
+                    if (visits >= maxVisits || this._peerPositions.length >= maxNeighbors) break scan;
+                    visits++;
+                    this.debugStats.avoidanceCandidateVisits++;
                     if (peer === unit) {
                         continue;
                     }
                     const pos = this._unitPositions.get(peer);
-                    if (pos && distSqPoint(self, pos) <= radius * radius) {
+                    if (pos && (maxNeighbors === Infinity || (peer.isValid && peer.activeInHierarchy)) &&
+                        distSqPoint(self, pos) <= radius * radius) {
                         this._peerPositions.push(pos);
                     }
                 }
             }
         }
+        if (maxNeighbors !== Infinity) this.debugStats.minionAvoidanceMaxUsed =
+            Math.max(this.debugStats.minionAvoidanceMaxUsed, this._peerPositions.length);
         const push = this._field.separate(self, this._peerPositions, radius, speed * GameConfig.enemyAvoidanceWeight);
         out.x += push.x;
         out.y += push.y;
@@ -1207,8 +1279,12 @@ export class EnemyNavigation {
         }
         this._lastPreparedFrame = frame;
         this._rebuildBuckets();
+        // A larger body can rebuild buckets again in this frame, but cannot buy another job slice.
+        if (this._lastSchedulerFrame === frame) return;
+        this._lastSchedulerFrame = frame;
         this._field.prune();
-        const work = this._field.advanceJobs(GameConfig.enemyNavWorkUnitsPerFrame ?? 4096);
+        const work = this._field.advanceJobs(GameConfig.enemyNavWorkUnitsPerFrame ?? 4096,
+            GameConfig.enemyNavJobTimeBudgetMs ?? 2);
         this.debugStats.schedulerFrames++;
         this.debugStats.schedulerWork += work;
         this.debugStats.schedulerLastWork = work;
@@ -1375,7 +1451,9 @@ export class EnemyNavigation {
         if (EnemyNavigation.diagnosticFrame?.unit === request.unit) {
             EnemyNavigation.diagnosticFrame.data.candidateWorldVelocity = { x: out.x, y: out.y };
         }
-        this._applyLocalAvoidance(request.unit, self, request.body, request.speed, out);
+        if (!request.deferMinionAvoidance || request.role !== 'minion') {
+            this._applyLocalAvoidance(request.unit, self, request.body, request.speed, out);
+        }
         this._constrainVelocity(self, request.body, request.dt, out);
         if (Math.hypot(out.x, out.y) > 0.001) {
             const length = Math.hypot(directionX, directionY);

@@ -2,6 +2,7 @@ import { _decorator, BoxCollider2D, CircleCollider2D, Component, Node, Vec3 } fr
 import { Barrier } from '../building/Barrier';
 import { Building } from '../building/Building';
 import { Player } from '../character/Player';
+import { Soldier } from '../character/Soldier';
 import { EnemyNavigation } from '../core/EnemyNavigation';
 import { FlowBody } from '../core/FlowField';
 import { GameConfig } from '../core/GameConfig';
@@ -10,7 +11,7 @@ import { Log } from '../item/Log';
 const { ccclass, property } = _decorator;
 
 /**
- * 小怪近战 AI：近距优先打 Barrier，否则打玩家（Player.takeDamage → HealthSystem）。
+ * 小怪近战 AI：近距优先打 Barrier，再打近处盾兵，否则打玩家。
  */
 @ccclass('EnemyAI')
 export class EnemyAI extends Component {
@@ -102,7 +103,7 @@ export class EnemyAI extends Component {
         return this.applyObstacleDamage(log.node, range);
     }
 
-    /** 帧事件出手：近距优先 Barrier，否则打玩家 */
+    /** 帧事件出手：近距优先 Barrier，再盾兵，否则打玩家 */
     applyAttackDamage(range: number): boolean {
         if (this.attackPrefersBarrier) {
             const barrier = this.findNearestBarrier(range);
@@ -111,10 +112,25 @@ export class EnemyAI extends Component {
                 return true;
             }
         }
+        const soldier = this.findNearestMeleeSoldier(range);
+        if (soldier) {
+            soldier.takeDamage(GameConfig.minionAttackDamage);
+            return true;
+        }
         return this._damagePlayer(range);
     }
 
     applyAttackDamageTo(target: Node | null, range: number): boolean {
+        if (target?.isValid && target.activeInHierarchy) {
+            const soldier = target.getComponent(Soldier);
+            if (soldier && !soldier.isDead && this._isMeleeSoldier(soldier)) {
+                if (!this._withinRange(target, range)) {
+                    return false;
+                }
+                soldier.takeDamage(GameConfig.minionAttackDamage);
+                return true;
+            }
+        }
         const old = this._target;
         this._target = target;
         const hit = this._damagePlayer(range);
@@ -161,6 +177,9 @@ export class EnemyAI extends Component {
         if (this.attackPrefersBarrier && this.findNearestBarrier(range)) {
             return true;
         }
+        if (this.findNearestMeleeSoldier(range)) {
+            return true;
+        }
         if (!this._target || !this._target.activeInHierarchy) {
             return false;
         }
@@ -169,6 +188,50 @@ export class EnemyAI extends Component {
             return false;
         }
         return this._canDamagePlayer(range);
+    }
+
+    /** 攻击距离内最近的兵营近战盾兵 */
+    findNearestMeleeSoldier(range: number): Soldier | null {
+        const scene = this.node.scene;
+        if (!scene || range <= 0) {
+            return null;
+        }
+        let nearest: Soldier | null = null;
+        let nearestDistSq = range * range;
+        this.node.getWorldPosition(this._selfPos);
+        for (const soldier of scene.getComponentsInChildren(Soldier)) {
+            if (
+                !soldier.node.activeInHierarchy ||
+                soldier.isDead ||
+                !this._isMeleeSoldier(soldier)
+            ) {
+                continue;
+            }
+            soldier.node.getWorldPosition(this._barrierPos);
+            const dx = this._barrierPos.x - this._selfPos.x;
+            const dy = this._barrierPos.y - this._selfPos.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq <= nearestDistSq) {
+                nearestDistSq = distSq;
+                nearest = soldier;
+            }
+        }
+        return nearest;
+    }
+
+    private _isMeleeSoldier(soldier: Soldier): boolean {
+        return soldier.getDeployment() === 'barracks' || /melee/i.test(soldier.node.name);
+    }
+
+    private _withinRange(node: Node, range: number): boolean {
+        if (!Number.isFinite(range) || range <= 0) {
+            return true;
+        }
+        this.node.getWorldPosition(this._selfPos);
+        node.getWorldPosition(this._barrierPos);
+        const dx = this._barrierPos.x - this._selfPos.x;
+        const dy = this._barrierPos.y - this._selfPos.y;
+        return dx * dx + dy * dy <= range * range;
     }
 
     private _damagePlayer(range: number): boolean {

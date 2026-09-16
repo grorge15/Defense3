@@ -90,7 +90,7 @@ export class EnemyBoss extends Component {
     attackWidth = 2;
 
     @property({ tooltip: 'Boss 圆形攻击半径（世界单位）' })
-    attackTriggerRange = 3.5;
+    attackTriggerRange = 80;
 
     @property({ tooltip: '攻击冷却（秒）' })
     attackCooldown = 2;
@@ -443,6 +443,25 @@ export class EnemyBoss extends Component {
         this._clearRetainedNavigationVelocity();
         this._isAttacking = true;
         this._attackTimer = this.attackCooldown;
+        const attackState = this.visualNode?.getComponent(Animation)?.getState('attack');
+        const attackDuration = attackState?.duration ?? 0;
+        const attackSpeed = Math.max(Math.abs(attackState?.speed ?? 1), 0.01);
+        // FINISHED normally releases recovery. This only covers a missing/interrupted event,
+        // and stays after the frame-hit fallback when no playable state is available.
+        const recoveryDelay = Math.max(0.8, attackDuration / attackSpeed + 0.05);
+        let recovered = false;
+        const recover = (): void => {
+            if (recovered) {
+                return;
+            }
+            recovered = true;
+            this.unschedule(recover);
+            if (!valid()) {
+                return;
+            }
+            this._isAttacking = false;
+            this._currentLocomotionClip = '';
+        };
         if (this.visualNode) {
             // boss frame_007 → 0.7s
             playAttackWithFrameHit(
@@ -450,16 +469,13 @@ export class EnemyBoss extends Component {
                 'attack',
                 damage,
                 0.75,
+                recover,
             );
         } else {
             damage();
+            recover();
         }
-        this.scheduleOnce(() => {
-            if (this._lifeGeneration !== generation || this._attackGeneration !== attack) {
-                return;
-            }
-            this._isAttacking = false;
-        }, 1.2);
+        this.scheduleOnce(recover, recoveryDelay);
     }
 
     takeDamage(amount: number, source: EnemyHitSource = 'hero'): void {
@@ -642,7 +658,7 @@ export class EnemyBoss extends Component {
 
         const size = this._bodySize();
         const nav = EnemyNavigation.get(this.node.scene);
-        const melee = Math.max(this.attackTriggerRange, 48);
+        const melee = Math.max(this.attackTriggerRange, 28);
         const navigationSpeed = EnemyNavigation.worldSpeedForPhysicsVelocity(GameConfig.bossMoveSpeed);
         const request = { unit: this.node, target, role: 'boss' as const, speed: navigationSpeed,
             dt, body: size, stopDistance: melee };
