@@ -52,20 +52,20 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 36
+        "__id__": 37
       },
       {
-        "__id__": 38
+        "__id__": 39
       },
       {
-        "__id__": 40
+        "__id__": 41
       },
       {
-        "__id__": 42
+        "__id__": 43
       }
     ],
     "_prefab": {
-      "__id__": 44
+      "__id__": 45
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -752,6 +752,9 @@
       },
       {
         "__id__": 34
+      },
+      {
+        "__id__": 36
       }
     ],
     "removedComponents": []
@@ -783,8 +786,8 @@
     "value": {
       "__type__": "cc.Vec3",
       "x": -4.287,
-      "y": 220.826,
-      "z": 0
+      "y": 253.921,
+      "z": 13.932
     }
   },
   {
@@ -797,10 +800,10 @@
     ],
     "value": {
       "__type__": "cc.Quat",
-      "x": 0,
+      "x": 0.21643961393810288,
       "y": 0,
       "z": 0,
-      "w": 1
+      "w": 0.9762960071199334
     }
   },
   {
@@ -813,7 +816,7 @@
     ],
     "value": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": 25,
       "y": 0,
       "z": 0
     }
@@ -837,6 +840,21 @@
     ]
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 30
+    },
+    "propertyPath": [
+      "_lscale"
+    ],
+    "value": {
+      "__type__": "cc.Vec3",
+      "x": 0.8,
+      "y": 0.8,
+      "z": 1
+    }
+  },
+  {
     "__type__": "e05dcHHtitHf6tTQVO/0xaa",
     "_name": "",
     "_objFlags": 0,
@@ -846,7 +864,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 37
+      "__id__": 38
     },
     "maxHp": 0,
     "visualNode": {
@@ -892,7 +910,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 39
+      "__id__": 40
     },
     "enabledContactListener": false,
     "bullet": false,
@@ -926,7 +944,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 41
+      "__id__": 42
     },
     "tag": 1.1,
     "_group": 16,
@@ -960,7 +978,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 43
+      "__id__": 44
     },
     "offset": 30,
     "_id": ""
@@ -981,7 +999,7 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 45
+        "__id__": 46
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -996,7 +1014,7 @@
       "__id__": 26
     },
     "sourceInfo": {
-      "__id__": 46
+      "__id__": 47
     },
     "propertyPath": [
       "fillSprite"
@@ -1005,7 +1023,7 @@
       "__id__": 26
     },
     "targetInfo": {
-      "__id__": 47
+      "__id__": 48
     }
   },
   {
