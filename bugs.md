@@ -1176,6 +1176,15 @@
 | **原因** | `Soldier._updateLocomotionAnim` 无论移动状态都只播放 idle；近战兵目标搜索只扫描 `EnemyMinion`，没有把 `EnemyBoss` 纳入候选。 |
 | **解决** | Soldier 移动时播放 walk、停止时播放 idle；近战兵优先查找 Boss，找不到 Boss 再找小怪，并保留远程兵原有逻辑。 |
 
+### v2（2026-09-16）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 盾兵在 Boss 存活时会固定锁定 Boss；即使更近的小怪已进入近战攻击范围，也不会优先攻击小怪。 |
+| **原因** | `Soldier._findPreferredTarget` 对兵营近战兵先返回 Boss，未在 Boss 与小怪之间比较距离；攻击帧也可沿用该类型优先结果。 |
+| **解决** | 兵营近战兵统一扫描存活、活动的 `EnemyMinion` 和 `EnemyBoss`，按世界距离选择最近目标；近战攻击帧重新按攻击范围扫描，锁定追击目标同样使用该统一选择，不再保留 Boss-first 偏好。远程塔兵逻辑未改。 |
+| **验证** | `node .cursor/scripts/test-barracks-minion-ultimate-timing.cjs` 与 `git diff --check` 通过。`npx --no-install tsc --noEmit --pretty false` 已运行两次，但受当前工作区无关的 `assets/scripts/enemy/EnemyBoss.ts:803`（缺少 `tween`）阻塞。 |
+
 ---
 
 ## fix-boss-circle-attack-and-soldier-priority — Boss 攻击范围和索敌优先级不符合需求
@@ -1187,6 +1196,15 @@
 | **现象** | Boss 攻击还是长条范围；Boss 索敌优先级没有把 `pref_soldier_melee` 放在建筑前。 |
 | **原因** | `EnemyBoss._applyLineAttack` 使用朝向前方长条判定；索敌优先级只区分 Structure/hero/player，未纳入 melee Soldier。 |
 | **解决** | Boss 攻击改为以 `attackTriggerRange` 为半径的圆形判定；索敌优先级新增 soldier=40，高于 building/barrier/log=30，并只把 barracks/melee Soldier 插到该优先级。 |
+
+### v2（2026-09-16）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | Boss 被 `pref_soldier_melee` 挡在楼梯口时会停住不攻击；击杀或失去当前目标后可能持续处于攻击状态。 |
+| **原因** | 角色攻击距离从 Boss 根节点量到目标碰撞体，且运行时把 Inspector 范围夹到 28/48/56；攻击恢复又错误要求原目标仍存活，导致击杀时解锁回调提前失效。 |
+| **解决** | Boss 与角色统一按两个碰撞体表面间距判定，`attackTriggerRange` 直接作为停步、出手和圆形伤害范围；攻击恢复只校验 Boss 生命周期与攻击序号，死亡障碍和失效 diversion 会立即清除并在下一帧重索敌。 |
+| **验证** | `node .cursor/scripts/test-enemy-navigation.cjs`、`node .cursor/scripts/test-enemy-break-blocking-log.cjs`、`npx --no-install tsc --noEmit --pretty false`、OpenSpec strict 与 `git diff --check` 通过。 |
 
 ---
 
@@ -1876,6 +1894,15 @@
 | **原因** | 间隔曾为 4s，且无每波补兵上限。 |
 | **解决** | `barracksSpawnInterval=3`、`barracksRefillPerWave=4`；首波补满，后续波最多刷 4。 |
 | **验证** | `node .cursor/scripts/test-barracks-minion-ultimate-timing.cjs`、`npx tsc --noEmit`。 |
+
+### v2（2026-09-16）
+
+| 项 | 说明 |
+|---|---|
+| **现象** | 小怪只有在贴近 Player 时才会行动，近身盾兵即使挡住路线也不会成为实际攻击对象。 |
+| **原因** | 盾兵只参与伤害帧的候选选择，没有进入小怪的移动/停步决策；距离又按根节点计算，实体碰撞接触时仍可能被判定太远。 |
+| **解决** | 小怪沿既有 0.2–0.3 秒导航决策窗口缓存近身盾兵作为临时拦截目标，攻击帧锁定该对象；小怪/盾兵与小怪/Player 的近战距离改为碰撞体边缘间距。目标失效后立即继续原 Player 追击。 |
+| **验证** | `node .cursor/scripts/test-enemy-navigation.cjs`、`node .cursor/scripts/test-enemy-break-blocking-log.cjs`、`npx --no-install tsc --noEmit --pretty false`、OpenSpec strict 与 `git diff --check` 通过。 |
 
 ---
 

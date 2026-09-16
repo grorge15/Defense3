@@ -12,6 +12,7 @@ const ai = read('assets/scripts/enemy/EnemyAI.ts');
 const minion = read('assets/scripts/enemy/EnemyMinion.ts');
 const ultimate = read('assets/scripts/game/UltimateSystem.ts');
 const combat = read('assets/scripts/game/CombatSystem.ts');
+const soldier = read('assets/scripts/character/Soldier.ts');
 
 assert.match(config, /barracksSpawnInterval\s*=\s*3/, 'barracks interval 3');
 assert.match(config, /barracksRefillPerWave\s*=\s*4/, 'barracks refill 4');
@@ -37,5 +38,11 @@ assert.doesNotMatch(
   'no Boss-first target selection',
 );
 assert.match(combat, /kind: 'boss' \| 'minion'|kind: 'boss'/, 'boss and minion same candidate list');
+
+assert.match(soldier, /if \(this\._deployment === 'barracks'\) \{\s*return this\._findPreferredTarget\(range\);/, 'barracks attacks rescan nearest enemy in melee range');
+assert.match(soldier, /private _findNearestMeleeEnemy[\s\S]*getComponentsInChildren\(EnemyMinion\)[\s\S]*getComponentsInChildren\('EnemyBoss'\)/, 'barracks scans minions and Bosses together');
+assert.doesNotMatch(soldier, /private _findPreferredTarget[\s\S]{0,220}_findNearestBoss/, 'barracks has no Boss-first target branch');
+assert.match(soldier, /_resolveMeleeChaseTarget[\s\S]{0,500}_findPreferredTarget\(Number\.POSITIVE_INFINITY\)/, 'locked melee target uses the unified nearest scan');
+assert.match(soldier, /_resolveAttackTarget\(\) \?\? this\._resolveMeleeChaseTarget\(dt\)/, 'an in-range minion interrupts a farther locked chase target');
 
 console.log('ok - test-barracks-minion-ultimate-timing');

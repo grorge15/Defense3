@@ -1260,6 +1260,33 @@ should('AC-ACTUAL: EnemyAI damage frame requires navigation line of sight', () =
     assert.strictEqual(player.damage, 7);
 });
 
+should('AC-COMBAT: character collider surfaces select and damage an intercepting shield soldier', () => {
+    clearLoaded(['assets/scripts/enemy/EnemyAI.ts']);
+    const base = actualScriptMocks();
+    const { EnemyAI, colliderSurfaceDistanceSq } = loadTs('assets/scripts/enemy/EnemyAI.ts', base.mocks);
+    const enemyComponents = new Map();
+    const soldierComponents = new Map();
+    const enemy = componentNode('surface-enemy', 0, 0, enemyComponents);
+    const soldierNode = componentNode('surface-soldier', 70, 0, soldierComponents);
+    const enemyBox = new base.cc.BoxCollider2D(); enemyBox.enabled = true;
+    enemyBox.worldAABB = { xMin: -20, xMax: 20, yMin: -20, yMax: 20, width: 40, height: 40 };
+    const soldierBox = new base.cc.BoxCollider2D(); soldierBox.enabled = true;
+    soldierBox.worldAABB = { xMin: 50, xMax: 90, yMin: -20, yMax: 20, width: 40, height: 40 };
+    enemyComponents.set(base.cc.BoxCollider2D, enemyBox);
+    soldierComponents.set(base.cc.BoxCollider2D, soldierBox);
+    const soldier = new base.classes.Soldier(); soldier.node = soldierNode;
+    soldierComponents.set(base.classes.Soldier, soldier);
+    enemy.scene = { getComponentsInChildren: type => type === base.classes.Soldier ? [soldier] : [] };
+    const ai = new EnemyAI(); ai.node = enemy;
+    assert.strictEqual(colliderSurfaceDistanceSq(enemy, soldierNode), 900, 'surface gap is 30, not root gap 70');
+    assert.strictEqual(ai.findNearestMeleeSoldier(32), soldier, 'shield soldier is selected at its collider edge');
+    assert.strictEqual(ai.applyAttackDamageTo(soldierNode, 32), true);
+    assert.strictEqual(soldier.isDead, true, 'selected shield soldier receives the frame damage');
+    const minionSource = fs.readFileSync(path.join(root, 'assets/scripts/enemy/EnemyMinion.ts'), 'utf8');
+    assert.match(minionSource, /findMeleeSoldier\.call\(this\._ai/, 'minion checks nearby soldiers on its decision cadence');
+    assert.match(minionSource, /_halt\(true, this\._nearbyMeleeSoldier\)/, 'minion attacks the selected soldier instead of only facing Player');
+});
+
 should('AC-ACTUAL: EnemyBoss pickTarget keeps real priority and generation invalidates callbacks', () => {
     clearLoaded(['assets/scripts/enemy/EnemyBoss.ts']);
     const base = actualScriptMocks();
@@ -1350,6 +1377,16 @@ should('AC-BOSS-ATTACK-RECOVERY: animation completion unlocks only its current a
     assert.ok(boss._scheduled.some((entry) => entry.delay === 0.8), 'missing FINISHED has a short recovery fallback');
     secondFinish();
     assert.strictEqual(boss._isAttacking, false, 'current completion still releases the new attack');
+
+    boss._attackTimer = 0;
+    boss._lockedTarget = player;
+    boss.tryAttack();
+    const lostTargetFinish = base.getAttackFinish();
+    player.getComponent(base.classes.Player).isDead = true;
+    lostTargetFinish();
+    assert.strictEqual(boss._isAttacking, false,
+        'target loss during an attack must not leave the Boss movement lock active');
+    player.getComponent(base.classes.Player).isDead = false;
 });
 
 should('AC-BOSS-RETAINED-NAVIGATION: retarget, obstacle candidates, and pending velocity keep only safe state', () => {
@@ -1434,6 +1471,74 @@ should('AC-BOSS-RETAINED-NAVIGATION: retarget, obstacle candidates, and pending 
     assert.strictEqual(boss._rb.linearVelocity.x, 0, 'attack lock did not stop movement');
 });
 
+should('AC-FACING-STABLE: Boss faces its effective combat objective, not local navigation velocity', () => {
+    clearLoaded(['assets/scripts/enemy/EnemyBoss.ts']);
+    const facingTargets = [];
+    let diversion = null;
+    let routeVelocityX = 2;
+    let chaseTarget = null;
+    const nav = {
+        blockingObstacle() { return diversion; },
+        canAttackObstacle() { return false; },
+        obstacleRoute() { return { point: { x: 0, y: 0 } }; },
+        nextObstacleVelocity(_request, _route, out) { out.set(routeVelocityX, 0); return out; },
+        nextVelocity(_request, out) { out.set(routeVelocityX, 0); return out; },
+        isReplacementPending() { return false; },
+        constrainFinalVelocity() {},
+        releaseUnit() {},
+    };
+    class RecordingVisualFacing {
+        bind() {}
+        reset() {}
+        faceByTarget(_visual, _self, target) { facingTargets.push(target.name); }
+        faceByVelocity() { throw new Error('Boss facing must not be driven by navigation velocity'); }
+    }
+    const base = actualScriptMocks({
+        [path.join(root, 'assets/scripts/core/EnemyNavigation.ts')]: {
+            EnemyNavigation: {
+                get: () => nav,
+                worldSpeedForPhysicsVelocity: value => value,
+                writePhysicsVelocity: (value, out) => { out.set(value.x, value.y); return out; },
+            },
+        },
+        [path.join(root, 'assets/scripts/core/VisualFacing.ts')]: { VisualFacing: RecordingVisualFacing },
+    });
+    const { EnemyBoss } = loadTs('assets/scripts/enemy/EnemyBoss.ts', base.mocks);
+    const boss = new EnemyBoss();
+    boss.node = componentNode('facing-boss', 0, 0);
+    boss.visualNode = componentNode('facing-boss-visual', 0, 0);
+    boss._rb = { linearVelocity: new base.cc.Vec2() };
+    boss._scanTargetsByInterval = () => {};
+    const playerRight = componentNode('facing-player-right', 200, 0, new Map([[base.classes.Player, new base.classes.Player()]]));
+    const playerLeft = componentNode('facing-player-left', -200, 0, new Map([[base.classes.Player, new base.classes.Player()]]));
+    const blockerLeft = componentNode('facing-blocker-left', -80, 0, new Map([[base.classes.Building, new base.classes.Building()]]));
+    chaseTarget = playerRight;
+    boss._resolveChaseTarget = () => chaseTarget;
+    diversion = { target: blockerLeft, point: { x: -80, y: 0 } };
+
+    for (const velocityX of [2, -2, 2, -2]) {
+        routeVelocityX = velocityX;
+        boss.update(1 / 60);
+        assert.strictEqual(boss._rb.linearVelocity.x, velocityX,
+            'visual-facing logic must not alter the constrained navigation velocity');
+    }
+    assert.deepStrictEqual(facingTargets, Array(4).fill('facing-blocker-left'),
+        'alternating local navigation velocity must preserve blocker-facing');
+
+    diversion = null;
+    routeVelocityX = -2;
+    boss.update(1 / 60);
+    assert.strictEqual(facingTargets.at(-1), 'facing-player-right',
+        'normal pursuit faces its locked chase target even while local velocity points away');
+    assert.strictEqual(boss._rb.linearVelocity.x, -2);
+
+    chaseTarget = playerLeft;
+    routeVelocityX = 2;
+    boss.update(1 / 60);
+    assert.strictEqual(facingTargets.at(-1), 'facing-player-left',
+        'a valid chase target changing sides still changes Boss facing');
+    assert.strictEqual(boss._rb.linearVelocity.x, 2);
+});
 should('AC-ACTUAL: EnemySpawner stale pool callback does not respawn reused minion', () => {
     clearLoaded(['assets/scripts/enemy/EnemySpawner.ts']);
     class EnemyMinionStub {}

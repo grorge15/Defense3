@@ -135,7 +135,7 @@ function advanceToAttack(f,e) {
     for(;frame<maxFrames&&!e._isAttacking;frame++){step(f,e);if(e._blockingObstacle&&diversionFrame===null)diversionFrame=frame;}
     assert(e._isAttacking,`no attack after ${frame} frames: ${JSON.stringify({position:pos(f.unit),target:!!e._blockingObstacle,jobs:f.nav._field.debugPendingJobs})}`);
     assert.strictEqual(e._blockingObstacle,f.log.n);
-    assert(f.nav.canAttackObstacle(f.unit,f.log.n,f.body,e instanceof EnemyMinion?32:Math.max(e.attackTriggerRange,48)));
+    assert(f.nav.canAttackObstacle(f.unit,f.log.n,f.body,e instanceof EnemyMinion?32:e.attackTriggerRange));
     return {frame,diversionFrame,moved:Math.hypot(pos(f.unit).x-start.x,pos(f.unit).y-start.y),at:pos(f.unit),body:f.body};
 }
 function recovery(e){return e instanceof EnemyBoss ? base.getAttackFinish() : e._scheduled.filter(s=>s.delay===.8).at(-1).cb;}
