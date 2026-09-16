@@ -25,6 +25,7 @@ export class Barracks extends Building {
     soldierPrefab: Prefab | null = null;
 
     private _isActive = false;
+    private _initialWaveDone = false;
     private readonly _spawnedSoldiers: Node[] = [];
 
     onLoad(): void {
@@ -49,7 +50,9 @@ export class Barracks extends Building {
             return;
         }
         this._isActive = true;
+        this._initialWaveDone = false;
         this.spawnWave();
+        this._initialWaveDone = true;
         this.schedule(this.spawnWave, GameConfig.barracksSpawnInterval);
     }
 
@@ -71,7 +74,14 @@ export class Barracks extends Building {
         }
 
         const mounts = this._resolveMounts();
+        const refillCap = this._initialWaveDone
+            ? Math.max(0, GameConfig.barracksRefillPerWave)
+            : Number.POSITIVE_INFINITY;
+        let spawned = 0;
         for (const mount of mounts) {
+            if (spawned >= refillCap) {
+                break;
+            }
             if (this._mountHasAliveSoldier(mount)) {
                 continue;
             }
@@ -86,6 +96,7 @@ export class Barracks extends Building {
             soldier?.activate?.();
 
             this._spawnedSoldiers.push(soldierNode);
+            spawned += 1;
         }
     }
 
@@ -93,6 +104,7 @@ export class Barracks extends Building {
         this.deactivate();
         this._clearSpawnedSoldiers();
         this._isActive = false;
+        this._initialWaveDone = false;
     }
 
     onDestroy(): void {

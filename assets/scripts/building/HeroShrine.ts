@@ -4,6 +4,8 @@ import { AudioManager } from '../core/AudioManager';
 import { EventManager } from '../core/EventManager';
 import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
+import { HitFlash } from '../core/HitFlash';
+import { HitShake } from '../core/HitShake';
 import { Building } from './Building';
 
 const { ccclass, property } = _decorator;
@@ -52,6 +54,16 @@ export class HeroShrine extends Building {
         if (!this.visualNode) {
             this.visualNode = this.node.getChildByName('Visual');
         }
+    }
+
+    takeDamage(amount: number): void {
+        if (!this.isAlive()) {
+            return;
+        }
+        const visual = this.visualNode ?? this.node;
+        HitFlash.flash(visual);
+        HitShake.shake(visual, 3, 0.1);
+        super.takeDamage(amount);
     }
 
     activate(): void {

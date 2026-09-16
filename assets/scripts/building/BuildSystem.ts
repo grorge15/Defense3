@@ -1,9 +1,10 @@
-import { _decorator, BoxCollider2D, Collider2D, Component, instantiate, Node, Prefab, Rect, resources, Vec3 } from 'cc';
+import { _decorator, BoxCollider2D, Collider2D, Component, instantiate, Node, Prefab, Rect, resources, Vec2, Vec3 } from 'cc';
 import { Hero } from '../character/Hero';
 import { Player } from '../character/Player';
 import { playAnimWithCallback } from '../core/AnimUtil';
 import { EventManager } from '../core/EventManager';
 import { EnemyNavigation } from '../core/EnemyNavigation';
+import { GameConfig } from '../core/GameConfig';
 import { GameEvents } from '../core/GameEvents';
 import { BossSpawner } from '../enemy/BossSpawner';
 import { EnemyBoss } from '../enemy/EnemyBoss';
@@ -142,6 +143,7 @@ export class BuildSystem extends Component {
     private _bothAdvEmitted = false;
     private _expandEnemyClearAttempted = false;
     private readonly _spawnPos = new Vec3();
+    private readonly _buildingSpawnKnockbackDirection = new Vec2();
 
     onLoad(): void {
         this._ensureInitialHidden();
@@ -440,7 +442,10 @@ export class BuildSystem extends Component {
             return;
         }
         const barracks = node.getComponent(Barracks);
-        barracks?.activate();
+        if (barracks) {
+            barracks.activate();
+            this._pushNearbyMinionsFromSpawnedBuilding(node);
+        }
         this._registerBossTarget(node, 'building');
         this._invalidateEnemyNavigation(node);
     }
@@ -478,9 +483,101 @@ export class BuildSystem extends Component {
         // 场景里 HeroSelect 常开局 inactive → onLoad 未跑、听不到事件；先挂监听再 activate
         this._ensureHeroSelectReady();
         shrine.activate();
+        this._pushNearbyMinionsFromSpawnedBuilding(node);
         // 导航当 Building 障碍；须注册索敌，否则 Boss 只绕不开、不主动打
         this._registerBossTarget(node, 'building');
         this._invalidateEnemyNavigation(node);
+    }
+
+    /** Runs only at the two completed building-spawn boundaries. */
+    private _pushNearbyMinionsFromSpawnedBuilding(buildingNode: Node): void {
+        const scene = buildingNode?.scene;
+        if (!scene || !buildingNode.isValid || !buildingNode.activeInHierarchy) {
+            return;
+        }
+
+        const collider = buildingNode.getComponent(Collider2D);
+        const buildingAabb = collider?.enabled && collider.node.activeInHierarchy
+            ? this._validAabbCopy(collider.worldAABB)
+            : null;
+        const center = buildingAabb
+            ? new Vec2((buildingAabb.xMin + buildingAabb.xMax) * 0.5, (buildingAabb.yMin + buildingAabb.yMax) * 0.5)
+            : new Vec2(buildingNode.worldPosition.x, buildingNode.worldPosition.y);
+        if (!Number.isFinite(center.x) || !Number.isFinite(center.y)) {
+            return;
+        }
+
+        const padding = GameConfig.buildingSpawnMinionKnockbackRangePadding;
+        const fallbackRange = GameConfig.buildingSpawnMinionKnockbackFallbackRange;
+        let candidateRange: Rect | null = null;
+        if (buildingAabb && Number.isFinite(padding) && padding >= 0) {
+            candidateRange = new Rect(
+                buildingAabb.xMin - padding,
+                buildingAabb.yMin - padding,
+                buildingAabb.width + padding * 2,
+                buildingAabb.height + padding * 2,
+            );
+        } else if (!buildingAabb && Number.isFinite(fallbackRange) && fallbackRange > 0) {
+            candidateRange = new Rect(
+                center.x - fallbackRange,
+                center.y - fallbackRange,
+                fallbackRange * 2,
+                fallbackRange * 2,
+            );
+        }
+        if (!candidateRange) {
+            return;
+        }
+
+        for (const minion of scene.getComponentsInChildren(EnemyMinion)) {
+            if (
+                minion.node.scene !== scene || !minion.node.isValid ||
+                !minion.node.activeInHierarchy || minion.isDead
+            ) {
+                continue;
+            }
+            const minionCollider = minion.node.getComponent(Collider2D);
+            const minionAabb = minionCollider?.enabled && minionCollider.node.activeInHierarchy
+                ? this._validAabbCopy(minionCollider.worldAABB)
+                : null;
+            if (!minionAabb || (buildingAabb && this._aabbStrictlyOverlaps(buildingAabb, minionAabb))) {
+                continue;
+            }
+            const minionCenterX = (minionAabb.xMin + minionAabb.xMax) * 0.5;
+            const minionCenterY = (minionAabb.yMin + minionAabb.yMax) * 0.5;
+            if (!this._pointInsideAabb(minionCenterX, minionCenterY, candidateRange)) {
+                continue;
+            }
+            const dx = minionCenterX - center.x;
+            const dy = minionCenterY - center.y;
+            const length = Math.hypot(dx, dy);
+            if (!Number.isFinite(length) || length <= 0.0001) {
+                continue;
+            }
+            this._buildingSpawnKnockbackDirection.set(dx / length, dy / length);
+            minion.applyBuildingSpawnKnockback(this._buildingSpawnKnockbackDirection);
+        }
+    }
+
+    private _validAabbCopy(aabb: Rect | null | undefined): Rect | null {
+        if (
+            !aabb || !Number.isFinite(aabb.xMin) || !Number.isFinite(aabb.xMax) ||
+            !Number.isFinite(aabb.yMin) || !Number.isFinite(aabb.yMax) ||
+            !Number.isFinite(aabb.width) || !Number.isFinite(aabb.height) ||
+            aabb.width <= 0 || aabb.height <= 0
+        ) {
+            return null;
+        }
+        return new Rect(aabb.x, aabb.y, aabb.width, aabb.height);
+    }
+
+    private _aabbStrictlyOverlaps(left: Rect, right: Rect): boolean {
+        return left.xMin < right.xMax && left.xMax > right.xMin &&
+            left.yMin < right.yMax && left.yMax > right.yMin;
+    }
+
+    private _pointInsideAabb(x: number, y: number, aabb: Rect): boolean {
+        return x >= aabb.xMin && x <= aabb.xMax && y >= aabb.yMin && y <= aabb.yMax;
     }
 
     private _ensureHeroSelectReady(): void {
