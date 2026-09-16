@@ -1,0 +1,17 @@
+{
+  "platform": "web-desktop",
+  "buildPath": "C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline",
+  "outputName": "web-desktop",
+  "taskName": "drawcalls-baseline",
+  "debug": true,
+  "sourceMaps": "false",
+  "md5Cache": false,
+  "packAutoAtlas": true,
+  "startScene": "2786ab12-94da-4bc1-82e1-ea1269c6270a",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Main.scene",
+      "uuid": "2786ab12-94da-4bc1-82e1-ea1269c6270a"
+    }
+  ]
+}

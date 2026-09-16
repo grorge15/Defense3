@@ -1,0 +1,455 @@
+{
+  "results": [
+    {
+      "name": "AC-REPLAY: observed planning waypoints cannot undo a valid Minion commitment",
+      "passed": true,
+      "details": {
+        "injection": "FlowField.direction, planning area only; fixed observed origin isolates branch logic",
+        "waypoints": [
+          {
+            "x": 81.69900000000007,
+            "y": 1616.367
+          },
+          {
+            "x": -8.30099999999993,
+            "y": 1706.367
+          }
+        ],
+        "position": {
+          "x": -90.11053466796875,
+          "y": 1764.2559814453125,
+          "z": 0
+        },
+        "target": {
+          "x": 73.01343536376953,
+          "y": 1336.4056396484375,
+          "z": 0
+        },
+        "body": {
+          "width": 38.88,
+          "height": 38.88,
+          "offsetX": 2.88,
+          "offsetY": 19.200000000000003
+        },
+        "frames": 60,
+        "branches": [
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move",
+          "obstacle-move"
+        ],
+        "switches": 0,
+        "resets": 0
+      }
+    },
+    {
+      "name": "AC-SURFACE: opposite sides in one component choose directly reachable local faces",
+      "passed": true,
+      "details": {
+        "body": {
+          "width": 38.88,
+          "height": 38.88,
+          "offsetX": 2.88,
+          "offsetY": 19.2
+        },
+        "points": [
+          {
+            "x": 0,
+            "y": -80.09
+          },
+          {
+            "x": 0,
+            "y": 41.69
+          },
+          {
+            "x": 0,
+            "y": -80.09
+          },
+          {
+            "x": 0,
+            "y": 41.69
+          }
+        ]
+      }
+    },
+    {
+      "name": "AC-ATTACK: actual Minion moves safely and damages the Log within a physical frame bound",
+      "passed": true,
+      "details": {
+        "frames": 50,
+        "maxFrames": 677,
+        "dt": 0.016666666666666666,
+        "speed": 112,
+        "attacks": 1,
+        "netDisplacement": 90.25,
+        "pathLength": 90.25,
+        "damage": 2,
+        "finalDistanceToApproach": 0,
+        "body": {
+          "width": 48.6,
+          "height": 48.6,
+          "offsetX": 3.5999999999999996,
+          "offsetY": 24
+        }
+      }
+    },
+    {
+      "name": "AC-ATTACK-TERMINAL: flow arrival tolerance cannot stop short of attack range",
+      "passed": true,
+      "details": {
+        "before": {
+          "x": 0,
+          "y": -49.45,
+          "z": 0
+        },
+        "after": {
+          "x": 0,
+          "y": -46.45
+        },
+        "flowReached": true
+      }
+    },
+    {
+      "name": "AC-SURFACE-FALLBACK: nearest face is screened; shared reachable heuristic takes a safe detour",
+      "passed": true,
+      "details": {
+        "method": "nearest reachable heuristic, not global shortest physical route",
+        "point": {
+          "x": 0,
+          "y": -46.45
+        },
+        "frames": 46,
+        "distance": 353.7637828514541,
+        "movementFields": 1
+      }
+    },
+    {
+      "name": "AC-LIFE: route-field release preserves commitment; reset/release isolate unit ownership",
+      "passed": true
+    },
+    {
+      "name": "AC-LIFE: same Player moving directly reachable cancels; real target/body changes reselect",
+      "passed": true,
+      "details": {
+        "body": {
+          "width": 38.88,
+          "height": 38.88,
+          "offsetX": 2.88,
+          "offsetY": 19.2
+        },
+        "point": {
+          "x": 0,
+          "y": -80.09
+        }
+      }
+    },
+    {
+      "name": "AC-LIFE: actual Minion target change, disable, death, reset and destruction release old state",
+      "passed": true
+    },
+    {
+      "name": "AC-LIFE: pending topology and temporary overlap retain decisions but still run physical recovery",
+      "passed": true,
+      "details": {
+        "pendingRetained": true,
+        "overlapPath": "obstacle-overlap-recovery"
+      }
+    },
+    {
+      "name": "AC-LIFE: invalidated geometry, phase, inactive and destroyed obstacles never retain stale references",
+      "passed": true,
+      "details": [
+        {
+          "mode": "removed",
+          "reselected": false
+        },
+        {
+          "mode": "phase",
+          "reselected": false
+        },
+        {
+          "mode": "inactive-building",
+          "reselected": false
+        },
+        {
+          "mode": "destroyed-building",
+          "reselected": false
+        },
+        {
+          "mode": "sealed",
+          "reselected": false
+        },
+        {
+          "mode": "approach-blocked",
+          "reselected": false
+        }
+      ]
+    },
+    {
+      "name": "AC-BUDGET: 200 committed units x 300 frames have zero repeated surface/blocker scans",
+      "passed": true,
+      "details": {
+        "units": 200,
+        "frames": 300,
+        "before": {
+          "fullSceneScan": 1,
+          "trackedColliderChecks": 3,
+          "signatureBuild": 0,
+          "invalidateRequests": 1,
+          "geometryCheckRequests": 1,
+          "effectiveCommits": 1,
+          "geometryChanges": 1,
+          "blockingScans": 4,
+          "surfaceScans": 0,
+          "selectedCacheHits": 196,
+          "selectedCacheMisses": 4,
+          "schedulerFrames": 1,
+          "schedulerWork": 0,
+          "schedulerLastWork": 0,
+          "coalescedGeometryChecks": 1,
+          "incrementalCommits": 0,
+          "throttledFieldInvalidations": 0,
+          "minionAvoidanceUpdates": 0,
+          "avoidanceCandidateVisits": 0,
+          "minionAvoidanceMaxUsed": 0,
+          "fields": 0,
+          "graphs": 0,
+          "jobs": {
+            "queued": 0,
+            "completed": 0,
+            "cancelled": 0,
+            "coalesced": 0,
+            "refused": 0,
+            "slices": 0,
+            "lastSliceWork": 0,
+            "totalWork": 0,
+            "lastSliceMs": 0.0025000000000545697,
+            "deadlineStops": 0
+          },
+          "entries": 0,
+          "bytes": 0
+        },
+        "after": {
+          "fullSceneScan": 1,
+          "trackedColliderChecks": 3,
+          "signatureBuild": 0,
+          "invalidateRequests": 1,
+          "geometryCheckRequests": 1,
+          "effectiveCommits": 1,
+          "geometryChanges": 1,
+          "blockingScans": 4,
+          "surfaceScans": 0,
+          "selectedCacheHits": 60196,
+          "selectedCacheMisses": 4,
+          "schedulerFrames": 301,
+          "schedulerWork": 0,
+          "schedulerLastWork": 0,
+          "coalescedGeometryChecks": 1,
+          "incrementalCommits": 0,
+          "throttledFieldInvalidations": 0,
+          "minionAvoidanceUpdates": 0,
+          "avoidanceCandidateVisits": 0,
+          "minionAvoidanceMaxUsed": 0,
+          "fields": 0,
+          "graphs": 0,
+          "jobs": {
+            "queued": 0,
+            "completed": 0,
+            "cancelled": 0,
+            "coalesced": 0,
+            "refused": 0,
+            "slices": 0,
+            "lastSliceWork": 0,
+            "totalWork": 0,
+            "lastSliceMs": 0.0005999999998493877,
+            "deadlineStops": 0
+          },
+          "entries": 0,
+          "bytes": 0
+        },
+        "peakWork": 0,
+        "peakEntries": 0,
+        "peakBytes": 0,
+        "releasedCommitments": 0
+      }
+    },
+    {
+      "name": "AC-BUDGET-COLD: detour queries share bounded connectivity without per-candidate fields",
+      "passed": true,
+      "details": {
+        "frames": 2,
+        "ready": 200,
+        "peakWork": 1591,
+        "scans": 1,
+        "graphs": 1,
+        "fields": 0,
+        "jobs": {
+          "queued": 1,
+          "completed": 1,
+          "cancelled": 0,
+          "coalesced": 199,
+          "refused": 0,
+          "slices": 1,
+          "lastSliceWork": 1591,
+          "totalWork": 1591,
+          "lastSliceMs": 0.1427000000001044,
+          "deadlineStops": 0
+        },
+        "entries": 2,
+        "bytes": 3054
+      }
+    }
+  ],
+  "measurements": {
+    "replay": {
+      "injection": "FlowField.direction, planning area only; fixed observed origin isolates branch logic",
+      "waypoints": [
+        {
+          "x": 81.69900000000007,
+          "y": 1616.367
+        },
+        {
+          "x": -8.30099999999993,
+          "y": 1706.367
+        }
+      ],
+      "position": {
+        "x": -90.11053466796875,
+        "y": 1764.2559814453125,
+        "z": 0
+      },
+      "target": {
+        "x": 73.01343536376953,
+        "y": 1336.4056396484375,
+        "z": 0
+      },
+      "body": {
+        "width": 38.88,
+        "height": 38.88,
+        "offsetX": 2.88,
+        "offsetY": 19.200000000000003
+      },
+      "frames": 60,
+      "branches": [
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move",
+        "obstacle-move"
+      ],
+      "switches": 0,
+      "resets": 0
+    }
+  }
+}

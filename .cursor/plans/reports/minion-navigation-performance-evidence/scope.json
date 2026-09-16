@@ -1,0 +1,50 @@
+{
+  "changed": [
+    ".cursor/scripts/test-enemy-break-blocking-log.cjs",
+    ".cursor/scripts/test-enemy-navigation.cjs",
+    ".cursor/scripts/test-expand-enemy-clear-area.cjs",
+    "assets/scripts/core/GameConfig.ts",
+    "assets/scripts/enemy/EnemyMinion.ts"
+  ],
+  "unexpected": [],
+  "hashes": {
+    "assets/scripts/core/GameConfig.ts": "1f42f68910ec50374031d709385701ec6ae5cf349dc6fac2ea963fc34191b185",
+    "assets/scripts/core/EnemyNavigation.ts": "260e906c7fa6f129d0682c1d2b119670fb6b7f3ab00b8d9842601417f33644c6",
+    "assets/scripts/core/FlowField.ts": "2c7f69c0a58140356e0b33e749c44e40c452985238e1f9c4dc97831a3da55b91",
+    "assets/scripts/enemy/EnemyMinion.ts": "613f633bae72dd9f07e6795db35fc85ad798f703078ecbf006f414888c15ef63",
+    ".cursor/scripts/test-enemy-navigation.cjs": "586ceab73181f6f0dce9609750df7d203a87abeb7b65a0dc46048b28acafebde",
+    ".cursor/scripts/test-enemy-break-blocking-log.cjs": "af6300a8f5c3f9e7fb78ff2d0b50bac0a3ad260ce3a888d84a776742237b8c67",
+    ".cursor/scripts/test-minion-log-route-oscillation.cjs": "ab401a8a8ae69ed2cbab853ec322c627bf18a50067b158c79d410ce3fd38c73b",
+    ".cursor/scripts/test-building-spawn-minion-knockback.cjs": "de82899c957d74a70b8c0e1a094a9ad5fc2625de6ba2155673d0ede1615f5705",
+    ".cursor/scripts/test-expand-enemy-clear-area.cjs": "4aa5edf0f61054867242d232f8c3273a541f8d2d5a08a1aaf7d0f434ec6d89e3",
+    ".cursor/plans/minion-navigation-performance.md": "c56d7770981ce08233b302e8bf96dc7f2e529e6bb9d222a2db426a924e0da417",
+    "bugs.md": "1936184cef305175dd02f9c34f3a5520b41d42a50be404546b1b6626a8f97e5d"
+  },
+  "sourceComparisons": {
+    "assets/scripts/enemy/EnemyBoss.ts": {
+      "baseline": "6aa6f2c04ee671229e1bd0a9f196fec71cd1c2d6896fb324300392578567bfe2",
+      "final": "6aa6f2c04ee671229e1bd0a9f196fec71cd1c2d6896fb324300392578567bfe2",
+      "unchanged": true
+    },
+    "assets/scripts/enemy/EnemyMinion.ts": {
+      "baseline": "f5adbdf87ac65799c15c5ce384fe47c86c98cc6cc8ac1aabc047c88ee8e3197c",
+      "final": "613f633bae72dd9f07e6795db35fc85ad798f703078ecbf006f414888c15ef63",
+      "unchanged": false
+    },
+    "assets/scripts/core/EnemyNavigation.ts": {
+      "baseline": "51b2bfd363ada5c4ed2c1a13a619b62e48bef40d5717262661fc75fe95f88f15",
+      "final": "260e906c7fa6f129d0682c1d2b119670fb6b7f3ab00b8d9842601417f33644c6",
+      "unchanged": false
+    },
+    "assets/scripts/core/FlowField.ts": {
+      "baseline": "f680b88b09700b7a1a9932fa5edc557fc9616cb24ba17eb1ae70537a0d95ae40",
+      "final": "2c7f69c0a58140356e0b33e749c44e40c452985238e1f9c4dc97831a3da55b91",
+      "unchanged": false
+    },
+    "assets/scripts/core/GameConfig.ts": {
+      "baseline": "0593aaab9b3c8f9731dfab4dd0282bd3db5cfadb786b2ebb8a095ec54705bbcc",
+      "final": "1f42f68910ec50374031d709385701ec6ae5cf349dc6fac2ea963fc34191b185",
+      "unchanged": false
+    }
+  }
+}

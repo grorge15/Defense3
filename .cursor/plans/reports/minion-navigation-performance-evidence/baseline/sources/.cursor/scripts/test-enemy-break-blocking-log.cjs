@@ -13,7 +13,6 @@ const script = name => path.join(root, `assets/scripts/${name}.ts`);
 const base = h.actualScriptMocks();
 base.cc.Animation = class { static EventType = { FINISHED: 'finished' }; };
 base.cc.CircleCollider2D ??= class {};
-base.cc.Sprite ??= class {};
 base.mocks[script('game/CoinSystem')] = { CoinSystem: class { static instance = null; } };
 base.mocks[script('core/TweenUtil')] = { TweenUtil: { fadeOutOpacity(_n, _t, cb) { cb?.(); } } };
 delete base.mocks[script('core/EnemyNavigation')];
@@ -35,21 +34,10 @@ function test(name, fn) {
     catch (error) { results.push({ name, passed: false, error: String(error.stack ?? error) }); console.error(`not ok - ${name}\n${error.stack}`); process.exitCode = 1; }
 }
 function pos(node) { const p = new base.cc.Vec3(); node.getWorldPosition(p); return p; }
-function mark(node, kind) {
-    const m = node.getComponent(NavigationObstacle) ?? node.addComponent(NavigationObstacle);
-    m.kind = kind;
-    EnemyNavigation.get(node.scene)?.invalidate();
-    return m;
-}
+function mark(node, kind) { const m = node.getComponent(NavigationObstacle) ?? node.addComponent(NavigationObstacle); m.kind = kind; return m; }
 function fixture(options = {}) {
     const scene = h.eventNode('unified-scene'); scene.scene = scene;
-    let serial = 0;
-    const node = (name, x, y) => {
-        const n = scene.add(h.eventNode(name, x, y));
-        n.uuid = `${name}-${serial++}`;
-        Object.defineProperty(n, 'worldPosition', {get:()=>pos(n)});
-        return n;
-    };
+    const node = (name, x, y) => scene.add(h.eventNode(name, x, y));
     const nav = EnemyNavigation.get(scene);
     const ground = [[-300,-300],[300,-300],[300,300],[-300,300]].map(([x,y]) => node('ground',x,y));
     nav.configure({ boundsMin: ground[0], boundsMax: ground[2], walkablePolygon: ground });
@@ -103,8 +91,8 @@ function productionEnvelope(Type) {
     return {source,colliderType:c.__type__,width:(c._size?.width??2*c._radius)*Math.abs(scale.x),
         height:(c._size?.height??2*c._radius)*Math.abs(scale.y),offsetX:c._offset.x*scale.x,offsetY:c._offset.y*scale.y};
 }
-function enemy(f,Type,{visual=true,target=f.target,body=null}={}) {
-    const envelope={...productionEnvelope(Type),...body};
+function enemy(f,Type,{visual=true,target=f.target}={}) {
+    const envelope=productionEnvelope(Type);
     // Use the current prefab's collider shape and world envelope, including its offset.
     f.body={width:envelope.width,height:envelope.height,offsetX:envelope.offsetX,offsetY:envelope.offsetY};
     f.request={...f.request,body:f.body,target,role:Type===EnemyMinion?'minion':'boss'};
@@ -138,7 +126,7 @@ function advanceToAttack(f,e) {
     assert(f.nav.canAttackObstacle(f.unit,f.log.n,f.body,e instanceof EnemyMinion?32:Math.max(e.attackTriggerRange,48)));
     return {frame,diversionFrame,moved:Math.hypot(pos(f.unit).x-start.x,pos(f.unit).y-start.y),at:pos(f.unit),body:f.body};
 }
-function recovery(e){return e instanceof EnemyBoss ? base.getAttackFinish() : e._scheduled.filter(s=>s.delay===.8).at(-1).cb;}
+function recovery(e){return e._scheduled.filter(s=>s.delay===.8).at(-1).cb;}
 
 test('AC-SELECTED-ROUTE: a direct Hard-safe leg selects its Log even when the physical map has a gap',()=>{
     const f=fixture({logRect:{xMin:-117.5,xMax:10,yMin:-9.5,yMax:9.5}});
@@ -171,7 +159,7 @@ test('AC-DYNAMIC: classification changes without AABB movement invalidate the de
 });
 test('AC-PHASE: fixed Log changes to rolling, charging or failed without stale demolition',()=>{
     for(const phase of ['rolling','charging','failed']){const f=fixture();assert(blocking(f)?.target===f.log.n);
-        f.log.c._phase=phase;f.log.c._isLocked=false;f.nav.invalidate();h.advanceFrame();assert.strictEqual(blocking(f),null);
+        f.log.c._phase=phase;f.log.c._isLocked=false;h.advanceFrame();assert.strictEqual(blocking(f),null);
         assert(!f.nav.canAttackLog(f.unit,f.log.c,f.body,300));f.nav.destroy();}
 });
 test('AC-MULTI-COLLIDER: both colliders belong to the same Log and either can be attacked',()=>{
@@ -224,9 +212,7 @@ for(const Type of [EnemyMinion,EnemyBoss]) {
         base.getHit()();assert(f.log.c._hp<hp);e.onDestroy();assert(!f.nav._registeredUnits.has(f.unit));f.nav.destroy();
     });
     test(`AC-DAMAGE: ${Type.name} no Visual hits once through real fallback`,()=>{
-        const f=fixture(),e=enemy(f,Type,{visual:false}),hp=f.log.c._hp;
-        // Boss fallback completes synchronously, so observe its actual hit rather than a transient lock.
-        for(let i=0;i<1000 && f.log.c._hp===hp;i++) step(f,e);
+        const f=fixture(),e=enemy(f,Type,{visual:false}),hp=f.log.c._hp;advanceToAttack(f,e);
         const damage=Type===EnemyMinion?GameConfig.minionAttackDamage:GameConfig.bossAttackDamage;
         assert.strictEqual(f.log.c._hp,hp-damage);e.tryAttack();assert.strictEqual(f.log.c._hp,hp-damage);f.nav.destroy();
     });

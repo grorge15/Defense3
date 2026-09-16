@@ -5,8 +5,7 @@ const Module = require('module');
 const root = path.resolve(__dirname, '../..');
 const evidenceDir = path.resolve(root, process.env.NAV_EVIDENCE_DIR ||
     '.cursor/plans/reports/fix-minion-log-route-oscillation-evidence/regression');
-const taskDir = path.resolve(root, process.env.NAV_EVIDENCE_DIR ? '.cursor/plans/reports/minion-navigation-performance-evidence' :
-    '.cursor/plans/reports/fix-minion-log-route-oscillation-evidence');
+const taskDir = path.resolve(root, '.cursor/plans/reports/fix-minion-log-route-oscillation-evidence');
 assert(evidenceDir === taskDir || evidenceDir.startsWith(taskDir + path.sep), 'evidence must be task-local');
 process.env.NAV_EVIDENCE_DIR = evidenceDir;
 // Reuse the read-only demolition harness setup without running its tests or writing its reports.
@@ -57,14 +56,12 @@ test('AC-REPLAY: observed planning waypoints cannot undo a valid Minion commitme
     f.ground.forEach((n,i)=>n.set(...corners[i]));
     f.unit.set(-90.11053466796875,1764.2559814453125);
     f.target.set(73.01343536376953,1336.4056396484375);
-    const e=enemy(f,EnemyMinion,{body:observedBody});
+    const e=enemy(f,EnemyMinion);
     for(const key of Object.keys(observedBody)) {
         assert(Math.abs(f.body[key]-observedBody[key])<1e-9,`fixture ${key}`);
         assert(Math.abs(e._bodySize()[key]-observedBody[key])<1e-9,`actual collider ${key}`);
     }
-    for(const n of [f.unit,f.target,f.log.n]) if(!Object.getOwnPropertyDescriptor(n,'worldPosition')) Object.defineProperty(n,'worldPosition',{get:()=>pos(n)});
-    // Start the replay after the authorized initial stagger window.
-    e._updateMovement(.3);
+    for(const n of [f.unit,f.target,f.log.n]) Object.defineProperty(n,'worldPosition',{get:()=>pos(n)});
     route(f);
     const waypoints=[{x:81.69900000000007,y:1616.367},{x:-8.30099999999993,y:1706.367}];
     let phase=0, resets=0, switches=0, previous=null;
@@ -188,7 +185,7 @@ test('AC-LIFE: same Player moving directly reachable cancels; real target/body c
 test('AC-LIFE: actual Minion target change, disable, death, reset and destruction release old state', () => {
     const f=fixture(),e=enemy(f,EnemyMinion),peer=f.node('live-peer',5,-180);
     assert(blocking(f,{...f.request,unit:peer}));const other=commitment(f,peer);
-    function acquire() { e.setTarget(f.target);e.setForceChaseTarget(true);tracedUpdate(f,e,.3);assert(commitment(f)); }
+    function acquire() { e.setTarget(f.target);e.setForceChaseTarget(true);tracedUpdate(f,e);assert(commitment(f)); }
     acquire();e.setTarget(f.node('other-player',0,200));assert(!commitment(f));
     acquire();e.onDisable();assert(!commitment(f));e.reset();acquire();
     e.takeDamage(999999);assert(!commitment(f));e.reset();acquire();
@@ -222,7 +219,7 @@ test('AC-LIFE: invalidated geometry, phase, inactive and destroyed obstacles nev
         if(mode.endsWith('building')) {f.log.n.components.delete(Log);f.log.n.addComponent(base.classes.Building);mark(f.log.n,Kind.Destructible);}
         const r=blocking(f);assert(r);const previous=commitment(f);
         if(mode==='removed') {f.log.b.enabled=false;f.nav.invalidate();}
-        if(mode==='phase') { f.log.c._phase='rolling'; f.nav.invalidate(); }
+        if(mode==='phase') f.log.c._phase='rolling';
         if(mode==='inactive-building') {f.log.n.active=false;f.log.n.activeInHierarchy=false;f.nav.invalidate();}
         if(mode==='destroyed-building') {f.log.n.isValid=false;f.nav.invalidate();}
         if(mode==='sealed') f.box('airWall-sealed',{xMin:-300,xMax:300,yMin:-110,yMax:-90});

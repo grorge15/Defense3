@@ -1,0 +1,32 @@
+ M .cursor/plans/building-spawn-minion-knockback.md
+ M .cursor/plans/reports/building-spawn-minion-knockback-report.md
+ M .cursor/plans/reports/enemy-unified-navigation-evidence/test-enemy-break-blocking-log/tests.json
+ M .cursor/plans/reports/fix-enemy-navigation-rebuild-stalls-evidence/v3/logic-results-v3.json
+ M .cursor/scripts/test-enemy-break-blocking-log.cjs
+ M .cursor/scripts/test-enemy-navigation.cjs
+ M .cursor/scripts/test-expand-enemy-clear-area.cjs
+ M assets/resources/animations/enemy_boss/attack.anim
+ M assets/resources/prefabs/building/platform/HighPlatform3.prefab
+ M assets/resources/prefabs/building/pref_barracks.prefab
+ M assets/resources/prefabs/building/pref_hero_shrine.prefab
+ M assets/resources/prefabs/building/pref_tower_advanced.prefab
+ M assets/resources/prefabs/building/pref_tower_basic.prefab
+ M assets/resources/prefabs/character/enemy/pref_enemy_boss.prefab
+ M assets/resources/prefabs/character/pref_player.prefab
+ M assets/scenes/Main.scene
+ M assets/scripts/building/Barracks.ts
+ M assets/scripts/building/BuildSystem.ts
+ M assets/scripts/building/HeroShrine.ts
+ M assets/scripts/core/GameConfig.ts
+ M assets/scripts/enemy/EnemyAI.ts
+ M assets/scripts/enemy/EnemyBoss.ts
+ M assets/scripts/enemy/EnemyMinion.ts
+ M assets/scripts/game/CombatSystem.ts
+ M assets/scripts/game/UltimateSystem.ts
+ M bugs.md
+ M settings/v2/packages/project.json
+?? .cursor/plans/optimize-battle-drawcalls.md
+?? .cursor/plans/reports/fix-barracks-minion-ultimate-timing-report.md
+?? .cursor/plans/reports/optimize-battle-drawcalls-evidence/
+?? .cursor/scripts/test-barracks-minion-ultimate-timing.cjs
+?? openspec/changes/fix-barracks-minion-ultimate-timing/

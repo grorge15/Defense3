@@ -1,0 +1,304 @@
+Read config from path C:/Users/Admin/Defense3/.cursor/plans/reports/optimize-battle-drawcalls-evidence/baseline/build-config.json...
+Start record log in {file(C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\logs\cocos.log)}
+i injectWebAssembly ...
+Init Base: 3.683ms
+
+ WARN  Failed to read JSON file synchronously: "C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\writablePath/gamecaches/cacheList.json" (resolved: "C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\writablePath/gamecaches/cacheList.json") - C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\writablePath/gamecaches/cacheList.json: ENOENT: no such file or directory, open 'C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\writablePath\gamecaches\cacheList.json'
+
+Init Infrastructure: 9.374ms
+Init SubSystem: 21.296ms
+Init Project: 4.248ms
+initEngine success
+
+ ERROR  Error: EPERM: operation not permitted, open 'C:\Users\Admin\cocos-cli\packages\engine\editor\library\.internal'
+
+
+ ERROR  Save cache for asset db internal failed.
+
+
+ ERROR  Error: EPERM: operation not permitted, open 'C:\Users\Admin\cocos-cli\packages\engine\editor\library\.internal'
+
+
+ ERROR  Save cache for asset db internal failed.
+
+update entry mod: 0.012ms
+
+ WARN  Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+update entry mod: 0.018ms
+update entry mod: 0.004ms
+update entry mod: 0.006ms
+update entry mod: 0.009ms
+update entry mod: 0.007ms
+update entry mod: 0.011ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.003ms
+update entry mod: 0.003ms
+update entry mod: 0.006ms
+update entry mod: 0.004ms
+update entry mod: 0.008ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.005ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.003ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.004ms
+update entry mod: 0.006ms
+update entry mod: 0.005ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.004ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.007ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.003ms
+update entry mod: 0.005ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.004ms
+update entry mod: 0.005ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.009ms
+update entry mod: 0.006ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.006ms
+update entry mod: 0.005ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.007ms
+update entry mod: 0.005ms
+update entry mod: 0.007ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.007ms
+update entry mod: 0.006ms
+update entry mod: 0.005ms
+update entry mod: 0.002ms
+update entry mod: 0.002ms
+update entry mod: 0.007ms
+update entry mod: 0.006ms
+update entry mod: 0.006ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.005ms
+update entry mod: 0.006ms
+update entry mod: 0.004ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.006ms
+update entry mod: 0.005ms
+update entry mod: 0.007ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+update entry mod: 0.007ms
+update entry mod: 0.007ms
+update entry mod: 0.003ms
+update entry mod: 0.002ms
+[compileEffect] effect.bin generated: C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\asset-db\effect\effect.bin (5755 bytes)
+update entry mod: 0.005ms
+update entry mod: 0.009ms
+register platform web-desktop success!
+Switch record log to {file(C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\builder\log\drawcalls-baseline-1789531176590.log)}
+
+ WARN  Build parameter mainBundleCompressionType (merge_dep) validation failed,  compression type(undefined) is invalid for this platform!, will use default value "merge_dep"
+
+o 🚀 Starting build for web-desktop
+i 📋 Detailed logs will be saved to log file
+i [░░░░░░░░░░░░░░░░░░░░] 0% - Start lock asset db...
+Asset DB is paused with build!
+i 🔧 web-desktop:onAfterInit starting...
+√ ✅ web-desktop:onAfterInit completed in 0ms
+i [░░░░░░░░░░░░░░░░░░░░] 2% - web-desktop:onAfterInit completed ✓
+√ web-desktop:onAfterInit completed ✓ (2%)
+i [░░░░░░░░░░░░░░░░░░░░] 2% - Init all bundles start...
+i [░░░░░░░░░░░░░░░░░░░░] 2% - Num of bundles: 3...
+i 🔧 web-desktop:onAfterBundleInit starting...
+√ ✅ web-desktop:onAfterBundleInit completed in 1ms
+i [██░░░░░░░░░░░░░░░░░░] 8% - web-desktop:onAfterBundleInit completed ✓
+i [██░░░░░░░░░░░░░░░░░░] 8% - Query Asset Bundle start
+i [██░░░░░░░░░░░░░░░░░░] 8% - Init bundle root assets start...
+i [██░░░░░░░░░░░░░░░░░░] 8% - Init bundle root assets success...
+creating executor ...
+i [██░░░░░░░░░░░░░░░░░░] 8% - Init bundle share assets start...
+
+ WARN  The Prefab used by component "CameraFollow" is missing. Detailed information:
+Node path: "Camera"
+Missing uuid: "028bfe42-f9ca-4f32-b7f1-1d6acaf28cbe"
+
+
+i [██░░░░░░░░░░░░░░░░░░] 8% - Init bundle share assets success...
+i [████░░░░░░░░░░░░░░░░] 18% - run build task Query Asset Bundle success in 286 ms√
+run build task Query Asset Bundle success in 286 ms√ (18%)
+i [████░░░░░░░░░░░░░░░░] 18% - Query Asset Bundle start
+i [██████░░░░░░░░░░░░░░] 28% - run build task Query Asset Bundle success in 2 ms√
+run build task Query Asset Bundle success in 2 ms√ (28%)
+i [██████░░░░░░░░░░░░░░] 28% - Package scripts start
+[buildPolyfillsCommand]enter sub process 27420, 9229, see: chrome://inspect/#devices
+
+[buildPolyfillsCommand]Start record log in {file(C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\builder\log\drawcalls-baseline-1789531176590.log)}
+
+i [██████░░░░░░░░░░░░░░] 28% - Generate systemJs...
+i [██████░░░░░░░░░░░░░░] 28% - Build project scripts start...
+Running TypeScript static compile check...
+Project: C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project
+Config: C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\tsconfig.cocos.json
+
+✓ No assets-related TypeScript errors found!
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/building/HeroShrine.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Hero.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Player.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/game/CombatSystem.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Player.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/building/HeroShrine.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Hero.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/core/EnemyNavigation.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/item/Log.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Player.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/game/CombatSystem.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/core/EnemyNavigation.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/item/Log.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Player.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/game/CombatSystem.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/projectile/Arrow.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/building/HeroShrine.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Hero.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/core/EnemyNavigation.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/item/Log.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Player.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/game/CombatSystem.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/projectile/Arrow.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/core/EnemyNavigation.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/item/Log.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/core/EnemyNavigation.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyAI.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Soldier.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/projectile/Arrow.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/building/HeroShrine.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Hero.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyMinion.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyAI.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Soldier.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/projectile/Arrow.ts
+
+
+
+
+ ERROR  [buildScriptCommand]
+ WARN  [[BuildGlobalInfo.Script.Rollup]] Circular dependency: file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/building/HeroShrine.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/character/Hero.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/projectile/HeroProjectile.ts -> file:///C:/Users/Admin/Defense3/build/optimize-battle-drawcalls-baseline/project/assets/scripts/enemy/EnemyBoss.ts
+
+
+
+i [██████░░░░░░░░░░░░░░] 28% - Build project scripts in (7426 ms) √
+i [██████░░░░░░░░░░░░░░] 28% - Build engine scripts start...
+[buildEngineCommand]enter sub process 14912, 9229, see: chrome://inspect/#devices
+
+[buildEngineCommand]Start record log in {file(C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\builder\log\drawcalls-baseline-1789531176590.log)}
+
+i [██████░░░░░░░░░░░░░░] 29% - Still running: Build engine scripts start...
+i [██████░░░░░░░░░░░░░░] 30% - Still running: Build engine scripts start...
+i [██████░░░░░░░░░░░░░░] 31% - Still running: Build engine scripts start...
+i [██████░░░░░░░░░░░░░░] 32% - Still running: Build engine scripts start...
+i [███████░░░░░░░░░░░░░] 33% - Still running: Build engine scripts start...
+i [███████░░░░░░░░░░░░░] 34% - Still running: Build engine scripts start...
+
+ ERROR  [buildEngineCommand]
+ ERROR  Error: EPERM: operation not permitted, open 'C:\Users\Admin\cocos-cli\packages\engine\bin\temp\6083eea75bb0585fba5dd05ffec7c3f6.watch-files.json'
+
+
+
+
+ ERROR  Error: execute-task [buildEngineCommand] failed with code -1!
+  Reason: EPERM: operation not permitted, open 'C:\Users\Admin\cocos-cli\packages\engine\bin\temp\6083eea75bb0585fba5dd05ffec7c3f6.watch-files.json'
+    at ChildProcess.<anonymous> (C:\Users\Admin\cocos-cli\src\core\builder\worker\worker-pools\sub-process-manager.ts:188:67)
+    at ChildProcess.emit (node:events:518:28)
+    at emit (node:internal/child_process:949:14)
+    at processTicksAndRejections (node:internal/process/task_queues:91:21)
+
+
+ ERROR  run build task Package scripts failed! (38%)
+
+i [████████░░░░░░░░░░░░] 38% - run build task Package scripts failed!
+❌ 
+Switch record log to {file(C:\Users\Admin\Defense3\build\optimize-battle-drawcalls-baseline\project\temp\logs\cocos.log)}
+
+ ERROR  Error: execute-task [buildEngineCommand] failed with code -1!
+  Reason: EPERM: operation not permitted, open 'C:\Users\Admin\cocos-cli\packages\engine\bin\temp\6083eea75bb0585fba5dd05ffec7c3f6.watch-files.json'
+    at ChildProcess.<anonymous> (C:\Users\Admin\cocos-cli\src\core\builder\worker\worker-pools\sub-process-manager.ts:188:67)
+    at ChildProcess.emit (node:events:518:28)
+    at emit (node:internal/child_process:949:14)
+    at processTicksAndRejections (node:internal/process/task_queues:91:21)
+
+
+ ERROR  ❌ Build failed for web-desktop after 1 min 20 s
+
+
+ ERROR  ✗ Build failed!
+

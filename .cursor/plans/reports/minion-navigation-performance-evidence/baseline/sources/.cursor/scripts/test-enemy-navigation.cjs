@@ -576,7 +576,8 @@ function makeCcStub() {
     class Vec2 {
         length() { return Math.hypot(this.x, this.y); }
         constructor(x = 0, y = 0) {
-            this.set(x, y);
+            this.x = x;
+            this.y = y;
         }
         set(x, y) {
             if (typeof x === 'object') {

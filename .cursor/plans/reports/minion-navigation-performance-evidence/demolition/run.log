@@ -1,0 +1,39 @@
+ok - AC-SELECTED-ROUTE: a direct Hard-safe leg selects its Log even when the physical map has a gap
+ok - AC-NEGATIVE: a full hard seal cannot be traversed or demolished
+ok - AC-NONLOG: an additional hard divider makes destroying the log pointless
+ok - AC-CLASSIFY: unsupported Destructible stays solid; Ignore overrides compatibility
+ok - AC-CANDIDATES: unrelated living Building and Barrier do not suppress blocking Log
+ok - AC-DYNAMIC: classification changes without AABB movement invalidate the decision
+ok - AC-PHASE: fixed Log changes to rolling, charging or failed without stale demolition
+ok - AC-MULTI-COLLIDER: both colliders belong to the same Log and either can be attacked
+ok - AC-LIFECYCLE: EnemyMinion moves, hits once, destroys and resumes original objective
+ok - AC-SELECTED-ROUTE: EnemyMinion demolishes an intersecting Log instead of taking the physical detour
+ok - AC-GENERATION: EnemyMinion old same-life hit/recovery cannot affect next attack
+[AudioManager] no active AudioManager; audio cues are muted
+ok - AC-POOL: EnemyMinion old hit/recovery/death cannot affect reused unit
+ok - AC-DAMAGE: EnemyMinion no Visual hits once through real fallback
+ok - AC-HIT-SAFETY: EnemyMinion moved/changed/hard target invalidates pending hit
+ok - AC-MOVING-TARGET: EnemyMinion releases demolition when original target becomes reachable
+ok - AC-GENERIC-DAMAGE: EnemyMinion uses the marked Building damage adapter
+ok - AC-LIFECYCLE: EnemyBoss moves, hits once, destroys and resumes original objective
+ok - AC-SELECTED-ROUTE: EnemyBoss demolishes an intersecting Log instead of taking the physical detour
+ok - AC-GENERATION: EnemyBoss old same-life hit/recovery cannot affect next attack
+ok - AC-POOL: EnemyBoss old hit/recovery/death cannot affect reused unit
+not ok - AC-DAMAGE: EnemyBoss no Visual hits once through real fallback
+AssertionError [ERR_ASSERTION]: no attack after 840 frames: {"position":{"x":0,"y":124.65006504462869,"z":0},"target":false,"jobs":0}
+    at advanceToAttack (C:\Users\Admin\Defense3\.cursor\scripts\test-enemy-break-blocking-log.cjs:136:5)
+    at C:\Users\Admin\Defense3\.cursor\scripts\test-enemy-break-blocking-log.cjs:227:73
+    at test (C:\Users\Admin\Defense3\.cursor\scripts\test-enemy-break-blocking-log.cjs:34:55)
+    at Object.<anonymous> (C:\Users\Admin\Defense3\.cursor\scripts\test-enemy-break-blocking-log.cjs:226:5)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+ok - AC-HIT-SAFETY: EnemyBoss moved/changed/hard target invalidates pending hit
+ok - AC-MOVING-TARGET: EnemyBoss releases demolition when original target becomes reachable
+ok - AC-GENERIC-DAMAGE: EnemyBoss uses the marked Building damage adapter
+ok - AC-BOSS-BUILDING: locked Building behind Log is resumed after actual Log destruction
+ok - AC-SHARED: 200 units x 300 stable frames reuse settled diagnostics without rescanning
+ok - AC-INVALIDATE: a Hard blocker inserted before the selected Log clears the direct-leg cache

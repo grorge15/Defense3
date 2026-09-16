@@ -1,0 +1,7517 @@
+{
+  "hashes": {
+    "enemy/EnemyMinion": "613f633bae72dd9f07e6795db35fc85ad798f703078ecbf006f414888c15ef63",
+    "core/EnemyNavigation": "260e906c7fa6f129d0682c1d2b119670fb6b7f3ab00b8d9842601417f33644c6",
+    "core/FlowField": "2c7f69c0a58140356e0b33e749c44e40c452985238e1f9c4dc97831a3da55b91",
+    "core/GameConfig": "1f42f68910ec50374031d709385701ec6ae5cf349dc6fac2ea963fc34191b185"
+  },
+  "measurements": [
+    {
+      "kind": "tracking",
+      "count": 50,
+      "hz": 60,
+      "seconds": 3,
+      "decisions": 569,
+      "avoidance": 569,
+      "progress": 15626.429289385936,
+      "stats": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 3,
+        "signatureBuild": 0,
+        "invalidateRequests": 1,
+        "geometryCheckRequests": 1,
+        "effectiveCommits": 1,
+        "geometryChanges": 2,
+        "blockingScans": 0,
+        "surfaceScans": 0,
+        "selectedCacheHits": 0,
+        "selectedCacheMisses": 0,
+        "schedulerFrames": 180,
+        "schedulerWork": 0,
+        "schedulerLastWork": 0,
+        "coalescedGeometryChecks": 1,
+        "incrementalCommits": 0,
+        "throttledFieldInvalidations": 0,
+        "minionAvoidanceUpdates": 569,
+        "avoidanceCandidateVisits": 4736,
+        "minionAvoidanceMaxUsed": 4
+      },
+      "jobs": {
+        "queued": 0,
+        "completed": 0,
+        "cancelled": 0,
+        "coalesced": 0,
+        "refused": 0,
+        "slices": 0,
+        "lastSliceWork": 0,
+        "totalWork": 0,
+        "lastSliceMs": 0.0016000000000531145,
+        "deadlineStops": 0
+      },
+      "fields": 0,
+      "graphs": 0,
+      "median": 0.37189999999986867,
+      "p95": 0.9997999999998228,
+      "max": 9.004100000000108,
+      "frames": [
+        {
+          "frame": 0,
+          "ms": 9.004100000000108,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 1,
+          "ms": 2.3690999999998894,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 2,
+          "ms": 2.192700000000059,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 3,
+          "ms": 1.8000999999999294,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 4,
+          "ms": 1.4166000000000167,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 5,
+          "ms": 1.1113000000000284,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 6,
+          "ms": 0.9151999999999134,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 7,
+          "ms": 0.794399999999996,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 8,
+          "ms": 0.8546999999998661,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 9,
+          "ms": 0.8459000000000287,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 10,
+          "ms": 0.857300000000123,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 11,
+          "ms": 0.9997999999998228,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 12,
+          "ms": 1.9168999999999414,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 13,
+          "ms": 1.0318999999999505,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 14,
+          "ms": 0.938899999999876,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 15,
+          "ms": 0.6916000000001077,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 16,
+          "ms": 0.8865000000000691,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 17,
+          "ms": 0.8204000000000633,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 18,
+          "ms": 0.8056000000001404,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 19,
+          "ms": 0.6333999999999378,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 20,
+          "ms": 0.6243999999999232,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 21,
+          "ms": 0.5650000000000546,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 22,
+          "ms": 0.5715999999999894,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 23,
+          "ms": 0.49270000000001346,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 24,
+          "ms": 0.44719999999983884,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 25,
+          "ms": 0.5226000000000113,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 26,
+          "ms": 0.533100000000104,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 27,
+          "ms": 0.5275000000001455,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 28,
+          "ms": 0.7925999999999931,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 29,
+          "ms": 0.47450000000003456,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 30,
+          "ms": 0.5320999999999003,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 31,
+          "ms": 0.4501000000000204,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 32,
+          "ms": 0.5427999999999429,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 33,
+          "ms": 0.5945999999999003,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 34,
+          "ms": 0.5095999999998639,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 35,
+          "ms": 0.5644999999999527,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 36,
+          "ms": 0.47890000000006694,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 37,
+          "ms": 0.4755999999999858,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 38,
+          "ms": 0.4921999999999116,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 39,
+          "ms": 0.45679999999993015,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 40,
+          "ms": 0.48159999999984393,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 41,
+          "ms": 0.5731000000000677,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 42,
+          "ms": 0.48469999999997526,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 43,
+          "ms": 0.4720999999999549,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 44,
+          "ms": 0.47489999999993415,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 45,
+          "ms": 0.38850000000002183,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 46,
+          "ms": 0.4361999999998716,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 47,
+          "ms": 0.36429999999995744,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 48,
+          "ms": 0.8303000000000793,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 49,
+          "ms": 0.5386000000000877,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 50,
+          "ms": 0.4154000000000906,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 51,
+          "ms": 0.48679999999990287,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 52,
+          "ms": 0.43209999999999127,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 53,
+          "ms": 0.4840999999998985,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 54,
+          "ms": 0.483600000000024,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 55,
+          "ms": 0.4052000000001499,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 56,
+          "ms": 0.4091000000000804,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 57,
+          "ms": 0.4398999999998523,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 58,
+          "ms": 0.4512999999999465,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 59,
+          "ms": 0.5110000000001946,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 60,
+          "ms": 0.581000000000131,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 61,
+          "ms": 0.4311999999999898,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 62,
+          "ms": 0.44790000000011787,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 63,
+          "ms": 0.34110000000009677,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 64,
+          "ms": 0.4799000000000433,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 65,
+          "ms": 0.5123999999998432,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 66,
+          "ms": 0.39069999999992433,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 67,
+          "ms": 0.7129999999999654,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 68,
+          "ms": 0.45270000000004984,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 69,
+          "ms": 0.38609999999994216,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 70,
+          "ms": 0.38469999999983884,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 71,
+          "ms": 0.4175999999999931,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 72,
+          "ms": 0.3185000000000855,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 73,
+          "ms": 0.35950000000002547,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 74,
+          "ms": 0.38210000000003674,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 75,
+          "ms": 0.39030000000002474,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 76,
+          "ms": 0.619899999999916,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 77,
+          "ms": 0.3971000000001368,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 78,
+          "ms": 0.3891000000000986,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 79,
+          "ms": 0.297800000000052,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 80,
+          "ms": 0.4155000000000655,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 81,
+          "ms": 0.563799999999901,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 82,
+          "ms": 0.34349999999994907,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 83,
+          "ms": 0.8616000000001804,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 84,
+          "ms": 0.30989999999997053,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 85,
+          "ms": 0.3088000000000193,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 86,
+          "ms": 0.3022999999998319,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 87,
+          "ms": 0.27710000000001855,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 88,
+          "ms": 0.25949999999988904,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 89,
+          "ms": 0.5636999999999261,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 90,
+          "ms": 0.33330000000000837,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 91,
+          "ms": 0.32349999999996726,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 92,
+          "ms": 0.32120000000008986,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 93,
+          "ms": 0.25530000000003383,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 94,
+          "ms": 0.29730000000017753,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 95,
+          "ms": 0.23630000000002838,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 96,
+          "ms": 0.34570000000007894,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 97,
+          "ms": 0.37989999999990687,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 98,
+          "ms": 0.2803999999998723,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 99,
+          "ms": 0.3432999999999993,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 100,
+          "ms": 0.300899999999956,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 101,
+          "ms": 0.29700000000002547,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 102,
+          "ms": 0.3006000000000313,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 103,
+          "ms": 0.2826000000000022,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 104,
+          "ms": 0.2644999999999982,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 105,
+          "ms": 0.29700000000002547,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 106,
+          "ms": 0.3181999999999334,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 107,
+          "ms": 0.32310000000006767,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 108,
+          "ms": 0.3168000000000575,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 109,
+          "ms": 0.2575000000001637,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 110,
+          "ms": 0.30320000000006075,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 111,
+          "ms": 0.240099999999984,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 112,
+          "ms": 0.5754000000001724,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 113,
+          "ms": 0.3838999999998123,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 114,
+          "ms": 0.28379999999992833,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 115,
+          "ms": 0.33979999999996835,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 116,
+          "ms": 0.29949999999985266,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 117,
+          "ms": 0.2962999999999738,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 118,
+          "ms": 0.2977000000000771,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 119,
+          "ms": 0.27949999999987085,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 120,
+          "ms": 0.25929999999993925,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 121,
+          "ms": 0.2943000000000211,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 122,
+          "ms": 0.3281000000001768,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 123,
+          "ms": 0.34950000000003456,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 124,
+          "ms": 0.3831000000000131,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 125,
+          "ms": 0.8022000000000844,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 126,
+          "ms": 0.39229999999997744,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 127,
+          "ms": 0.25070000000005166,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 128,
+          "ms": 0.3406999999999698,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 129,
+          "ms": 0.3753999999998996,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 130,
+          "ms": 0.28480000000013206,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 131,
+          "ms": 0.3442000000000007,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 132,
+          "ms": 0.3304000000000542,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 133,
+          "ms": 0.30160000000000764,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 134,
+          "ms": 0.29929999999990287,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 135,
+          "ms": 0.5666000000001077,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 136,
+          "ms": 0.2600999999999658,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 137,
+          "ms": 0.28920000000016444,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 138,
+          "ms": 0.3121000000001004,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 139,
+          "ms": 0.3119000000001506,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 140,
+          "ms": 0.30300000000011096,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 141,
+          "ms": 0.24880000000007385,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 142,
+          "ms": 0.2982999999999265,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 143,
+          "ms": 0.22969999999986612,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 144,
+          "ms": 0.3224999999999909,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 145,
+          "ms": 0.356899999999996,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 146,
+          "ms": 0.27330000000006294,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 147,
+          "ms": 0.32300000000009277,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 148,
+          "ms": 0.2881999999999607,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 149,
+          "ms": 0.2902999999998883,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 150,
+          "ms": 0.29980000000000473,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 151,
+          "ms": 0.27119999999990796,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 152,
+          "ms": 0.25470000000018445,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 153,
+          "ms": 0.28719999999998436,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 154,
+          "ms": 0.30709999999999127,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 155,
+          "ms": 0.31379999999990105,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 156,
+          "ms": 0.3069000000000415,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 157,
+          "ms": 0.25099999999997635,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 158,
+          "ms": 0.28710000000000946,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 159,
+          "ms": 0.23299999999994725,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 160,
+          "ms": 0.5269999999998163,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 161,
+          "ms": 0.3644000000001597,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 162,
+          "ms": 0.2680000000000291,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 163,
+          "ms": 0.3269000000000233,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 164,
+          "ms": 0.2864999999999327,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 165,
+          "ms": 0.2927999999999429,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 166,
+          "ms": 0.28920000000016444,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 167,
+          "ms": 0.27060000000005857,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 168,
+          "ms": 0.2502999999999247,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 169,
+          "ms": 0.28599999999983083,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 170,
+          "ms": 0.304300000000012,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 171,
+          "ms": 0.3068000000000666,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 172,
+          "ms": 0.30409999999983484,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 173,
+          "ms": 0.2505999999998494,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 174,
+          "ms": 0.28319999999985157,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 175,
+          "ms": 0.233600000000024,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 176,
+          "ms": 0.37189999999986867,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 177,
+          "ms": 0.39400000000000546,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 178,
+          "ms": 0.32219999999983884,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 179,
+          "ms": 0.34780000000000655,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        }
+      ]
+    },
+    {
+      "kind": "dense",
+      "count": 50,
+      "hz": 60,
+      "seconds": 3,
+      "decisions": 569,
+      "avoidance": 569,
+      "progress": 15180.960834577396,
+      "stats": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 3,
+        "signatureBuild": 0,
+        "invalidateRequests": 1,
+        "geometryCheckRequests": 1,
+        "effectiveCommits": 1,
+        "geometryChanges": 2,
+        "blockingScans": 0,
+        "surfaceScans": 0,
+        "selectedCacheHits": 0,
+        "selectedCacheMisses": 0,
+        "schedulerFrames": 180,
+        "schedulerWork": 0,
+        "schedulerLastWork": 0,
+        "coalescedGeometryChecks": 1,
+        "incrementalCommits": 0,
+        "throttledFieldInvalidations": 0,
+        "minionAvoidanceUpdates": 569,
+        "avoidanceCandidateVisits": 4431,
+        "minionAvoidanceMaxUsed": 4
+      },
+      "jobs": {
+        "queued": 0,
+        "completed": 0,
+        "cancelled": 0,
+        "coalesced": 0,
+        "refused": 0,
+        "slices": 0,
+        "lastSliceWork": 0,
+        "totalWork": 0,
+        "lastSliceMs": 0.0015000000000782165,
+        "deadlineStops": 0
+      },
+      "fields": 0,
+      "graphs": 0,
+      "median": 0.33799999999996544,
+      "p95": 0.6244999999998981,
+      "max": 1.4471000000000913,
+      "frames": [
+        {
+          "frame": 0,
+          "ms": 1.4471000000000913,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 1,
+          "ms": 0.5298000000000229,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 2,
+          "ms": 0.38029999999980646,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 3,
+          "ms": 0.45319999999992433,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 4,
+          "ms": 0.4257999999999811,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 5,
+          "ms": 0.48240000000009786,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 6,
+          "ms": 0.417699999999968,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 7,
+          "ms": 0.3765000000000782,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 8,
+          "ms": 0.3447999999998501,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 9,
+          "ms": 0.40059999999994034,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 10,
+          "ms": 0.6496000000001914,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 11,
+          "ms": 0.7703000000001339,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 12,
+          "ms": 0.5430999999998676,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 13,
+          "ms": 0.35799999999994725,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 14,
+          "ms": 0.3889000000001488,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 15,
+          "ms": 0.345299999999952,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 16,
+          "ms": 0.4375,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 17,
+          "ms": 0.5009000000000015,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 18,
+          "ms": 0.8692000000000917,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 19,
+          "ms": 0.45830000000000837,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 20,
+          "ms": 0.39259999999990214,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 21,
+          "ms": 0.3852999999999156,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 22,
+          "ms": 0.38589999999999236,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 23,
+          "ms": 0.36429999999995744,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 24,
+          "ms": 0.3404000000000451,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 25,
+          "ms": 0.3806000000001859,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 26,
+          "ms": 0.4050999999999476,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 27,
+          "ms": 0.4070999999999003,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 28,
+          "ms": 0.4052000000001499,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 29,
+          "ms": 0.3387000000000171,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 30,
+          "ms": 0.38800000000014734,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 31,
+          "ms": 0.30929999999989377,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 32,
+          "ms": 0.455600000000004,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 33,
+          "ms": 0.48460000000000036,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 34,
+          "ms": 0.3994000000000142,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 35,
+          "ms": 0.4330999999999676,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 36,
+          "ms": 0.3997999999999138,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 37,
+          "ms": 0.38039999999978136,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 38,
+          "ms": 0.636299999999892,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 39,
+          "ms": 0.46410000000014406,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 40,
+          "ms": 0.462099999999964,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 41,
+          "ms": 0.41800000000012005,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 42,
+          "ms": 0.4619999999999891,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 43,
+          "ms": 0.4456000000000131,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 44,
+          "ms": 0.46410000000014406,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 45,
+          "ms": 0.3445999999999003,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 46,
+          "ms": 0.3775999999998021,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 47,
+          "ms": 0.3082999999999174,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 48,
+          "ms": 0.7013000000001739,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 49,
+          "ms": 0.5370000000000346,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 50,
+          "ms": 0.3650000000000091,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 51,
+          "ms": 0.4099999999998545,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 52,
+          "ms": 0.39649999999983265,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 53,
+          "ms": 0.36190000000010514,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 54,
+          "ms": 0.3704999999999927,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 55,
+          "ms": 0.4069999999999254,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 56,
+          "ms": 0.3289999999999509,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 57,
+          "ms": 0.3709999999998672,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 58,
+          "ms": 0.6539999999999964,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 59,
+          "ms": 0.42470000000002983,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 60,
+          "ms": 0.45070000000009713,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 61,
+          "ms": 0.32219999999983884,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 62,
+          "ms": 0.36799999999993815,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 63,
+          "ms": 0.38009999999985666,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 64,
+          "ms": 0.40079999999989013,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 65,
+          "ms": 0.4395999999999276,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 66,
+          "ms": 0.3289999999999509,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 67,
+          "ms": 0.394800000000032,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 68,
+          "ms": 0.4029000000000451,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 69,
+          "ms": 0.33799999999996544,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 70,
+          "ms": 0.342200000000048,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 71,
+          "ms": 0.31899999999996,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 72,
+          "ms": 0.297800000000052,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 73,
+          "ms": 0.3384000000000924,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 74,
+          "ms": 0.35619999999994434,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 75,
+          "ms": 0.3532000000000153,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 76,
+          "ms": 0.5683000000001357,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 77,
+          "ms": 0.304300000000012,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 78,
+          "ms": 0.4336000000000695,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 79,
+          "ms": 0.23600000000010368,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 80,
+          "ms": 0.5757000000000971,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 81,
+          "ms": 0.36969999999996617,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 82,
+          "ms": 0.2694000000001324,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 83,
+          "ms": 0.3290999999999258,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 84,
+          "ms": 0.2947999999998956,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 85,
+          "ms": 0.286200000000008,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 86,
+          "ms": 0.29179999999996653,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 87,
+          "ms": 0.27150000000006,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 88,
+          "ms": 0.24920000000020082,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 89,
+          "ms": 0.28579999999988104,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 90,
+          "ms": 0.30209999999988213,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 91,
+          "ms": 0.30110000000013315,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 92,
+          "ms": 0.3503000000000611,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 93,
+          "ms": 0.3889000000001488,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 94,
+          "ms": 0.34950000000003456,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 95,
+          "ms": 0.24360000000001492,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 96,
+          "ms": 0.3346000000001368,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 97,
+          "ms": 0.3668999999999869,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 98,
+          "ms": 0.2717000000000098,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 99,
+          "ms": 0.33580000000006294,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 100,
+          "ms": 0.2961999999999989,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 101,
+          "ms": 0.2902999999998883,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 102,
+          "ms": 0.2920999999998912,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 103,
+          "ms": 0.6244999999998981,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 104,
+          "ms": 0.2583999999999378,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 105,
+          "ms": 0.29359999999996944,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 106,
+          "ms": 0.3043999999999869,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 107,
+          "ms": 0.3064999999999145,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 108,
+          "ms": 0.3049999999998363,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 109,
+          "ms": 0.25919999999996435,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 110,
+          "ms": 0.2860000000000582,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 111,
+          "ms": 0.23540000000002692,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 112,
+          "ms": 0.3191999999999098,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 113,
+          "ms": 0.3526000000001659,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 114,
+          "ms": 0.27070000000003347,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 115,
+          "ms": 0.3308999999999287,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 116,
+          "ms": 0.28449999999998,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 117,
+          "ms": 0.28880000000003747,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 118,
+          "ms": 0.2855000000001837,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 119,
+          "ms": 0.27299999999991087,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 120,
+          "ms": 0.24839999999994689,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 121,
+          "ms": 0.2842000000000553,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 122,
+          "ms": 0.4433000000001357,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 123,
+          "ms": 0.3141000000000531,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 124,
+          "ms": 0.29769999999984975,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 125,
+          "ms": 0.25309999999990396,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 126,
+          "ms": 0.2825000000000273,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 127,
+          "ms": 0.5348999999998796,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 128,
+          "ms": 0.4078999999999269,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 129,
+          "ms": 0.3625000000001819,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 130,
+          "ms": 0.27110000000016043,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 131,
+          "ms": 0.5302000000001499,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 132,
+          "ms": 0.27089999999998327,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 133,
+          "ms": 0.2617999999999938,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 134,
+          "ms": 0.26340000000004693,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 135,
+          "ms": 0.24710000000004584,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 136,
+          "ms": 0.22870000000011714,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 137,
+          "ms": 0.2563999999999851,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 138,
+          "ms": 0.3221000000000913,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 139,
+          "ms": 0.2726999999999862,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 140,
+          "ms": 0.28670000000010987,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 141,
+          "ms": 0.2319999999999709,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 142,
+          "ms": 0.2563000000000102,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 143,
+          "ms": 0.2137000000000171,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 144,
+          "ms": 0.28769999999985885,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 145,
+          "ms": 0.4574000000000069,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 146,
+          "ms": 0.3812000000000353,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 147,
+          "ms": 0.35149999999998727,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 148,
+          "ms": 0.3119000000001506,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 149,
+          "ms": 0.26749999999992724,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 150,
+          "ms": 0.2665999999999258,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 151,
+          "ms": 0.24729999999999563,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 152,
+          "ms": 0.48329999999987194,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 153,
+          "ms": 0.2545999999999822,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 154,
+          "ms": 0.2727999999999611,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 155,
+          "ms": 0.26320000000009713,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 156,
+          "ms": 0.2619000000001961,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 157,
+          "ms": 0.22530000000006112,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 158,
+          "ms": 0.24949999999989814,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 159,
+          "ms": 0.2117000000000644,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 160,
+          "ms": 0.27690000000006876,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 161,
+          "ms": 0.3148999999998523,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 162,
+          "ms": 0.23710000000005493,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 163,
+          "ms": 0.2769999999998163,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 164,
+          "ms": 0.2520999999999276,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 165,
+          "ms": 0.2502999999999247,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 166,
+          "ms": 0.24589999999989232,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 167,
+          "ms": 0.23630000000002838,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 168,
+          "ms": 0.22100000000000364,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 169,
+          "ms": 0.25090000000000146,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 170,
+          "ms": 0.25959999999986394,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 171,
+          "ms": 0.2602999999999156,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 172,
+          "ms": 0.2562000000000353,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 173,
+          "ms": 0.3001999999999043,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 174,
+          "ms": 0.2718999999999596,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 175,
+          "ms": 0.20910000000003492,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 176,
+          "ms": 0.2817999999999756,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 177,
+          "ms": 0.31169999999997344,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 178,
+          "ms": 0.43239999999991596,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 179,
+          "ms": 1.3542999999999665,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        }
+      ]
+    },
+    {
+      "kind": "demolition",
+      "count": 50,
+      "hz": 60,
+      "seconds": 3,
+      "decisions": 230,
+      "avoidance": 222,
+      "progress": 5420.869181930361,
+      "stats": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 3,
+        "signatureBuild": 0,
+        "invalidateRequests": 0,
+        "geometryCheckRequests": 0,
+        "effectiveCommits": 1,
+        "geometryChanges": 3,
+        "blockingScans": 8,
+        "surfaceScans": 0,
+        "selectedCacheHits": 222,
+        "selectedCacheMisses": 8,
+        "schedulerFrames": 180,
+        "schedulerWork": 0,
+        "schedulerLastWork": 0,
+        "coalescedGeometryChecks": 0,
+        "incrementalCommits": 0,
+        "throttledFieldInvalidations": 0,
+        "minionAvoidanceUpdates": 222,
+        "avoidanceCandidateVisits": 1246,
+        "minionAvoidanceMaxUsed": 4
+      },
+      "jobs": {
+        "queued": 0,
+        "completed": 0,
+        "cancelled": 0,
+        "coalesced": 0,
+        "refused": 0,
+        "slices": 0,
+        "lastSliceWork": 0,
+        "totalWork": 0,
+        "lastSliceMs": 0.0009000000000014552,
+        "deadlineStops": 0
+      },
+      "fields": 0,
+      "graphs": 0,
+      "median": 0.29100000000016735,
+      "p95": 0.8514000000000124,
+      "max": 2.9516000000000986,
+      "frames": [
+        {
+          "frame": 0,
+          "ms": 2.9516000000000986,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 1,
+          "ms": 1.6830999999999676,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 2,
+          "ms": 1.2812999999998738,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 3,
+          "ms": 1.56049999999982,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 4,
+          "ms": 1.1853000000000975,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 5,
+          "ms": 1.210299999999961,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 6,
+          "ms": 1.4254000000000815,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 7,
+          "ms": 0.7626000000000204,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 8,
+          "ms": 0.7174999999999727,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 9,
+          "ms": 0.8477000000000317,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 10,
+          "ms": 0.8514000000000124,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 11,
+          "ms": 0.8211999999998625,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 12,
+          "ms": 0.8262999999999465,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 13,
+          "ms": 0.599999999999909,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 14,
+          "ms": 0.5941000000000258,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 15,
+          "ms": 0.5623000000000502,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 16,
+          "ms": 0.7417000000000371,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 17,
+          "ms": 0.6178999999999633,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 18,
+          "ms": 0.4777999999998883,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 19,
+          "ms": 0.5130999999998949,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 20,
+          "ms": 0.975400000000036,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 21,
+          "ms": 0.5044000000000324,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 22,
+          "ms": 0.49240000000008877,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 23,
+          "ms": 0.5009000000000015,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 24,
+          "ms": 0.46499999999991815,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 25,
+          "ms": 0.4977999999998701,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 26,
+          "ms": 0.5531000000000859,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 27,
+          "ms": 0.5242000000000644,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 28,
+          "ms": 0.47450000000003456,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 29,
+          "ms": 0.4291000000000622,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 30,
+          "ms": 0.4551000000001295,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 31,
+          "ms": 0.41220000000021173,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 32,
+          "ms": 0.47849999999994,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 33,
+          "ms": 0.49959999999987303,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 34,
+          "ms": 0.4372000000000753,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 35,
+          "ms": 0.5295000000000982,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 36,
+          "ms": 0.4898000000000593,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 37,
+          "ms": 0.6914999999999054,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 38,
+          "ms": 0.5869999999999891,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 39,
+          "ms": 0.43420000000014625,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 40,
+          "ms": 0.7129999999999654,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 41,
+          "ms": 0.4558999999999287,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 42,
+          "ms": 0.47280000000000655,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 43,
+          "ms": 0.45509999999990214,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 44,
+          "ms": 0.44839999999999236,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 45,
+          "ms": 0.42859999999996035,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 46,
+          "ms": 0.46869999999989886,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 47,
+          "ms": 0.3919999999998254,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 48,
+          "ms": 0.4519000000000233,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 49,
+          "ms": 0.4753000000000611,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 50,
+          "ms": 0.4155000000000655,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 51,
+          "ms": 0.5091999999999643,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 52,
+          "ms": 0.4558999999999287,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 53,
+          "ms": 0.45100000000002183,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 54,
+          "ms": 0.4261999999998807,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 55,
+          "ms": 0.48489999999992506,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 56,
+          "ms": 0.3709999999998672,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 57,
+          "ms": 0.40210000000001855,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 58,
+          "ms": 0.3863000000001193,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 59,
+          "ms": 0.3977999999999611,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 60,
+          "ms": 0.35349999999994,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 61,
+          "ms": 0.34380000000010114,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 62,
+          "ms": 0.585399999999936,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 63,
+          "ms": 0.3451000000000022,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 64,
+          "ms": 0.365099999999984,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 65,
+          "ms": 0.3745000000001255,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 66,
+          "ms": 0.324100000000044,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 67,
+          "ms": 0.37390000000004875,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 68,
+          "ms": 0.30129999999985557,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 69,
+          "ms": 0.3207999999999629,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 70,
+          "ms": 0.32570000000009713,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 71,
+          "ms": 0.3085000000000946,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 72,
+          "ms": 0.3101000000001477,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 73,
+          "ms": 0.34799999999995634,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 74,
+          "ms": 0.3144999999999527,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 75,
+          "ms": 0.2977000000000771,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 76,
+          "ms": 0.29100000000016735,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 77,
+          "ms": 0.7772999999999683,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 78,
+          "ms": 0.3897999999999229,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 79,
+          "ms": 0.28310000000010405,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 80,
+          "ms": 0.3533999999999651,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 81,
+          "ms": 0.32920000000012806,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 82,
+          "ms": 0.26749999999992724,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 83,
+          "ms": 0.29549999999994725,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 84,
+          "ms": 0.3614000000000033,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 85,
+          "ms": 0.2821000000001277,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 86,
+          "ms": 0.2881999999999607,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 87,
+          "ms": 0.2819999999999254,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 88,
+          "ms": 0.4414000000001579,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 89,
+          "ms": 0.2761999999997897,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 90,
+          "ms": 0.27899999999999636,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 91,
+          "ms": 0.29480000000012296,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 92,
+          "ms": 0.2542000000000826,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 93,
+          "ms": 0.2719999999999345,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 94,
+          "ms": 0.25710000000003674,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 95,
+          "ms": 0.2522999999998774,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 96,
+          "ms": 0.5309999999999491,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 97,
+          "ms": 0.2622000000001208,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 98,
+          "ms": 0.2479000000000724,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 99,
+          "ms": 0.24649999999996908,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 100,
+          "ms": 0.24670000000014625,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 101,
+          "ms": 0.26870000000008076,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 102,
+          "ms": 0.26539999999999964,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 103,
+          "ms": 0.2539000000001579,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 104,
+          "ms": 0.24579999999991742,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 105,
+          "ms": 0.24360000000001492,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 106,
+          "ms": 0.24759999999992033,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 107,
+          "ms": 0.34900000000016007,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 108,
+          "ms": 0.25020000000017717,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 109,
+          "ms": 0.2420999999999367,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 110,
+          "ms": 0.24350000000004002,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 111,
+          "ms": 0.24210000000016407,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 112,
+          "ms": 0.24540000000001783,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 113,
+          "ms": 0.241800000000012,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 114,
+          "ms": 0.24289999999996326,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 115,
+          "ms": 0.24240000000008877,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 116,
+          "ms": 0.24620000000004438,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 117,
+          "ms": 0.25860000000011496,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 118,
+          "ms": 0.24690000000009604,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 119,
+          "ms": 0.24279999999998836,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 120,
+          "ms": 0.24670000000014625,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 121,
+          "ms": 0.2418999999999869,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 122,
+          "ms": 0.24340000000006512,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 123,
+          "ms": 0.2579000000000633,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 124,
+          "ms": 0.24659999999994398,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 125,
+          "ms": 0.24279999999998836,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 126,
+          "ms": 0.24499999999989086,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 127,
+          "ms": 0.24149999999985994,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 128,
+          "ms": 0.24350000000004002,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 129,
+          "ms": 0.2516000000000531,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 130,
+          "ms": 0.27089999999998327,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 131,
+          "ms": 0.2826999999999771,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 132,
+          "ms": 0.24469999999996617,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 133,
+          "ms": 0.24099999999998545,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 134,
+          "ms": 0.24679999999989377,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 135,
+          "ms": 0.27080000000000837,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 136,
+          "ms": 0.5127999999999702,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 137,
+          "ms": 0.26520000000004984,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 138,
+          "ms": 0.23860000000013315,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 139,
+          "ms": 0.5237999999999374,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 140,
+          "ms": 0.22700000000008913,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 141,
+          "ms": 0.21820000000002437,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 142,
+          "ms": 0.33569999999986067,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 143,
+          "ms": 0.18360000000006949,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 144,
+          "ms": 0.17599999999993088,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 145,
+          "ms": 0.17840000000001055,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 146,
+          "ms": 0.1754000000000815,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 147,
+          "ms": 0.2076999999999316,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 148,
+          "ms": 0.20820000000003347,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 149,
+          "ms": 0.18280000000004293,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 150,
+          "ms": 0.1893000000000029,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 151,
+          "ms": 0.18070000000011532,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 152,
+          "ms": 0.18050000000016553,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 153,
+          "ms": 0.17679999999995744,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 154,
+          "ms": 0.1771000000001095,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 155,
+          "ms": 0.20760000000018408,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 156,
+          "ms": 0.18000000000006366,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 157,
+          "ms": 0.17470000000002983,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 158,
+          "ms": 0.1767000000002099,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 159,
+          "ms": 0.17420000000015534,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 160,
+          "ms": 0.17669999999998254,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 161,
+          "ms": 0.17699999999990723,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 162,
+          "ms": 0.17849999999998545,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 163,
+          "ms": 0.1773000000000593,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 164,
+          "ms": 0.17450000000008004,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 165,
+          "ms": 0.17609999999990578,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 166,
+          "ms": 0.17469999999980246,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 167,
+          "ms": 0.17630000000008295,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 168,
+          "ms": 0.17470000000002983,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 169,
+          "ms": 0.18020000000001346,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 170,
+          "ms": 0.1756000000000313,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 171,
+          "ms": 0.19090000000005602,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 172,
+          "ms": 0.17689999999993233,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 173,
+          "ms": 0.17790000000013606,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 174,
+          "ms": 0.17409999999995307,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 175,
+          "ms": 0.17770000000018626,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 176,
+          "ms": 0.17440000000010514,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 177,
+          "ms": 0.17590000000018335,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 178,
+          "ms": 0.18000000000006366,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 179,
+          "ms": 0.17620000000010805,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        }
+      ]
+    },
+    {
+      "kind": "destroy",
+      "count": 50,
+      "hz": 60,
+      "seconds": 3,
+      "decisions": 567,
+      "avoidance": 563,
+      "progress": 15098.082770331459,
+      "stats": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 6,
+        "signatureBuild": 0,
+        "invalidateRequests": 1,
+        "geometryCheckRequests": 1,
+        "effectiveCommits": 2,
+        "geometryChanges": 4,
+        "blockingScans": 8,
+        "surfaceScans": 0,
+        "selectedCacheHits": 182,
+        "selectedCacheMisses": 8,
+        "schedulerFrames": 180,
+        "schedulerWork": 0,
+        "schedulerLastWork": 0,
+        "coalescedGeometryChecks": 0,
+        "incrementalCommits": 0,
+        "throttledFieldInvalidations": 0,
+        "minionAvoidanceUpdates": 563,
+        "avoidanceCandidateVisits": 4068,
+        "minionAvoidanceMaxUsed": 4
+      },
+      "jobs": {
+        "queued": 0,
+        "completed": 0,
+        "cancelled": 0,
+        "coalesced": 0,
+        "refused": 0,
+        "slices": 0,
+        "lastSliceWork": 0,
+        "totalWork": 0,
+        "lastSliceMs": 0.0009999999999763531,
+        "deadlineStops": 0
+      },
+      "fields": 0,
+      "graphs": 0,
+      "median": 0.30280000000016116,
+      "p95": 0.5109999999999673,
+      "max": 1.1127999999998792,
+      "frames": [
+        {
+          "frame": 0,
+          "ms": 1.1127999999998792,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 1,
+          "ms": 0.41859999999996944,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 2,
+          "ms": 0.2981000000002041,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 3,
+          "ms": 0.35659999999984393,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 4,
+          "ms": 0.30280000000016116,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 5,
+          "ms": 0.3087000000000444,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 6,
+          "ms": 0.3125999999999749,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 7,
+          "ms": 0.29520000000002256,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 8,
+          "ms": 0.27710000000001855,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 9,
+          "ms": 0.31379999999990105,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 10,
+          "ms": 0.33310000000005857,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 11,
+          "ms": 0.46900000000005093,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 12,
+          "ms": 0.3466000000000804,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 13,
+          "ms": 0.2880000000000109,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 14,
+          "ms": 0.3243999999999687,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 15,
+          "ms": 0.27329999999983556,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 16,
+          "ms": 0.33809999999994034,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 17,
+          "ms": 0.36190000000010514,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 18,
+          "ms": 0.698699999999917,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 19,
+          "ms": 0.35989999999992506,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 20,
+          "ms": 0.3143999999999778,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 21,
+          "ms": 0.30759999999986576,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 22,
+          "ms": 0.31110000000012406,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 23,
+          "ms": 0.30189999999993233,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 24,
+          "ms": 0.2844000000000051,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 25,
+          "ms": 0.309099999999944,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 26,
+          "ms": 0.32369999999991705,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 27,
+          "ms": 0.3222000000000662,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 28,
+          "ms": 0.32519999999999527,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 29,
+          "ms": 0.2862999999999829,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 30,
+          "ms": 0.3106000000000222,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 31,
+          "ms": 0.27080000000000837,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 32,
+          "ms": 0.3328999999998814,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 33,
+          "ms": 0.3512000000000626,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 34,
+          "ms": 0.2948999999998705,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 35,
+          "ms": 0.3608999999999014,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 36,
+          "ms": 0.3145999999999276,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 37,
+          "ms": 0.30700000000001637,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 38,
+          "ms": 0.31169999999997344,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 39,
+          "ms": 0.31759999999985666,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 40,
+          "ms": 0.9031999999999698,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 41,
+          "ms": 0.35989999999992506,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 42,
+          "ms": 0.3502000000000862,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 43,
+          "ms": 0.41279999999983374,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 44,
+          "ms": 0.35619999999994434,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 45,
+          "ms": 0.2844000000000051,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 46,
+          "ms": 0.30349999999998545,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 47,
+          "ms": 0.26299999999991996,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 48,
+          "ms": 0.32150000000001455,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 49,
+          "ms": 0.34560000000010405,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 50,
+          "ms": 0.28749999999990905,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 51,
+          "ms": 0.3385000000000673,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 52,
+          "ms": 0.31510000000002947,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 53,
+          "ms": 0.3009999999999309,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 54,
+          "ms": 0.2902999999998883,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 55,
+          "ms": 0.2824000000000524,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 56,
+          "ms": 0.2623999999998432,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 57,
+          "ms": 0.2795000000000982,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 58,
+          "ms": 0.28110000000015134,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 59,
+          "ms": 0.28940000000011423,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 60,
+          "ms": 0.4733000000001084,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 61,
+          "ms": 0.25700000000006185,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 62,
+          "ms": 0.29700000000002547,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 63,
+          "ms": 0.4714000000001306,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 64,
+          "ms": 0.35029999999983374,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 65,
+          "ms": 0.38229999999998654,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 66,
+          "ms": 0.28089999999997417,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 67,
+          "ms": 0.3467000000000553,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 68,
+          "ms": 0.3045999999999367,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 69,
+          "ms": 0.30379999999991014,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 70,
+          "ms": 0.3091999999999189,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 71,
+          "ms": 0.28320000000007894,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 72,
+          "ms": 0.2623000000000957,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 73,
+          "ms": 0.29510000000004766,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 74,
+          "ms": 0.3162999999999556,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 75,
+          "ms": 0.32560000000012224,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 76,
+          "ms": 0.3139000000001033,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 77,
+          "ms": 0.25500000000010914,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 78,
+          "ms": 0.2881999999999607,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 79,
+          "ms": 0.2417000000000371,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 80,
+          "ms": 0.33400000000006,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 81,
+          "ms": 0.37980000000015934,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 82,
+          "ms": 0.27700000000004366,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 83,
+          "ms": 0.3691000000001168,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 84,
+          "ms": 0.5281999999999698,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 85,
+          "ms": 0.31349999999997635,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 86,
+          "ms": 0.3490999999999076,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 87,
+          "ms": 0.2863999999999578,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 88,
+          "ms": 0.25929999999993925,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 89,
+          "ms": 0.31910000000016225,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 90,
+          "ms": 0.4236000000000786,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 91,
+          "ms": 0.3546000000001186,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 92,
+          "ms": 0.559099999999944,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 93,
+          "ms": 0.2682999999999538,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 94,
+          "ms": 0.29740000000015243,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 95,
+          "ms": 0.24030000000016116,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 96,
+          "ms": 0.3373999999998887,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 97,
+          "ms": 0.36649999999985994,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 98,
+          "ms": 0.27779999999984284,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 99,
+          "ms": 0.33339999999998327,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 100,
+          "ms": 0.3009999999999309,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 101,
+          "ms": 0.29909999999995307,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 102,
+          "ms": 0.30179999999995744,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 103,
+          "ms": 0.27949999999987085,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 104,
+          "ms": 0.25710000000003674,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 105,
+          "ms": 0.28350000000000364,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 106,
+          "ms": 0.3005999999998039,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 107,
+          "ms": 0.5557999999998628,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 108,
+          "ms": 0.309099999999944,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 109,
+          "ms": 0.2511000000001786,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 110,
+          "ms": 0.2817999999999756,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 111,
+          "ms": 0.24159999999983484,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 112,
+          "ms": 0.33019999999987704,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 113,
+          "ms": 0.3664000000001124,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 114,
+          "ms": 0.2740000000001146,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 115,
+          "ms": 0.33590000000003783,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 116,
+          "ms": 0.327199999999948,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 117,
+          "ms": 0.3062999999999647,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 118,
+          "ms": 0.3007000000000062,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 119,
+          "ms": 0.27530000000001564,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 120,
+          "ms": 0.25520000000005894,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 121,
+          "ms": 0.28939999999988686,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 122,
+          "ms": 0.300899999999956,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 123,
+          "ms": 0.3068000000000666,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 124,
+          "ms": 0.33550000000013824,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 125,
+          "ms": 0.25040000000012697,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 126,
+          "ms": 0.2795000000000982,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 127,
+          "ms": 0.23640000000000327,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 128,
+          "ms": 0.31960000000003674,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 129,
+          "ms": 0.35520000000019536,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 130,
+          "ms": 0.44820000000004256,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 131,
+          "ms": 0.3324000000000069,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 132,
+          "ms": 0.2862999999999829,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 133,
+          "ms": 0.29529999999999745,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 134,
+          "ms": 0.29750000000012733,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 135,
+          "ms": 0.2807000000000244,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 136,
+          "ms": 0.2555999999999585,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 137,
+          "ms": 0.2863000000002103,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 138,
+          "ms": 0.29379999999991924,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 139,
+          "ms": 0.3010999999999058,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 140,
+          "ms": 0.2966000000001259,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 141,
+          "ms": 0.24839999999994689,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 142,
+          "ms": 0.28340000000002874,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 143,
+          "ms": 0.31310000000007676,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 144,
+          "ms": 0.5707999999999629,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 145,
+          "ms": 0.4229000000000269,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 146,
+          "ms": 0.2825000000000273,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 147,
+          "ms": 0.3324000000000069,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 148,
+          "ms": 0.29090000000019245,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 149,
+          "ms": 0.3009999999999309,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 150,
+          "ms": 0.30729999999994106,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 151,
+          "ms": 0.2723000000000866,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 152,
+          "ms": 0.25490000000013424,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 153,
+          "ms": 0.28569999999990614,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 154,
+          "ms": 0.5422000000000935,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 155,
+          "ms": 0.30719999999996617,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 156,
+          "ms": 0.29529999999999745,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 157,
+          "ms": 0.2437999999999647,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 158,
+          "ms": 0.2722999999998592,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 159,
+          "ms": 0.23909999999978027,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 160,
+          "ms": 0.3161999999999807,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 161,
+          "ms": 0.34110000000009677,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 162,
+          "ms": 0.2663000000000011,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 163,
+          "ms": 0.3188000000000102,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 164,
+          "ms": 0.2863999999999578,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 165,
+          "ms": 0.2865999999999076,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 166,
+          "ms": 0.2977000000000771,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 167,
+          "ms": 0.2720000000001619,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 168,
+          "ms": 0.2563999999999851,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 169,
+          "ms": 0.2798000000000229,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 170,
+          "ms": 0.29169999999999163,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 171,
+          "ms": 0.2904999999998381,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 172,
+          "ms": 0.2880000000000109,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 173,
+          "ms": 0.24360000000001492,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 174,
+          "ms": 0.27359999999998763,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 175,
+          "ms": 0.23739999999997963,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 176,
+          "ms": 0.3046999999999116,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 177,
+          "ms": 0.36550000000011096,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 178,
+          "ms": 0.266399999999976,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 179,
+          "ms": 0.5109999999999673,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        }
+      ]
+    },
+    {
+      "kind": "wall",
+      "count": 50,
+      "hz": 60,
+      "seconds": 3,
+      "decisions": 275,
+      "avoidance": 228,
+      "progress": 6226.72515480252,
+      "stats": {
+        "fullSceneScan": 1,
+        "trackedColliderChecks": 7,
+        "signatureBuild": 0,
+        "invalidateRequests": 1,
+        "geometryCheckRequests": 3,
+        "effectiveCommits": 2,
+        "geometryChanges": 4,
+        "blockingScans": 19,
+        "surfaceScans": 5,
+        "selectedCacheHits": 225,
+        "selectedCacheMisses": 13,
+        "schedulerFrames": 180,
+        "schedulerWork": 2534,
+        "schedulerLastWork": 0,
+        "coalescedGeometryChecks": 2,
+        "incrementalCommits": 0,
+        "throttledFieldInvalidations": 0,
+        "minionAvoidanceUpdates": 228,
+        "avoidanceCandidateVisits": 1331,
+        "minionAvoidanceMaxUsed": 4
+      },
+      "jobs": {
+        "queued": 2,
+        "completed": 2,
+        "cancelled": 0,
+        "coalesced": 1,
+        "refused": 0,
+        "slices": 3,
+        "lastSliceWork": 0,
+        "totalWork": 2534,
+        "lastSliceMs": 0.0014000000001033186,
+        "deadlineStops": 1
+      },
+      "fields": 1,
+      "graphs": 1,
+      "median": 0.2856000000001586,
+      "p95": 0.8781000000001313,
+      "max": 2.4962000000000444,
+      "frames": [
+        {
+          "frame": 0,
+          "ms": 0.9123999999999342,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 1,
+          "ms": 0.38560000000006767,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 2,
+          "ms": 0.28350000000000364,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 3,
+          "ms": 0.3713999999999942,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 4,
+          "ms": 0.29899999999997817,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 5,
+          "ms": 0.36180000000013024,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 6,
+          "ms": 0.3062999999999647,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 7,
+          "ms": 0.2907000000000153,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 8,
+          "ms": 0.2670999999998003,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 9,
+          "ms": 0.30179999999995744,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 10,
+          "ms": 0.31719999999995707,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 11,
+          "ms": 0.33130000000005566,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 12,
+          "ms": 0.327199999999948,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 13,
+          "ms": 0.298799999999801,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 14,
+          "ms": 0.33550000000013824,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 15,
+          "ms": 0.7793000000001484,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 16,
+          "ms": 0.3488999999999578,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 17,
+          "ms": 0.34979999999995925,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 18,
+          "ms": 0.2856000000001586,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 19,
+          "ms": 0.3163999999999305,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 20,
+          "ms": 0.3806999999999334,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 21,
+          "ms": 0.29349999999999454,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 22,
+          "ms": 0.2897000000000389,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 23,
+          "ms": 0.28109999999992397,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 24,
+          "ms": 0.2658999999998741,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 25,
+          "ms": 0.2957000000001244,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 26,
+          "ms": 0.2980999999999767,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 27,
+          "ms": 0.30379999999991014,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 28,
+          "ms": 0.5621000000001004,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 29,
+          "ms": 0.3684000000000651,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 30,
+          "ms": 0.3057000000001153,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 31,
+          "ms": 0.28599999999983083,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 32,
+          "ms": 0.36429999999995744,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 33,
+          "ms": 0.33310000000005857,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 34,
+          "ms": 0.34580000000005384,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 35,
+          "ms": 0.417699999999968,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 36,
+          "ms": 0.7910999999999149,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 37,
+          "ms": 0.31169999999997344,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 38,
+          "ms": 0.3007000000000062,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 39,
+          "ms": 0.2826999999999771,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 40,
+          "ms": 0.2687999999998283,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 41,
+          "ms": 0.29899999999997817,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 42,
+          "ms": 0.3062999999999647,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 43,
+          "ms": 0.3045999999999367,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 44,
+          "ms": 0.3027999999999338,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 45,
+          "ms": 0.2727999999999611,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 46,
+          "ms": 0.28890000000001237,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 47,
+          "ms": 0.2604999999998654,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 48,
+          "ms": 0.3088999999999942,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 49,
+          "ms": 0.33169999999995525,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 50,
+          "ms": 0.27710000000001855,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 51,
+          "ms": 0.3267000000000735,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 52,
+          "ms": 0.29379999999991924,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 53,
+          "ms": 0.28959999999983665,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 54,
+          "ms": 0.28340000000002874,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 55,
+          "ms": 0.2817999999999756,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 56,
+          "ms": 0.25650000000018736,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 57,
+          "ms": 0.2763999999999669,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 58,
+          "ms": 0.26860000000010587,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 59,
+          "ms": 0.5882000000001426,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 60,
+          "ms": 1.973399999999856,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 61,
+          "ms": 0.8781000000001313,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 62,
+          "ms": 0.8754999999998745,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 63,
+          "ms": 0.631099999999833,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 64,
+          "ms": 0.7769000000000688,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 65,
+          "ms": 0.8667000000000371,
+          "decisions": 7,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 66,
+          "ms": 0.9148999999999887,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 67,
+          "ms": 0.7074000000000069,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 68,
+          "ms": 0.7089000000000851,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 69,
+          "ms": 0.8567000000000462,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 70,
+          "ms": 0.6924000000001342,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 71,
+          "ms": 0.6416999999999007,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 72,
+          "ms": 0.4291000000000622,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 73,
+          "ms": 0.3240000000000691,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 74,
+          "ms": 0.3210999999998876,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 75,
+          "ms": 0.5104999999998654,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 76,
+          "ms": 0.28539999999998145,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 77,
+          "ms": 0.5442000000000462,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 78,
+          "ms": 0.2801999999999225,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 79,
+          "ms": 0.2545000000000073,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 80,
+          "ms": 0.2840000000001055,
+          "decisions": 3,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 81,
+          "ms": 0.29730000000017753,
+          "decisions": 5,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 82,
+          "ms": 0.2496000000001004,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 83,
+          "ms": 0.2822000000001026,
+          "decisions": 4,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 84,
+          "ms": 0.2520999999999276,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 85,
+          "ms": 0.2563000000000102,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 86,
+          "ms": 0.24450000000001637,
+          "decisions": 2,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 87,
+          "ms": 0.23510000000010223,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 88,
+          "ms": 0.22839999999996508,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 89,
+          "ms": 0.22759999999993852,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 90,
+          "ms": 0.21410000000014406,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 91,
+          "ms": 0.2153000000000702,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 92,
+          "ms": 0.21239999999988868,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 93,
+          "ms": 0.2131000000001677,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 94,
+          "ms": 0.21339999999986503,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 95,
+          "ms": 0.2134000000000924,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 96,
+          "ms": 0.2116000000000895,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 0,
+          "entries": 0
+        },
+        {
+          "frame": 97,
+          "ms": 1.1282999999998538,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 4468,
+          "entries": 1
+        },
+        {
+          "frame": 98,
+          "ms": 2.261900000000196,
+          "decisions": 0,
+          "work": 1073,
+          "bytes": 2068,
+          "entries": 1
+        },
+        {
+          "frame": 99,
+          "ms": 0.41450000000008913,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 2068,
+          "entries": 1
+        },
+        {
+          "frame": 100,
+          "ms": 0.39590000000021064,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 2068,
+          "entries": 1
+        },
+        {
+          "frame": 101,
+          "ms": 0.4033999999999196,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 2068,
+          "entries": 1
+        },
+        {
+          "frame": 102,
+          "ms": 1.5599999999999454,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 6126,
+          "entries": 2
+        },
+        {
+          "frame": 103,
+          "ms": 2.4962000000000444,
+          "decisions": 0,
+          "work": 1152,
+          "bytes": 6126,
+          "entries": 2
+        },
+        {
+          "frame": 104,
+          "ms": 0.5606999999999971,
+          "decisions": 0,
+          "work": 309,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 105,
+          "ms": 0.40370000000007167,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 106,
+          "ms": 0.4014999999999418,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 107,
+          "ms": 0.3949000000000069,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 108,
+          "ms": 0.40010000000006585,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 109,
+          "ms": 0.3989000000001397,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 110,
+          "ms": 0.39830000000006294,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 111,
+          "ms": 0.3949000000000069,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 112,
+          "ms": 0.3993000000000393,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 4526,
+          "entries": 2
+        },
+        {
+          "frame": 113,
+          "ms": 0.9138000000000375,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 5640,
+          "entries": 3
+        },
+        {
+          "frame": 114,
+          "ms": 0.23680000000013024,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 5640,
+          "entries": 3
+        },
+        {
+          "frame": 115,
+          "ms": 0.24559999999996762,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 5640,
+          "entries": 3
+        },
+        {
+          "frame": 116,
+          "ms": 0.22550000000001091,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 5640,
+          "entries": 3
+        },
+        {
+          "frame": 117,
+          "ms": 0.24509999999986576,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 5640,
+          "entries": 3
+        },
+        {
+          "frame": 118,
+          "ms": 0.4268000000001848,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 119,
+          "ms": 0.26650000000017826,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 120,
+          "ms": 0.240099999999984,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 121,
+          "ms": 0.2138999999999669,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 122,
+          "ms": 0.21319999999991524,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 123,
+          "ms": 0.21199999999998909,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 124,
+          "ms": 0.21309999999994034,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 125,
+          "ms": 0.23910000000000764,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 126,
+          "ms": 0.21469999999999345,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 127,
+          "ms": 0.2117000000000644,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 128,
+          "ms": 0.21260000000006585,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 6752,
+          "entries": 4
+        },
+        {
+          "frame": 129,
+          "ms": 0.4319000000000415,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 7866,
+          "entries": 5
+        },
+        {
+          "frame": 130,
+          "ms": 0.2199000000000524,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 7866,
+          "entries": 5
+        },
+        {
+          "frame": 131,
+          "ms": 0.21420000000011896,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 7866,
+          "entries": 5
+        },
+        {
+          "frame": 132,
+          "ms": 0.21060000000011314,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 7866,
+          "entries": 5
+        },
+        {
+          "frame": 133,
+          "ms": 0.2130000000001928,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 7866,
+          "entries": 5
+        },
+        {
+          "frame": 134,
+          "ms": 0.4656999999999698,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 135,
+          "ms": 0.48680000000013024,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 136,
+          "ms": 0.21929999999997563,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 137,
+          "ms": 0.21329999999989013,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 138,
+          "ms": 0.2115000000001146,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 139,
+          "ms": 0.20900000000006003,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 140,
+          "ms": 0.21029999999996107,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 141,
+          "ms": 0.2119000000000142,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 142,
+          "ms": 0.2078999999998814,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 143,
+          "ms": 0.20949999999993452,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 144,
+          "ms": 0.20679999999993015,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 8978,
+          "entries": 6
+        },
+        {
+          "frame": 145,
+          "ms": 0.38659999999981665,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 10090,
+          "entries": 7
+        },
+        {
+          "frame": 146,
+          "ms": 0.21739999999999782,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 10090,
+          "entries": 7
+        },
+        {
+          "frame": 147,
+          "ms": 0.21079999999983556,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 10090,
+          "entries": 7
+        },
+        {
+          "frame": 148,
+          "ms": 0.2119000000000142,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 10090,
+          "entries": 7
+        },
+        {
+          "frame": 149,
+          "ms": 0.2097999999998592,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 10090,
+          "entries": 7
+        },
+        {
+          "frame": 150,
+          "ms": 0.3448000000000775,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 151,
+          "ms": 0.21299999999996544,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 152,
+          "ms": 0.23279999999999745,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 153,
+          "ms": 0.20889999999985776,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 154,
+          "ms": 0.20990000000006148,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 155,
+          "ms": 0.21979999999985012,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 156,
+          "ms": 0.23929999999995744,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 157,
+          "ms": 0.23450000000002547,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 158,
+          "ms": 0.22019999999997708,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 159,
+          "ms": 0.21129999999993743,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 160,
+          "ms": 0.21059999999988577,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 161,
+          "ms": 0.3770999999999276,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 162,
+          "ms": 0.21630000000004657,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 163,
+          "ms": 0.21060000000011314,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 164,
+          "ms": 0.20669999999995525,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 165,
+          "ms": 0.20970000000011169,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 166,
+          "ms": 0.20700000000010732,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 167,
+          "ms": 0.21689999999989595,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 168,
+          "ms": 0.20679999999993015,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 169,
+          "ms": 0.21019999999998618,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 170,
+          "ms": 0.20620000000008076,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 171,
+          "ms": 0.20929999999998472,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 172,
+          "ms": 0.20689999999990505,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 173,
+          "ms": 0.20920000000000982,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 174,
+          "ms": 0.20910000000003492,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 175,
+          "ms": 0.5178000000000793,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 176,
+          "ms": 0.2176999999999225,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 177,
+          "ms": 0.43270000000006803,
+          "decisions": 1,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 178,
+          "ms": 0.21739999999999782,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        },
+        {
+          "frame": 179,
+          "ms": 0.21030000000018845,
+          "decisions": 0,
+          "work": 0,
+          "bytes": 11200,
+          "entries": 8
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "cadence, first-frame staggering, continuous integration and long-frame no catch-up",
+      "passed": true,
+      "details": [
+        {
+          "count": 50,
+          "hz": 30,
+          "maxDecisions": 38,
+          "firstDecisionFrames": 8,
+          "firstAvoidanceFrames": 8,
+          "integrationError": 2.5011104298755527e-12
+        },
+        {
+          "count": 50,
+          "hz": 60,
+          "maxDecisions": 38,
+          "firstDecisionFrames": 14,
+          "firstAvoidanceFrames": 14,
+          "integrationError": 3.183231456205249e-12
+        },
+        {
+          "count": 200,
+          "hz": 120,
+          "maxDecisions": 39,
+          "firstDecisionFrames": 30,
+          "firstAvoidanceFrames": 30,
+          "integrationError": 2.5920599000528455e-11
+        }
+      ]
+    },
+    {
+      "name": "immediate target death, body change, knockback, disable and current-geometry sweep",
+      "passed": true
+    },
+    {
+      "name": "soft deadline yields, work caps hold, cancelled jobs cannot publish and mixed requests settle",
+      "passed": true,
+      "details": {
+        "frames": 4,
+        "used": 32,
+        "jobs": {
+          "queued": 5,
+          "completed": 4,
+          "cancelled": 1,
+          "coalesced": 0,
+          "refused": 0,
+          "slices": 5,
+          "lastSliceWork": 1525,
+          "totalWork": 5062,
+          "lastSliceMs": 1.018000000000029,
+          "deadlineStops": 2
+        },
+        "peakBytes": 9780
+      }
+    }
+  ]
+}

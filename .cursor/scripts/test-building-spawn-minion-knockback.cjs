@@ -16,6 +16,7 @@ const nav = {
     constrainFinalVelocity() {}, worldSpeedForPhysicsVelocity(value) { return value * 32; },
     writePhysicsVelocity(value, out) { out.set(value.x / 32, value.y / 32); return out; },
     bodyForCollider() { return null; }, bodyForCircle() { return null; }, diagnosticSnapshot() { return null; },
+    minionPhase() { return 0; }, geometryVersion: 1, applyMinionAvoidance() {},
 };
 function ok(value, message) { assertions += 1; assert.ok(value, message); }
 function equal(actual, expected, message) { assertions += 1; assert.equal(actual, expected, message); }

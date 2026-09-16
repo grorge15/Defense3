@@ -131,8 +131,8 @@
       "passed": true,
       "details": {
         "enqueueFrame": 11,
-        "minionReadyFrame": 32,
-        "bossReadyFrame": 33,
+        "minionReadyFrame": 35,
+        "bossReadyFrame": 35,
         "schedulerWork": 93401
       }
     },
@@ -258,7 +258,10 @@
           "schedulerLastWork": 0,
           "coalescedGeometryChecks": 0,
           "incrementalCommits": 0,
-          "throttledFieldInvalidations": 0
+          "throttledFieldInvalidations": 0,
+          "minionAvoidanceUpdates": 0,
+          "avoidanceCandidateVisits": 11980100,
+          "minionAvoidanceMaxUsed": 0
         }
       }
     },
@@ -281,17 +284,17 @@
         ],
         "log": "actual readonly Log isAttackable/getPhase",
         "graphs": 2,
-        "fields": 6,
+        "fields": 4,
         "stats": {
           "visitedCells": 1856,
-          "candidates": 1998,
-          "hits": 1186,
+          "candidates": 1253,
+          "hits": 626,
           "misses": 2,
           "peakBytes": 23168,
           "peakEntries": 8,
-          "lineChecks": 30492,
-          "pointChecks": 125938,
-          "approachHits": 584
+          "lineChecks": 16402,
+          "pointChecks": 69528,
+          "approachHits": 307
         }
       }
     },

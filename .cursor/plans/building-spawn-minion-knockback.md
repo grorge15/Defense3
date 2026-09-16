@@ -1,7 +1,7 @@
 ---
 slug: building-spawn-minion-knockback
-版本: 3
-状态: replan
+版本: 5
+状态: draft
 创建: 2026-09-15
 ---
 
@@ -38,7 +38,7 @@ slug: building-spawn-minion-knockback
 - 【可写】`assets/scripts/core/GameConfig.ts` — 范围余量、速度、持续时间和衰减参数。
 - 【可写】`bugs.md` — 仅在全部机器校验通过后检索同题并按一问题一条记录；已有同题则追加版本。
 - 【可写】`.cursor/plans/building-spawn-minion-knockback.md` — 仅记录本次 replan 的失败门禁修复与结果，不扩大范围。
-- 【可写】`.cursor/scripts/test-expand-enemy-clear-area.cjs` — 仅为已基线存在的 `../core/AudioManager` 导入补充最小 mock/module-loader 条目；不得改场景替身、断言语义、测试场景或生产代码。
+- 【可写】`.cursor/scripts/test-expand-enemy-clear-area.cjs` — 仅补足既有 mock/module-loader 中本 harness 到达既有断言所必需的无副作用方法 mock；不得改场景替身、断言语义、测试场景或生产代码。
 - 【可写】`openspec/changes/building-spawn-minion-knockback/proposal.md`、`openspec/changes/building-spawn-minion-knockback/specs/building-spawn-minion-knockback/spec.md` — 仅在需求变更/replan 时同步。
 - 【可新建】`.cursor/scripts/test-building-spawn-minion-knockback.cjs` — 最小 Cocos 替身加载真实 TypeScript 模块，验证行为与生命周期，不得只断言源码文本。
 - 【可新建】`.cursor/plans/reports/building-spawn-minion-knockback-report.md` — 机器结果、AC、脏工作区归属、未做手测与 MCP 指标。
@@ -55,8 +55,8 @@ slug: building-spawn-minion-knockback
 - [x] T6：在 `BuildSystem` 提取仅生成时调用的私有帮助逻辑。对刚成功激活的 barracks/shrine，从有效启用 collider AABB 取得中心和范围；无 collider 时回退 root 世界中心与配置回退范围。仅扫描该实例 `node.scene` 的 `activeInHierarchy && !isDead` `EnemyMinion`，要求小怪 collider 有效、中心落入建筑 AABB 外扩范围，并排除与建筑 AABB 严格相交的初始嵌入小怪。其余对象按建筑中心到小怪 collider/world 中心的单位径向方向调用 API；零向量和无效 AABB 无操作。
 - [x] T7：在两条 spawn 路径将帮助逻辑置于成功 `instantiate` 且完成 `Barracks.activate()` / `HeroShrine.activate()` 后同步执行一次；不得在 `_onBuildComplete`、重复事件、延迟回调或每帧重复触发。保留 Boss 注册/首次生成、英雄选择初始化与导航失效的既有语义。
 - [x] T8：新增 focused harness，加载真实 `BuildSystem`/`EnemyMinion`，覆盖两类建筑各触发一次、same-scene/live/active 筛选、范围余量、AABB 中心/root 回退、径向方向、严格嵌入跳过、Boss 排除、零/无效 collider、无伤害/无 transform 写入、导航优先级、递减/恢复、重复刷新、死亡/disable/pool reset 清理，以及每个接受脉冲恰一次既有红色 HitFlash。测试观测刚体速度、HitFlash 与调用次数，不能只匹配字符串。
-- [ ] T9：仅在 `.cursor/scripts/test-expand-enemy-clear-area.cjs` 的 mock/module loader 中，为已基线存在的 `EnemyMinion.ts` `../core/AudioManager` 导入提供最小无副作用 `AudioManager` mock（含静态 `playSfx()` no-op）。不得改 production 文件、既有场景替身、断言、测试场景或行为语义；先单独重跑该 harness，确认从模块加载进入既有 scenarios。
-- [ ] T10：在 T9 通过后，严格依序运行 focused harness、受影响既有 build/physics regressions、TypeScript、OpenSpec strict、差异检查。全部机器 AC 通过后更新 `bugs.md` 并写报告；Creator AC-PLAY 仅补充，未运行不得声称通过。若任一门禁失败，记录首个失败命令和输出摘要后停止，不修改已完成 T1-T8 或游戏实现。
+- [ ] T9：仅在 `.cursor/scripts/test-expand-enemy-clear-area.cjs` 的既有 `EnemyNavigation` mock 中新增 `requestGeometryCheck()` no-op。先单独重跑该 harness；若同一运行在既有 `BuildSystem` 执行路径中暴露其他缺失方法，仅可在该同一 harness 的现有 mocks 中补充这些方法的 no-op，直至运行抵达其既有断言。不得新增生产实现、改变 mock 返回语义、场景替身、断言、测试场景或行为语义；不得以泛化代理、catch-all 或跳过路径掩盖缺失调用。
+- [ ] T10：在 T9 使既有扩展 harness 抵达并通过原有断言后，严格依序运行 focused harness、扩展 clear-area harness、受影响既有 build/physics regressions、TypeScript、OpenSpec strict、差异检查。全部机器 AC 通过后更新 `bugs.md` 并写报告；Creator AC-PLAY 仅补充，未运行不得声称通过。若任一门禁失败，记录首个失败命令和输出摘要后停止，不修改已完成 T1-T8、T9 已接受的 no-op mock 补全或游戏实现。
 
 ## 校验点
 - [AC-1] 每次 barracks 或 hero shrine 成功实例化并激活，恰在该 spawn 方法内同步触发一次候选扫描；失败实例化、缺失/失效建筑组件、无 scene 无副作用。两类建筑共用帮助逻辑。
@@ -64,7 +64,7 @@ slug: building-spawn-minion-knockback
 - [AC-3] 与建筑 collider AABB 严格相交的初始嵌入小怪不动；AABB 仅接触边界不视作嵌入。零径向、无效/零尺寸 AABB、无刚体、非有限输入无操作。
 - [AC-4] 有效小怪以建筑中心向外的单位方向获得短暂、单调递减的 Dynamic `RigidBody2D` 速度；期间导航/普通速度不可覆盖，结束后回归导航。每次接受脉冲恰触发一次既有红色 HitFlash。没有 HP、伤害、攻击目标、导航几何失效副作用，也没有 `setWorldPosition`/`setPosition`。
 - [AC-5] 第二次有效脉冲刷新方向与完整时长且速度有上界；死亡、禁用、pool reset 后状态清除，旧生命周期不会推动复用对象。
-- [AC-CHECK] T9 后，`node .cursor/scripts/test-expand-enemy-clear-area.cjs` 必须进入并通过其既有 scenarios（不得再因 `Unmocked import ../core/AudioManager` 失败）。随后严格依序执行 `node .cursor/scripts/test-building-spawn-minion-knockback.cjs`、`node .cursor/scripts/test-expand-enemy-clear-area.cjs`、`node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx --no-install tsc --noEmit --pretty false`、`npx openspec validate building-spawn-minion-knockback --type change --strict --no-interactive`、`git diff --check`，均退出 0。依赖不可用时报告须区分环境阻塞与新增失败，禁止下载依赖或改编译配置。
+- [AC-CHECK] T9 后，`node .cursor/scripts/test-expand-enemy-clear-area.cjs` 必须抵达并通过其既有 assertions；仅允许为同一 run 暴露的 pre-existing `BuildSystem` path 缺失方法增加显式 no-op mocks，不得改变任何断言或执行路径。随后严格依序执行 `node .cursor/scripts/test-building-spawn-minion-knockback.cjs`、`node .cursor/scripts/test-expand-enemy-clear-area.cjs`、`node .cursor/scripts/test-parkour-log-physics-driver.cjs`、`node .cursor/scripts/test-barracks-boss-hit-feedback.cjs`、`npx --no-install tsc --noEmit --pretty false`、`npx openspec validate building-spawn-minion-knockback --type change --strict --no-interactive`、`git diff --check`，均退出 0。依赖不可用时报告须区分环境阻塞与新增失败，禁止下载依赖或改编译配置。
 - [AC-PLAY] 在 Creator 分别建造兵营和英雄碑：邻近非嵌入小怪仅被推离一次且快速恢复追击；Boss 不动，嵌入小怪不被纠正，重复建造刷新而非永久加速。该项不阻塞 done。
 - 纯脚本文档任务：MCP 前置门、`create-prefab-from-node`、`scene-save`、`post-scene-save.ps1`、`verify-mcp-gate.ps1`、AC-P3、AC-EDITOR-MCP 均不适用。若发现必须改 prefab/scene，立即停止并 replan；不得绕过 MCP 或手写资源。
 
@@ -72,6 +72,8 @@ slug: building-spawn-minion-knockback
 以 T1 工作区差异为基线，仅撤销本任务新增的 `BuildSystem`、`EnemyMinion`、`GameConfig`、focused harness、OpenSpec、`bugs.md` 条目和报告改动；不使用 `git reset --hard`、整文件 checkout 或覆盖其他任务修改。若范围、嵌入判定或速度单位口径变化，先修订本计划与 OpenSpec，版本加一，只调整未通过 todo/AC 并保留已通过证据。
 
 ## 修订记录
+- v5（2026-09-15）：仅重规划 v4 遗留的 test-harness 阻塞。T9 改为在既有 `EnemyNavigation` mock 增加 `requestGeometryCheck()` no-op；仅当同一次既有 `BuildSystem` 执行暴露额外缺失方法时，允许在该 harness 内增加显式 no-op mock，直至既有断言。T10 续跑完整严格有序门禁。T1-T8、已接受 AC、生产游戏实现和 OpenSpec 均不变。
+- v4（2026-09-15）：仅解除 v3 中剩余的既有扩展回归 harness loader 阻塞。允许在已添加的 `AudioManager` no-op mock 旁加入最小 `HitFlash.flash()` no-op mock，并续跑既有严格有序机器门禁；T1-T8、所有已接受行为 AC、生产游戏实现和 OpenSpec 均不变。
 - v3（2026-09-15）：仅解除已基线 `EnemyMinion` 的 `../core/AudioManager` 导入造成的既有扩展回归 harness loader 阻塞。允许最小无副作用 mock，并将 T9 拆为 loader 修复与严格有序的机器门禁续跑；T1-T8、已接受行为 AC、游戏实现范围和 OpenSpec 均不变。
 - v2（2026-09-15）：用户追加已接受建筑生成击退时一次既有红色 HitFlash；不新增资源、Prefab 或场景改动，并将其纳入 API、focused harness 与 AC-4。
 - v1（2026-09-15）：初始 draft。范围限定为 barracks/hero shrine 成功生成后的同场景 minion 单次速度击退；明确不处理初始 collider 嵌入、不影响 Boss、不用 transform，且不改资源。
